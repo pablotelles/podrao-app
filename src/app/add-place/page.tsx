@@ -8,14 +8,24 @@ import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/for
 import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
-import { Button, Input, Select, Badge, ProgressSteps, ToggleGroup } from '@/presentation/components/ui';
+import {
+  Button,
+  Input,
+  Select,
+  Badge,
+  ProgressSteps,
+  ToggleGroup,
+} from '@/presentation/components/ui';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 
 const LocationPickerMap = dynamic(
   () => import('@/presentation/components/maps/LocationPickerMap'),
-  { ssr: false, loading: () => <div className="h-[220px] w-full animate-pulse rounded-md bg-bg-subtle" /> },
+  {
+    ssr: false,
+    loading: () => <div className="h-[220px] w-full animate-pulse rounded-md bg-bg-subtle" />,
+  },
 );
 
 // Mapa de nome completo do estado (retornado pelo LocationIQ) para sigla
@@ -57,16 +67,18 @@ function toEstadoSigla(state: string): string {
 }
 
 // Options for the Select — value = sigla, label = full name
-const ESTADOS_OPTIONS = Object.entries(ESTADO_SIGLAS).map(([label, value]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label, 'pt'));
+const ESTADOS_OPTIONS = Object.entries(ESTADO_SIGLAS)
+  .map(([label, value]) => ({ value, label }))
+  .sort((a, b) => a.label.localeCompare(b.label, 'pt'));
 
 // Which form fields must be valid before advancing each step
 const STEP_FIELDS: (keyof CreatePlaceInput)[][] = [
   ['address', 'numero', 'cidade', 'estado', 'lat', 'lng'], // step 0
-  ['mealTypes'],                                  // step 1
-  ['name', 'establishmentType'],                  // step 2
-  ['cuisineTypes'],                               // step 3
-  ['priceBucket'],                               // step 4
-  [],                                             // step 5 (foto opcional)
+  ['mealTypes'], // step 1
+  ['name', 'establishmentType'], // step 2
+  ['cuisineTypes'], // step 3
+  ['priceBucket'], // step 4
+  [], // step 5 (foto opcional)
 ];
 
 const STEPS = ['Localização', 'Refeições', 'Estabelecimento', 'Cozinha', 'Preço', 'Foto'] as const;
@@ -114,16 +126,13 @@ export default function AddPlacePage() {
         const r = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
         const data = (await r.json()) as { address?: Record<string, string> };
         if (data.address) {
-          if (data.address.road)
-            setValue('address', data.address.road, { shouldValidate: true });
+          if (data.address.road) setValue('address', data.address.road, { shouldValidate: true });
           if (data.address.house_number)
             setValue('numero', data.address.house_number, { shouldValidate: true });
-          if (data.address.city)
-            setValue('cidade', data.address.city, { shouldValidate: true });
+          if (data.address.city) setValue('cidade', data.address.city, { shouldValidate: true });
           if (data.address.state)
             setValue('estado', toEstadoSigla(data.address.state), { shouldValidate: true });
-          if (data.address.neighbourhood)
-            setValue('bairro', data.address.neighbourhood);
+          if (data.address.neighbourhood) setValue('bairro', data.address.neighbourhood);
         }
       } catch (e) {
         console.error('[add-place] Erro no reverse geocoding:', e);
@@ -252,7 +261,9 @@ export default function AddPlacePage() {
               value={cuisineTypes}
               onChange={(v) => setValue('cuisineTypes', v)}
             />
-            {errors.cuisineTypes && <p className="text-xs text-error">{errors.cuisineTypes.message}</p>}
+            {errors.cuisineTypes && (
+              <p className="text-xs text-error">{errors.cuisineTypes.message}</p>
+            )}
           </div>
         )}
 
@@ -299,7 +310,7 @@ export default function AddPlacePage() {
               className="flex-1"
               onClick={async () => {
                 const fields = STEP_FIELDS[step];
-                const valid = fields.length === 0 || await trigger(fields);
+                const valid = fields.length === 0 || (await trigger(fields));
                 if (valid) setStep(step + 1);
               }}
             >

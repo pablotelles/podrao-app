@@ -26,7 +26,7 @@ import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews
 const placeRepository = new SupabasePlaceRepository();
 const reviewRepository = new SupabaseReviewRepository();
 const userRepository = new SupabaseUserRepository();
-const cacheProvider: ICacheProvider =
+export const cacheProvider: ICacheProvider =
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
     ? new UpstashCacheProvider()
     : new NullCacheProvider();

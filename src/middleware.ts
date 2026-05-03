@@ -21,14 +21,14 @@ export async function middleware(request: NextRequest) {
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const isProtected =
     request.nextUrl.pathname.startsWith('/add-place') ||
     request.nextUrl.pathname.startsWith('/profile');
 
-  if (isProtected && !session) {
+  if (isProtected && !user) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

@@ -16,7 +16,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label htmlFor={fieldId} className="text-sm font-medium text-text-primary">
             {label}
-            {props.required && <span className="ml-1 text-error" aria-hidden="true">*</span>}
+            {props.required && (
+              <span className="ml-1 text-error" aria-hidden="true">
+                *
+              </span>
+            )}
           </label>
         )}
         <textarea
@@ -33,7 +37,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             className,
           ].join(' ')}
           aria-invalid={error ? 'true' : undefined}
-          aria-describedby={error ? `${fieldId}-error` : helperText ? `${fieldId}-helper` : undefined}
+          aria-describedby={
+            error ? `${fieldId}-error` : helperText ? `${fieldId}-helper` : undefined
+          }
           {...props}
         />
         {error && (

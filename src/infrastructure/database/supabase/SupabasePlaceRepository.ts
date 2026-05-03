@@ -4,6 +4,7 @@ import type { CreatePlaceData, SearchPlacesParams } from '@/domain/interfaces/sh
 import type { CuisineType } from '@/domain/value-objects/CuisineType';
 import type { MealType } from '@/domain/value-objects/MealType';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
 
 interface PlaceRow {
@@ -61,15 +62,17 @@ function toDomain(row: PlaceRow): Place {
 }
 
 export class SupabasePlaceRepository implements IPlaceRepository {
+  constructor(private readonly db: SupabaseClient = supabase) {}
+
   async findById(id: string): Promise<Place | null> {
-    const { data, error } = await supabase.from('places').select('*').eq('id', id).single();
+    const { data, error } = await this.db.from('places').select('*').eq('id', id).single();
 
     if (error || !data) return null;
     return toDomain(data as PlaceRow);
   }
 
   async searchNearby(params: SearchPlacesParams): Promise<Place[]> {
-    const { data, error } = await supabase.rpc('search_nearby_places', {
+    const { data, error } = await this.db.rpc('search_nearby_places', {
       p_lat: params.lat,
       p_lng: params.lng,
       p_radius_m: params.radiusMeters ?? 3000,
@@ -85,7 +88,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   }
 
   async create(data: CreatePlaceData): Promise<Place> {
-    const { data: row, error } = await supabase
+    const { data: row, error } = await this.db
       .from('places')
       .insert({
         name: data.name,
@@ -129,7 +132,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     if (data.priceBucket) patch.price_bucket = data.priceBucket;
     if (data.photoUrl !== undefined) patch.photo_url = data.photoUrl;
 
-    const { data: row, error } = await supabase
+    const { data: row, error } = await this.db
       .from('places')
       .update(patch)
       .eq('id', id)
@@ -141,13 +144,13 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   }
 
   async updateStatus(id: string, status: PlaceStatus): Promise<void> {
-    const { error } = await supabase.from('places').update({ status }).eq('id', id);
+    const { error } = await this.db.from('places').update({ status }).eq('id', id);
 
     if (error) throw new Error(error.message);
   }
 
   async saveEmbedding(id: string, embedding: number[]): Promise<void> {
-    const { error } = await supabase.from('places').update({ embedding }).eq('id', id);
+    const { error } = await this.db.from('places').update({ embedding }).eq('id', id);
 
     if (error) throw new Error(error.message);
   }

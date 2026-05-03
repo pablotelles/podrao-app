@@ -24,9 +24,7 @@ interface ToggleGroupMultiProps<T extends string> {
   className?: string;
 }
 
-type ToggleGroupProps<T extends string> =
-  | ToggleGroupSingleProps<T>
-  | ToggleGroupMultiProps<T>;
+type ToggleGroupProps<T extends string> = ToggleGroupSingleProps<T> | ToggleGroupMultiProps<T>;
 
 /**
  * Pill toggle group — single or multi select.
@@ -56,11 +54,7 @@ export function ToggleGroup<T extends string>({
       onChange(value === option ? undefined : option);
     } else {
       const { value, onChange } = rest as ToggleGroupMultiProps<T>;
-      onChange(
-        value.includes(option)
-          ? value.filter((v) => v !== option)
-          : [...value, option],
-      );
+      onChange(value.includes(option) ? value.filter((v) => v !== option) : [...value, option]);
     }
   }
 

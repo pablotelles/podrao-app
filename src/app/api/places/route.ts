@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchNearbyPlaces, createPlace } from '@/presentation/lib/container';
+import { searchNearbyPlaces, cacheProvider } from '@/presentation/lib/container';
 import { searchPlacesSchema, createPlaceSchema } from '@/presentation/lib/schemas/placeSchema';
-import { errorResponse, getSession } from '@/presentation/lib/api-helpers';
+import { createRouteSupabaseClient, errorResponse } from '@/presentation/lib/api-helpers';
 import { UnauthorizedError } from '@/application/errors/UnauthorizedError';
+import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
+import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
+import { createAdminClient } from '@/infrastructure/database/supabase/client';
 
 export async function GET(req: NextRequest) {
   try {
     const params = Object.fromEntries(req.nextUrl.searchParams);
     const parsed = searchPlacesSchema.safeParse(params);
     if (!parsed.success)
-      return NextResponse.json({ error: parsed.error.flatten(), code: 'VALIDATION_ERROR' }, { status: 400 });
+      return NextResponse.json(
+        { error: parsed.error.flatten(), code: 'VALIDATION_ERROR' },
+        { status: 400 },
+      );
 
     const { lat, lng, radius, meal, cuisine, maxPrice, limit, offset } = parsed.data;
     const places = await searchNearbyPlaces.execute({
@@ -31,15 +37,29 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) throw new UnauthorizedError();
+    // 1. Validar autenticação com client normal (lê cookies)
+    const supabase = await createRouteSupabaseClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) throw new UnauthorizedError();
+
+    // 2. Usar admin client para bypass de RLS (seguro pois já validamos auth)
+    const adminClient = createAdminClient();
+    const placeRepository = new SupabasePlaceRepository(adminClient);
+    const createPlace = new CreatePlace(placeRepository, cacheProvider);
 
     const body = await req.json();
     const parsed = createPlaceSchema.safeParse(body);
     if (!parsed.success)
-      return NextResponse.json({ error: parsed.error.flatten(), code: 'VALIDATION_ERROR' }, { status: 400 });
+      return NextResponse.json(
+        { error: parsed.error.flatten(), code: 'VALIDATION_ERROR' },
+        { status: 400 },
+      );
 
-    const place = await createPlace.execute({ ...parsed.data, createdBy: session.user.id });
+    const place = await createPlace.execute({ ...parsed.data, createdBy: user.id });
     return NextResponse.json(place, { status: 201 });
   } catch (err) {
     return errorResponse(err);

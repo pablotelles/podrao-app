@@ -47,4 +47,3 @@ export function PlaceList({ places, isLoading, error }: PlaceListProps) {
     </div>
   );
 }
-

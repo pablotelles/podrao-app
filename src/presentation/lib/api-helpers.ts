@@ -20,9 +20,9 @@ export function errorResponse(err: unknown): NextResponse {
   return NextResponse.json({ error: 'Erro interno', code: 'INTERNAL_ERROR' }, { status: 500 });
 }
 
-export async function getSession() {
+export async function createRouteSupabaseClient() {
   const cookieStore = await cookies();
-  const supabase = createServerClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)!,
@@ -34,8 +34,15 @@ export async function getSession() {
       },
     },
   );
+}
+
+export async function getSession() {
+  const supabase = await createRouteSupabaseClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return session;
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) return null;
+  return { user };
 }

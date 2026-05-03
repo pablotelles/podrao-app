@@ -24,18 +24,14 @@ export function ReviewList({ reviews }: ReviewListProps) {
             <span className="text-lg" aria-label={r.thumbsUp ? 'Recomendado' : 'Não recomendado'}>
               {r.thumbsUp ? '👍' : '👎'}
             </span>
-            {r.mealType && (
-              <span className="text-xs text-text-secondary">{r.mealType}</span>
-            )}
+            {r.mealType && <span className="text-xs text-text-secondary">{r.mealType}</span>}
             {r.amountPaid !== undefined && (
               <span className="ml-auto text-xs font-medium text-text-primary">
                 R$ {r.amountPaid.toFixed(2)}
               </span>
             )}
           </div>
-          {r.comment && (
-            <p className="mt-1 text-sm text-text-primary">{r.comment}</p>
-          )}
+          {r.comment && <p className="mt-1 text-sm text-text-primary">{r.comment}</p>}
           <p className="mt-1 text-xs text-text-disabled">
             {new Date(r.createdAt).toLocaleDateString('pt-BR')}
           </p>
@@ -44,4 +40,3 @@ export function ReviewList({ reviews }: ReviewListProps) {
     </ul>
   );
 }
-

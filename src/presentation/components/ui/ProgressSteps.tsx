@@ -1,5 +1,5 @@
 interface ProgressStepsProps {
-  currentStep: number;   // 0-based
+  currentStep: number; // 0-based
   totalSteps: number;
   labels?: readonly string[];
 }
@@ -13,7 +13,13 @@ export function ProgressSteps({ currentStep, totalSteps, labels }: ProgressSteps
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-1" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps}>
+      <div
+        className="flex gap-1"
+        role="progressbar"
+        aria-valuenow={currentStep + 1}
+        aria-valuemin={1}
+        aria-valuemax={totalSteps}
+      >
         {steps.map((i) => (
           <div
             key={i}

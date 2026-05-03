@@ -34,6 +34,8 @@ export default function PlaceMap({
 }: PlaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import('leaflet').Map | null>(null);
+  const userMarkerRef = useRef<import('leaflet').Marker | null>(null);
+  const placeMarkersRef = useRef<import('leaflet').Marker[]>([]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -67,7 +69,7 @@ export default function PlaceMap({
       // Marcador da posição do usuário
       if (userLat && userLng) {
         const userIcon = L.divIcon({
-          className: '',
+          className: 'user-location-marker',
           html: `<div style="
             width:14px;height:14px;
             background:var(--color-brand,#f97316);
@@ -78,7 +80,10 @@ export default function PlaceMap({
           iconSize: [14, 14],
           iconAnchor: [7, 7],
         });
-        L.marker([userLat, userLng], { icon: userIcon }).addTo(map).bindPopup('Você está aqui');
+        const userMarker = L.marker([userLat, userLng], { icon: userIcon })
+          .addTo(map)
+          .bindPopup('Você está aqui');
+        userMarkerRef.current = userMarker;
       }
 
       mapRef.current = map;
@@ -87,6 +92,8 @@ export default function PlaceMap({
     return () => {
       mapRef.current?.remove();
       mapRef.current = null;
+      userMarkerRef.current = null;
+      placeMarkersRef.current = [];
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // monta uma vez
@@ -97,17 +104,13 @@ export default function PlaceMap({
     if (!map) return;
 
     import('leaflet').then((L) => {
-      // Remove layers de markers anteriores (não o tile nem o userMarker)
-      map.eachLayer((layer) => {
-        if (layer instanceof L.Marker) {
-          // Mantém o marcador do usuário (sem popup de place)
-          const popup = layer.getPopup();
-          if (popup && popup.getContent() !== 'Você está aqui') {
-            map.removeLayer(layer);
-          }
-        }
-      });
+      // Remove apenas os marcadores de lugares antigos
+      for (const marker of placeMarkersRef.current) {
+        map.removeLayer(marker);
+      }
+      placeMarkersRef.current = [];
 
+      // Cria novos marcadores para cada lugar
       for (const place of places) {
         const marker = L.marker([place.lat, place.lng])
           .addTo(map)
@@ -121,6 +124,8 @@ export default function PlaceMap({
         if (onPlaceClick) {
           marker.on('click', () => onPlaceClick(place));
         }
+
+        placeMarkersRef.current.push(marker);
       }
 
       // Ajusta bounds para mostrar todos os lugares
