@@ -68,6 +68,7 @@ export class LocationIQMapProvider implements IMapProvider {
       displayName: data.display_name,
       address: {
         road: data.address?.road,
+        house_number: data.address?.house_number,
         neighbourhood: data.address?.neighbourhood ?? data.address?.suburb,
         city: data.address?.city ?? data.address?.town,
         state: data.address?.state,

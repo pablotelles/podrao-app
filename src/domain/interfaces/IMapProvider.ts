@@ -15,6 +15,7 @@ export interface ReverseGeocodingResult {
   displayName: string;
   address?: {
     road?: string;
+    house_number?: string;
     neighbourhood?: string;
     city?: string;
     state?: string;

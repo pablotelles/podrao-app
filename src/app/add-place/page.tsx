@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/forms/place/schema';
 import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
@@ -11,6 +12,11 @@ import { Button, Input, Select, Badge, ProgressSteps, ToggleGroup } from '@/pres
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
+
+const LocationPickerMap = dynamic(
+  () => import('@/presentation/components/maps/LocationPickerMap'),
+  { ssr: false, loading: () => <div className="h-[220px] w-full animate-pulse rounded-md bg-bg-subtle" /> },
+);
 
 // Mapa de nome completo do estado (retornado pelo LocationIQ) para sigla
 const ESTADO_SIGLAS: Record<string, string> = {
@@ -96,6 +102,46 @@ export default function AddPlacePage() {
 
   const mealTypes = watch('mealTypes') ?? [];
   const cuisineTypes = watch('cuisineTypes') ?? [];
+  const formLat = watch('lat');
+  const formLng = watch('lng');
+  const hasLocation = typeof formLat === 'number' && typeof formLng === 'number';
+
+  // Faz reverse geocoding e preenche todos os campos de endereço
+  const applyReverseGeocode = useCallback(
+    async (lat: number, lng: number) => {
+      setGeocoding(true);
+      try {
+        const r = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
+        const data = (await r.json()) as { address?: Record<string, string> };
+        if (data.address) {
+          if (data.address.road)
+            setValue('address', data.address.road, { shouldValidate: true });
+          if (data.address.house_number)
+            setValue('numero', data.address.house_number, { shouldValidate: true });
+          if (data.address.city)
+            setValue('cidade', data.address.city, { shouldValidate: true });
+          if (data.address.state)
+            setValue('estado', toEstadoSigla(data.address.state), { shouldValidate: true });
+          if (data.address.neighbourhood)
+            setValue('bairro', data.address.neighbourhood);
+        }
+      } catch (e) {
+        console.error('[add-place] Erro no reverse geocoding:', e);
+      } finally {
+        setGeocoding(false);
+      }
+    },
+    [setValue],
+  );
+
+  const handleLocationChange = useCallback(
+    (lat: number, lng: number) => {
+      setValue('lat', lat, { shouldValidate: true });
+      setValue('lng', lng, { shouldValidate: true });
+      void applyReverseGeocode(lat, lng);
+    },
+    [setValue, applyReverseGeocode],
+  );
 
   async function onSubmit(data: CreatePlaceInput) {
     let photoUrl: string | undefined;
@@ -110,26 +156,11 @@ export default function AddPlacePage() {
   // Quando o GPS responder, seta lat/lng e faz reverse geocoding para preencher endereço
   useEffect(() => {
     if (!geo.lat || !geo.lng) return;
-
-    console.log('[add-place] GPS capturado:', { lat: geo.lat, lng: geo.lng });
     setValue('lat', geo.lat, { shouldValidate: true });
     setValue('lng', geo.lng, { shouldValidate: true });
-
-    setGeocoding(true);
-    fetch(`/api/geocode/reverse?lat=${geo.lat}&lng=${geo.lng}`)
-      .then((r) => r.json())
-      .then((data) => {
-        console.log('[add-place] Endereço retornado:', data);
-        if (data.address) {
-          if (data.address.road) setValue('address', data.address.road, { shouldValidate: true });
-          if (data.address.city) setValue('cidade', data.address.city, { shouldValidate: true });
-          if (data.address.state) setValue('estado', toEstadoSigla(data.address.state), { shouldValidate: true });
-          if (data.address.neighbourhood) setValue('bairro', data.address.neighbourhood);
-        }
-      })
-      .catch((e) => console.error('[add-place] Erro no reverse geocoding:', e))
-      .finally(() => setGeocoding(false));
-  }, [geo.lat, geo.lng, setValue]);
+    void applyReverseGeocode(geo.lat, geo.lng);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geo.lat, geo.lng]);
 
   return (
     <main className="mx-auto max-w-lg px-(--spacing-page-x) pb-24 pt-6">
@@ -161,6 +192,15 @@ export default function AddPlacePage() {
               </p>
             )}
             {geo.error && <p className="text-xs text-error">{geo.error}</p>}
+
+            {hasLocation && (
+              <LocationPickerMap
+                lat={formLat}
+                lng={formLng}
+                onLocationChange={handleLocationChange}
+              />
+            )}
+
             <Input label="Endereço" error={errors.address?.message} {...register('address')} />
             <div className="grid grid-cols-2 gap-3">
               <Input label="Número" error={errors.numero?.message} {...register('numero')} />
