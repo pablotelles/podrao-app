@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const place = await getPlaceById.execute(id);
     if (!place) throw new PlaceNotFoundError(id);
-    if (place.createdBy !== session.user.id)
+    if (place.createdBy !== session.id)
       throw new UnauthorizedError('Sem permissão para editar este lugar');
 
     // Se estiver atualizando foto, gerenciar place_photos table

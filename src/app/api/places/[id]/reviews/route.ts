@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const review = await submitReview.execute({
       ...parsed.data,
       placeId: id,
-      userId: session.user.id,
+      userId: session.id,
     });
     return NextResponse.json(review, { status: 201 });
   } catch (err) {

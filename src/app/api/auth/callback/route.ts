@@ -1,40 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const code = searchParams.get('code'); // PKCE flow (novo padrão)
-  const tokenHash = searchParams.get('token_hash'); // OTP flow (legado)
-  const type = searchParams.get('type'); // signup | magiclink | email
+  const code      = searchParams.get('code');       // PKCE flow
+  const tokenHash = searchParams.get('token_hash'); // OTP flow
+  const type      = searchParams.get('type');
 
-  const cookieStore = await cookies();
+  const successUrl = new URL('/', req.url);
+  const errorUrl   = new URL('/login?error=expired_link', req.url);
+
+  // A response é criada antes — cookies serão setadas NELA, não em cookieStore
+  const response = NextResponse.redirect(successUrl);
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)!,
     {
       cookies: {
-        getAll: () => cookieStore.getAll(),
+        getAll: () => req.cookies.getAll(),
         setAll: (list) =>
-          list.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+          list.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          ),
       },
     },
   );
 
-  // Fluxo 1: PKCE — Supabase verifica o token internamente e manda um `code`
+  // Fluxo PKCE (padrão mais recente do Supabase)
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return NextResponse.redirect(new URL('/login?error=expired_link', req.url));
-    return NextResponse.redirect(new URL('/', req.url));
+    if (error) return NextResponse.redirect(errorUrl);
+    return response;
   }
 
-  // Fluxo 2: OTP direto via token_hash (signup, magiclink ou email são todos válidos)
+  // Fluxo OTP / magic link
   if (tokenHash && type) {
-    const otpType = type === 'signup' || type === 'magiclink' ? 'email' : (type as 'email');
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: otpType });
-    if (error) return NextResponse.redirect(new URL('/login?error=expired_link', req.url));
-    return NextResponse.redirect(new URL('/', req.url));
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: type as 'email',
+    });
+    if (error) return NextResponse.redirect(errorUrl);
+    return response;
   }
 
   return NextResponse.redirect(new URL('/login?error=invalid_link', req.url));

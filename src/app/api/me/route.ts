@@ -9,10 +9,7 @@ export async function GET() {
     const session = await getSession();
     if (!session) throw new UnauthorizedError();
 
-    const userId = (session as { id?: string } & Record<string, unknown>).id
-      ?? (session as { user: { id: string } }).user?.id;
-
-    const user = await userRepository.findById(userId as string);
+    const user = await userRepository.findById(session.id);
     if (!user) throw new UnauthorizedError();
 
     return NextResponse.json(user);
@@ -42,10 +39,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const userId = (session as { id?: string } & Record<string, unknown>).id
-      ?? (session as { user: { id: string } }).user?.id;
-
-    const user = await updateProfile.execute({ userId: userId as string, ...parsed.data });
+    const user = await updateProfile.execute({ userId: session.id, ...parsed.data });
     return NextResponse.json(user);
   } catch (err) {
     return errorResponse(err);
