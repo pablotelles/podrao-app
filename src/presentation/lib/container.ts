@@ -11,6 +11,8 @@ import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
 import { SupabaseStorageProvider } from '@/infrastructure/storage/SupabaseStorageProvider';
 import { LocationIQMapProvider } from '@/infrastructure/maps/LocationIQMapProvider';
 import { OpenAIEmbeddingProvider } from '@/infrastructure/ai/OpenAIEmbeddingProvider';
+import { NullEmbeddingProvider } from '@/infrastructure/ai/NullEmbeddingProvider';
+import type { IEmbeddingProvider } from '@/domain/interfaces/IEmbeddingProvider';
 
 import { SearchNearbyPlaces } from '@/application/use-cases/places/SearchNearbyPlaces';
 import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
@@ -30,7 +32,10 @@ const cacheProvider: ICacheProvider =
     : new NullCacheProvider();
 const storageProvider = new SupabaseStorageProvider();
 const mapProvider = new LocationIQMapProvider(process.env.LOCATIONIQ_API_KEY!);
-const embeddingProvider = new OpenAIEmbeddingProvider(process.env.OPENAI_API_KEY ?? '');
+// Embedding desativado no MVP — ativa quando OPENAI_API_KEY estiver configurada
+const embeddingProvider: IEmbeddingProvider = process.env.OPENAI_API_KEY
+  ? new OpenAIEmbeddingProvider(process.env.OPENAI_API_KEY)
+  : new NullEmbeddingProvider();
 
 // --- Use Cases ---
 export const searchNearbyPlaces = new SearchNearbyPlaces(placeRepository, cacheProvider);
