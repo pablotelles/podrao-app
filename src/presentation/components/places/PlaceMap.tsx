@@ -32,8 +32,15 @@ export default function PlaceMap({
   height = '100%',
   onPlaceClick,
 }: PlaceMapProps) {
-  console.log('[PlaceMap] Render - places.length:', places.length, 'userLat:', userLat, 'userLng:', userLng);
-  
+  console.log(
+    '[PlaceMap] Render - places.length:',
+    places.length,
+    'userLat:',
+    userLat,
+    'userLng:',
+    userLng,
+  );
+
   const mapId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import('leaflet').Map | null>(null);
@@ -43,8 +50,13 @@ export default function PlaceMap({
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    console.log('[PlaceMap] useEffect init - containerRef.current:', !!containerRef.current, 'mapRef.current:', !!mapRef.current);
-    
+    console.log(
+      '[PlaceMap] useEffect init - containerRef.current:',
+      !!containerRef.current,
+      'mapRef.current:',
+      !!mapRef.current,
+    );
+
     if (!containerRef.current) return;
     if (mapRef.current) return; // já inicializado
     if (isInitializingRef.current) return; // está inicializando
@@ -133,13 +145,20 @@ export default function PlaceMap({
 
   // Atualiza markers quando places muda OU quando o mapa fica pronto
   useEffect(() => {
-    console.log('[PlaceMap] useEffect markers - mapReady:', mapReady, 'mapRef.current:', !!mapRef.current, 'places.length:', places.length);
-    
+    console.log(
+      '[PlaceMap] useEffect markers - mapReady:',
+      mapReady,
+      'mapRef.current:',
+      !!mapRef.current,
+      'places.length:',
+      places.length,
+    );
+
     if (!mapReady) {
       console.log('[PlaceMap] Aguardando mapa ficar pronto...');
       return;
     }
-    
+
     const map = mapRef.current;
     if (!map) {
       console.log('[PlaceMap] Map ainda não inicializado, pulando atualização de marcadores');
@@ -147,7 +166,7 @@ export default function PlaceMap({
     }
 
     console.log('[PlaceMap] Places recebidos:', places.length);
-    places.forEach(p => console.log(`  - ${p.name}: lat=${p.lat}, lng=${p.lng}`));
+    places.forEach((p) => console.log(`  - ${p.name}: lat=${p.lat}, lng=${p.lng}`));
 
     import('leaflet').then((L) => {
       // Remove apenas os marcadores de lugares antigos

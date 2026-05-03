@@ -38,17 +38,13 @@ export function PhotoUploadButton({ placeId, hasPhoto }: PhotoUploadButtonProps)
         className="hidden"
         disabled={uploading}
       />
-      
+
       <Button
         variant="secondary"
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
       >
-        {uploading
-          ? 'Enviando...'
-          : hasPhoto
-            ? '📷 Alterar foto'
-            : '📷 Adicionar foto'}
+        {uploading ? 'Enviando...' : hasPhoto ? '📷 Alterar foto' : '📷 Adicionar foto'}
       </Button>
 
       {selectedFile && <Badge variant="brand">{selectedFile.name}</Badge>}

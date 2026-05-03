@@ -23,12 +23,14 @@ export default async function PlaceDetailPage({ params }: Props) {
     const supabase = await createRouteSupabaseClient();
     const placeRepository = new SupabasePlaceRepository(supabase);
     const reviewRepository = new SupabaseReviewRepository(supabase);
-    
+
     const getPlaceById = new GetPlaceById(placeRepository);
     const getPlaceReviews = new GetPlaceReviews(reviewRepository, placeRepository);
 
     // Pegar dados do usuário logado (se houver)
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const [place, reviews] = await Promise.all([
       getPlaceById.execute(id),
@@ -47,17 +49,25 @@ export default async function PlaceDetailPage({ params }: Props) {
 
         <div className="px-(--spacing-page-x) pt-5">
           <h1 className="text-2xl font-bold text-text-primary">{place.name}</h1>
-          <p className="mt-1 text-sm text-text-secondary">{place.address}{place.bairro ? `, ${place.bairro}` : ''}</p>
+          <p className="mt-1 text-sm text-text-secondary">
+            {place.address}
+            {place.bairro ? `, ${place.bairro}` : ''}
+          </p>
 
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="brand">{PRICE_BUCKET_LABELS[place.priceBucket]}</Badge>
-            {place.mealTypes.map((m) => <Badge key={m}>{m}</Badge>)}
-            {place.cuisineTypes.map((c) => <Badge key={c}>{c}</Badge>)}
+            {place.mealTypes.map((m) => (
+              <Badge key={m}>{m}</Badge>
+            ))}
+            {place.cuisineTypes.map((c) => (
+              <Badge key={c}>{c}</Badge>
+            ))}
           </div>
 
           {place.reviewsCount > 0 && (
             <p className="mt-3 text-sm text-text-secondary">
-              <span className="text-warning">★</span> {place.rating.toFixed(1)} · {place.reviewsCount} avaliações
+              <span className="text-warning">★</span> {place.rating.toFixed(1)} ·{' '}
+              {place.reviewsCount} avaliações
               {place.medianPrice && ` · Mediana R$${place.medianPrice.toFixed(2)}`}
             </p>
           )}

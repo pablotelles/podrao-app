@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:policies": "node scripts/apply-policies.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

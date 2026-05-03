@@ -13,6 +13,8 @@ npm run typecheck    # tsc --noEmit (run before every commit)
 npm run lint         # next lint
 npm run format       # prettier --write .
 npm run format:check # prettier --check .
+npm run db:migrate   # apply schema migrations (run once per migration)
+npm run db:policies  # apply RLS policies (idempotent, run anytime)
 ```
 
 **Pre-commit ritual** (mandatory): `npm run typecheck && npm run format:check`
@@ -44,14 +46,14 @@ To swap an infrastructure provider (e.g., replace LocationIQ with Mapbox): creat
 
 ### Key interfaces (domain/interfaces/)
 
-| Interface | Purpose |
-|---|---|
-| `IPlaceRepository` | Geo search + CRUD for places (extends `IPlaceReader` + `IPlaceWriter`) |
-| `IReviewRepository` | Review CRUD; enforces one-review-per-user |
-| `ICacheProvider` | Generic KV cache with TTL and pattern deletion |
-| `IMapProvider` | Geocoding, reverse geocoding, static map URL, tile template |
-| `IStorageProvider` | File upload/delete (Supabase Storage) |
-| `IEmbeddingProvider` | Text → float[] for semantic search (OpenAI, pós-MVP) |
+| Interface            | Purpose                                                                |
+| -------------------- | ---------------------------------------------------------------------- |
+| `IPlaceRepository`   | Geo search + CRUD for places (extends `IPlaceReader` + `IPlaceWriter`) |
+| `IReviewRepository`  | Review CRUD; enforces one-review-per-user                              |
+| `ICacheProvider`     | Generic KV cache with TTL and pattern deletion                         |
+| `IMapProvider`       | Geocoding, reverse geocoding, static map URL, tile template            |
+| `IStorageProvider`   | File upload/delete (Supabase Storage)                                  |
+| `IEmbeddingProvider` | Text → float[] for semantic search (OpenAI, pós-MVP)                   |
 
 ### Geo search
 
@@ -65,6 +67,7 @@ Cache keys for geo results are built by rounding lat/lng to 3 decimal places (~1
 All colors, spacing, and radii are CSS custom properties defined in `src/app/globals.css` under `:root`. Tailwind v4 `@theme` block maps those tokens to utility classes (`bg-brand`, `text-text-secondary`, `rounded-md`). Components use CVA (`class-variance-authority`) for type-safe variants. **No hex values or hardcoded numbers in component files.**
 
 **Tailwind v4 class syntax rules:**
+
 - Token defined in `@theme` → use generated utility: `text-text-primary`, `bg-brand-subtle`, `rounded-lg`
 - CSS var NOT in `@theme` → use shorthand: `shadow-(--shadow-card)`, `px-(--spacing-page-x)`
 - Never write `[var(--...)]` — always use one of the two forms above
@@ -92,10 +95,42 @@ Service worker is at `src/sw.ts` and compiled with a separate `tsconfig.sw.json`
 
 ### Database
 
-Supabase (Postgres + PostGIS + pgvector). Migrations are plain SQL files in `src/infrastructure/database/migrations/`. The `places` table has:
+Supabase (Postgres + PostGIS + pgvector). The `places` table has:
+
 - `location GEOGRAPHY(POINT, 4326)` — used by PostGIS for accurate meter-based distance
 - `lat` / `lng` as numeric columns — redundant for simple queries that don't need PostGIS
 - `embedding vector(1536)` — NULL during MVP, populated pós-MVP for semantic search
+
+#### Migrations vs Policies
+
+**Migrations** (`src/infrastructure/database/migrations/`):
+
+- Plain SQL files with timestamp prefix: `YYYYMMDDHHMMSS_description.sql`
+- Track schema changes: tables, columns, indexes, functions, triggers, buckets
+- Run once via `npm run db:migrate` — tracked in `_migrations` table
+- Immutable — never edit a migration that was already applied
+
+**Policies** (`src/infrastructure/database/policies/`):
+
+- Idempotent SQL files: `places.sql`, `reviews.sql`, `storage.sql`
+- Define RLS (Row-Level Security) policies for each resource
+- Can be edited and re-applied anytime via `npm run db:policies`
+- Use `DROP POLICY IF EXISTS` before `CREATE POLICY` for idempotency
+- **Never create migrations for policy changes** — edit the policy file directly
+
+Example workflow:
+
+```bash
+# Add a new column (migration)
+# Create: src/infrastructure/database/migrations/20260503120000_add_verified_column.sql
+npm run db:migrate
+
+# Update who can read places (policy)
+# Edit: src/infrastructure/database/policies/places.sql
+npm run db:policies
+```
+
+Why separate? Policies change frequently as features evolve. Migrations are append-only and track structural changes.
 
 ### AI (pós-MVP)
 
