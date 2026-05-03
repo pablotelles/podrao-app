@@ -1,0 +1,25 @@
+export const CUISINE_TYPES = [
+  'brasileira',
+  'japonesa',
+  'italiana',
+  'árabe',
+  'chinesa',
+  'mexicana',
+  'americana',
+  'portuguesa',
+  'francesa',
+  'indiana',
+  'peruana',
+  'vegana',
+  'vegetariana',
+  'frutos do mar',
+  'churrasco',
+  'pizza',
+  'sushi',
+  'fast food',
+  'padaria',
+  'doces',
+  'outras',
+] as const;
+
+export type CuisineType = (typeof CUISINE_TYPES)[number];

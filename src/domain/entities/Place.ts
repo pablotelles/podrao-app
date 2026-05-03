@@ -1,0 +1,30 @@
+import type { CuisineType } from '../value-objects/CuisineType';
+import type { MealType } from '../value-objects/MealType';
+import type { PriceBucket } from '../value-objects/PriceBucket';
+
+export type PlaceStatus = 'pending' | 'approved' | 'rejected';
+
+export interface Place {
+  id: string;
+  name: string;
+  address: string;
+  bairro?: string;
+  cidade: string;
+  estado: string;
+  lat: number;
+  lng: number;
+  establishmentType: string;
+  cuisineTypes: CuisineType[];
+  mealTypes: MealType[];
+  priceBucket: PriceBucket;
+  medianPrice?: number;
+  photoUrl?: string;
+  rating: number;
+  reviewsCount: number;
+  status: PlaceStatus;
+  createdBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  /** Distância em metros — preenchida nas buscas geográficas */
+  distanceM?: number;
+}
