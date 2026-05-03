@@ -32,13 +32,7 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<LeafletMarker[]>([]);
 
-  const {
-    center,
-    zoom = 13,
-    interactive = true,
-    onClick,
-    onMarkerDragEnd,
-  } = config;
+  const { center, zoom = 13, interactive = true, onClick, onMarkerDragEnd } = config;
 
   // Criar/atualizar mapa
   useEffect(() => {
@@ -88,7 +82,9 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
       }
 
       // Criar mapa pela primeira vez
-      const initialCenter = center || (markers[0] ? { lat: markers[0].lat, lng: markers[0].lng } : { lat: -23.55, lng: -46.63 });
+      const initialCenter =
+        center ||
+        (markers[0] ? { lat: markers[0].lat, lng: markers[0].lng } : { lat: -23.55, lng: -46.63 });
 
       const map = L.map(containerRef.current!, {
         center: [initialCenter.lat, initialCenter.lng],

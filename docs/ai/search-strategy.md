@@ -3,6 +3,7 @@
 ## Busca por filtros (MVP — ativa)
 
 RPC `search_nearby_places` no Supabase. Combina:
+
 - `ST_DWithin` para filtro geográfico (usa índice GIST)
 - Filtros opcionais: `meal_type`, `cuisine`, `max_price`
 - Ranking composto:
@@ -15,6 +16,7 @@ RPC `search_nearby_places` no Supabase. Combina:
 ## Busca semântica (pós-MVP)
 
 RPC `search_places_semantic`. Combina:
+
 - pgvector cosine distance (`<=>`) entre embedding da query e embeddings dos lugares
 - `ST_DWithin` para garantir relevância geográfica
 - Ranking: 60% semântica + 40% proximidade
@@ -34,6 +36,7 @@ Query do usuário
 ## Cache de resultados
 
 Chave: `places:{lat3}:{lng3}:{radiusM}:{mealType}:{cuisine}:{maxPrice}`
+
 - Coordenadas arredondadas a 3 casas decimais (~111m de célula)
 - TTL: 60s (11h–14h), 300s (demais horários), 600s (noite)
 - Invalidação: ao aprovar novo lugar, deletar padrão `places:{lat3}:{lng3}:*`

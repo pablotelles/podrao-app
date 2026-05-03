@@ -15,6 +15,7 @@ O texto enviado ao modelo no momento do cadastro:
 ```
 
 **Exemplo:**
+
 ```
 Temakeria Zen | restaurante | japonesa, sushi | almoço, jantar | Vila Madalena | São Paulo | 25_40
 ```
@@ -34,12 +35,12 @@ HNSW — melhor recall que IVFFlat, ideal para buscas semânticas em tempo real.
 
 ## Ativação (MVP → pós-MVP)
 
-| Fase | Estado |
-|---|---|
-| MVP | Coluna `embedding` existe mas é NULL; código de geração desativado |
-| Pós-MVP | Ativar `GeneratePlaceEmbedding` use case no fluxo de cadastro |
-| Pós-MVP | Backfill dos lugares existentes via script único |
-| Pós-MVP | A/B test: filtros estruturados vs semântica vs híbrido |
+| Fase    | Estado                                                             |
+| ------- | ------------------------------------------------------------------ |
+| MVP     | Coluna `embedding` existe mas é NULL; código de geração desativado |
+| Pós-MVP | Ativar `GeneratePlaceEmbedding` use case no fluxo de cadastro      |
+| Pós-MVP | Backfill dos lugares existentes via script único                   |
+| Pós-MVP | A/B test: filtros estruturados vs semântica vs híbrido             |
 
 ## Custo estimado
 

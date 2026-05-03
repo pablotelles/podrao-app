@@ -23,9 +23,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const body = await req.json();
     const parsed = submitReviewSchema.safeParse(body);
     if (!parsed.success)
-      return NextResponse.json({ error: parsed.error.flatten(), code: 'VALIDATION_ERROR' }, { status: 400 });
+      return NextResponse.json(
+        { error: parsed.error.flatten(), code: 'VALIDATION_ERROR' },
+        { status: 400 },
+      );
 
-    const review = await submitReview.execute({ ...parsed.data, placeId: id, userId: session.user.id });
+    const review = await submitReview.execute({
+      ...parsed.data,
+      placeId: id,
+      userId: session.user.id,
+    });
     return NextResponse.json(review, { status: 201 });
   } catch (err) {
     return errorResponse(err);

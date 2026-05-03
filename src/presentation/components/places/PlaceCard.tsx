@@ -3,16 +3,14 @@ import Image from 'next/image';
 import type { Place } from '@/domain/entities/Place';
 import { Card, Badge } from '@/presentation/components/ui';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
+import { useDistance } from '@/presentation/hooks/useDistance';
 
 interface PlaceCardProps {
   place: Place;
 }
 
-function formatDistance(meters: number): string {
-  return meters < 1000 ? `${Math.round(meters)}m` : `${(meters / 1000).toFixed(1)}km`;
-}
-
 export function PlaceCard({ place }: PlaceCardProps) {
+  const { distanceText, hasUserLocation } = useDistance(place.lat, place.lng);
   return (
     <Link href={`/places/${place.id}`}>
       <Card className="overflow-hidden transition-shadow hover:shadow-md">
@@ -32,10 +30,8 @@ export function PlaceCard({ place }: PlaceCardProps) {
         <div className="flex flex-col gap-2 p-4">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-text-primary leading-tight">{place.name}</h3>
-            {place.distanceM !== undefined && (
-              <span className="shrink-0 text-xs text-text-secondary">
-                {formatDistance(place.distanceM)}
-              </span>
+            {hasUserLocation && (
+              <span className="shrink-0 text-xs text-text-secondary">{distanceText}</span>
             )}
           </div>
 

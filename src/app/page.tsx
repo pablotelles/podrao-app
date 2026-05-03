@@ -12,13 +12,10 @@ import { Button } from '@/presentation/components/ui';
 import type { Place } from '@/domain/entities/Place';
 
 // Leaflet depende de window - importar so no client, sem SSR
-const PlaceMap = dynamic(
-  () => import('@/presentation/components/places/PlaceMap'),
-  {
-    ssr: false,
-    loading: () => <div className="h-full w-full animate-pulse bg-bg-subtle rounded-lg" />,
-  },
-);
+const PlaceMap = dynamic(() => import('@/presentation/components/places/PlaceMap'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse bg-bg-subtle rounded-lg" />,
+});
 
 type ViewMode = 'list' | 'map';
 
@@ -61,13 +58,23 @@ export default function HomePage() {
             <div className="flex rounded-full border border-border overflow-hidden text-sm">
               <button
                 onClick={() => setView('list')}
-                className={'px-3 py-1 transition-colors ' + (view === 'list' ? 'bg-brand text-text-inverse' : 'text-text-secondary hover:bg-bg-subtle')}
+                className={
+                  'px-3 py-1 transition-colors ' +
+                  (view === 'list'
+                    ? 'bg-brand text-text-inverse'
+                    : 'text-text-secondary hover:bg-bg-subtle')
+                }
               >
                 Lista
               </button>
               <button
                 onClick={() => setView('map')}
-                className={'px-3 py-1 transition-colors ' + (view === 'map' ? 'bg-brand text-text-inverse' : 'text-text-secondary hover:bg-bg-subtle')}
+                className={
+                  'px-3 py-1 transition-colors ' +
+                  (view === 'map'
+                    ? 'bg-brand text-text-inverse'
+                    : 'text-text-secondary hover:bg-bg-subtle')
+                }
               >
                 Mapa
               </button>

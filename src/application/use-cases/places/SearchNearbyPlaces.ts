@@ -19,7 +19,7 @@ function buildGeoKey(dto: SearchPlacesDTO): string {
 
 function getTtl(): number {
   const hour = new Date().getHours();
-  if (hour >= 11 && hour < 14) return 60;  // rush do almoço
+  if (hour >= 11 && hour < 14) return 60; // rush do almoço
   if (hour >= 19 && hour < 23) return 600; // noite
   return 300;
 }

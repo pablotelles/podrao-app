@@ -27,7 +27,12 @@ export function useGeolocation() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setState({ lat: pos.coords.latitude, lng: pos.coords.longitude, error: null, loading: false });
+        setState({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          error: null,
+          loading: false,
+        });
       },
       () => {
         setState((s) => ({ ...s, error: 'Permissão de localização negada', loading: false }));

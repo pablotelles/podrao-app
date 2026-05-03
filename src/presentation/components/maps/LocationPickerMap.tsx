@@ -32,7 +32,10 @@ export default function LocationPickerMap({
   // Sincronizar quando props mudam (ex: GPS)
   useEffect(() => {
     const tolerance = 1e-7;
-    if (Math.abs(lat - markerPosition.lat) > tolerance || Math.abs(lng - markerPosition.lng) > tolerance) {
+    if (
+      Math.abs(lat - markerPosition.lat) > tolerance ||
+      Math.abs(lng - markerPosition.lng) > tolerance
+    ) {
       setMarkerPosition({ lat, lng });
     }
   }, [lat, lng, markerPosition]);

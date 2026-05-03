@@ -57,11 +57,29 @@ export default async function PlaceDetailPage({ params }: Props) {
 
             {/* Info ao lado do logo */}
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-text-primary leading-tight">{place.name}</h1>
-              <p className="mt-1 text-xs text-text-secondary">
-                {place.address}
-                {place.bairro ? `, ${place.bairro}` : ''}
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-xl font-bold text-text-primary leading-tight">{place.name}</h1>
+                {place.status === 'approved' && (
+                  <svg
+                    className="h-5 w-5 text-brand"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    aria-label="Verificado"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+              <p className="mt-0.5 text-sm text-text-secondary leading-snug">
+                {place.address}, {place.numero}
+                {place.complemento && ` - ${place.complemento}`}
+                {place.bairro && ` · ${place.bairro}`} · {place.cidade}, {place.estado}
               </p>
+              <p className="mt-1 text-xs text-text-secondary">{place.establishmentType}</p>
               {place.reviewsCount > 0 && (
                 <p className="mt-1 text-xs text-text-secondary">
                   <span className="text-warning">★</span> {place.rating.toFixed(1)} ·{' '}

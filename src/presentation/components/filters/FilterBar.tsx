@@ -35,17 +35,29 @@ export function FilterBar({ values, onChange }: FilterBarProps) {
         </Button>
 
         {values.mealType && (
-          <Badge variant="brand" className="cursor-pointer" onClick={() => onChange({ ...values, mealType: undefined })}>
+          <Badge
+            variant="brand"
+            className="cursor-pointer"
+            onClick={() => onChange({ ...values, mealType: undefined })}
+          >
             {values.mealType} ✕
           </Badge>
         )}
         {values.cuisine && (
-          <Badge variant="brand" className="cursor-pointer" onClick={() => onChange({ ...values, cuisine: undefined })}>
+          <Badge
+            variant="brand"
+            className="cursor-pointer"
+            onClick={() => onChange({ ...values, cuisine: undefined })}
+          >
             {values.cuisine} ✕
           </Badge>
         )}
         {values.priceBucket && (
-          <Badge variant="brand" className="cursor-pointer" onClick={() => onChange({ ...values, priceBucket: undefined })}>
+          <Badge
+            variant="brand"
+            className="cursor-pointer"
+            onClick={() => onChange({ ...values, priceBucket: undefined })}
+          >
             {PRICE_BUCKET_LABELS[values.priceBucket]} ✕
           </Badge>
         )}
@@ -79,10 +91,18 @@ export function FilterBar({ values, onChange }: FilterBarProps) {
             labels={Object.fromEntries(
               RADIUS_OPTIONS.map((r) => [String(r), r < 1000 ? `${r}m` : `${r / 1000}km`]),
             )}
-            onSelect={(v) => onChange({ ...values, radiusMeters: v !== undefined ? Number(v) : undefined })}
+            onSelect={(v) =>
+              onChange({ ...values, radiusMeters: v !== undefined ? Number(v) : undefined })
+            }
           />
 
-          <Button onClick={() => { onChange({}); setOpen(false); }} variant="ghost">
+          <Button
+            onClick={() => {
+              onChange({});
+              setOpen(false);
+            }}
+            variant="ghost"
+          >
             Limpar filtros
           </Button>
         </div>

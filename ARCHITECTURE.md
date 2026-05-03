@@ -74,35 +74,39 @@
 ## 2. Stack Técnica
 
 ### Frontend / Full Stack
-| Tecnologia | Versão | Papel |
-|---|---|---|
-| Next.js | 15 (App Router) | Framework full stack |
-| React | 19 | UI |
-| TailwindCSS | 4 | Estilização — configurado via CSS tokens (não JS) |
-| class-variance-authority (CVA) | latest | Variantes de componentes type-safe |
-| next-pwa / serwist | latest | Service Worker + PWA |
-| Leaflet + MapLibre GL | latest | Mapa interativo (consome tiles via IMapProvider) |
-| SWR | 2 | Cache do client-side + revalidação |
-| Zod | 3 | Validação de schemas |
-| React Hook Form | 7 | Formulários |
+
+| Tecnologia                     | Versão          | Papel                                             |
+| ------------------------------ | --------------- | ------------------------------------------------- |
+| Next.js                        | 15 (App Router) | Framework full stack                              |
+| React                          | 19              | UI                                                |
+| TailwindCSS                    | 4               | Estilização — configurado via CSS tokens (não JS) |
+| class-variance-authority (CVA) | latest          | Variantes de componentes type-safe                |
+| next-pwa / serwist             | latest          | Service Worker + PWA                              |
+| Leaflet + MapLibre GL          | latest          | Mapa interativo (consome tiles via IMapProvider)  |
+| SWR                            | 2               | Cache do client-side + revalidação                |
+| Zod                            | 3               | Validação de schemas                              |
+| React Hook Form                | 7               | Formulários                                       |
 
 ### Backend / Infraestrutura
-| Tecnologia | Papel |
-|---|---|
-| Supabase (Postgres + PostGIS + **pgvector**) | Banco principal + geo queries + busca semântica |
-| Supabase Auth | Magic link |
-| Supabase Storage | Fotos de lugares |
-| Supabase RLS | Segurança por linha |
-| Upstash Redis | Cache de buscas geo recentes |
-| LocationIQ | Geocoding + reverse geocoding + mapa estático (provedor atual) |
-| Vercel | Deploy + Edge Network |
+
+| Tecnologia                                   | Papel                                                          |
+| -------------------------------------------- | -------------------------------------------------------------- |
+| Supabase (Postgres + PostGIS + **pgvector**) | Banco principal + geo queries + busca semântica                |
+| Supabase Auth                                | Magic link                                                     |
+| Supabase Storage                             | Fotos de lugares                                               |
+| Supabase RLS                                 | Segurança por linha                                            |
+| Upstash Redis                                | Cache de buscas geo recentes                                   |
+| LocationIQ                                   | Geocoding + reverse geocoding + mapa estático (provedor atual) |
+| Vercel                                       | Deploy + Edge Network                                          |
 
 ### Por que Upstash e não outro Redis?
+
 - Serverless-native: cobra por request, não por hora
 - Compatível com Vercel Edge Functions
 - Custo próximo de zero no MVP (free tier generoso)
 
 ### Por que LocationIQ como provedor de mapas?
+
 - Free tier: 5.000 requisições/dia (suficiente para MVP)
 - Geocoding: ~$1 / 1.000 req (vs $5 no Google, $0.75 no Mapbox)
 - Tiles via OpenStreetMap: **gratuitos e sem cota**
@@ -123,6 +127,7 @@ src/
 ```
 
 ### Regra de dependência
+
 ```
 presentation → application → domain ← infrastructure
 ```
@@ -398,12 +403,12 @@ Esta é a decisão técnica mais crítica do projeto. **Custo, velocidade e prec
 
 ### 6.1 Por que `GEOGRAPHY` e não `GEOMETRY`?
 
-| | `GEOMETRY` | `GEOGRAPHY` |
-|---|---|---|
-| Unidade | Graus | **Metros** |
-| Distância real | Imprecisa em lat/lng | **Precisa** |
-| Performance | Ligeiramente mais rápido | Adequada com GIST |
-| Uso correto | Mapas locais planos | **Localização global** |
+|                | `GEOMETRY`               | `GEOGRAPHY`            |
+| -------------- | ------------------------ | ---------------------- |
+| Unidade        | Graus                    | **Metros**             |
+| Distância real | Imprecisa em lat/lng     | **Precisa**            |
+| Performance    | Ligeiramente mais rápido | Adequada com GIST      |
+| Uso correto    | Mapas locais planos      | **Localização global** |
 
 **Usar `GEOGRAPHY` elimina a necessidade de conversões manuais de graus para km.**
 
@@ -491,6 +496,7 @@ $$ LANGUAGE plpgsql STABLE;
 ```
 
 **Regra de ouro PostGIS:**
+
 - `ST_DWithin` no `WHERE` → usa índice GIST → O(log n)
 - `ST_Distance` apenas no `SELECT` / `ORDER BY` → calcula só nos registros já filtrados
 
@@ -506,24 +512,24 @@ Buscas no mesmo bairro/raio chegam centenas de vezes por hora no horário de alm
 // Arredonda coordenadas para células de ~100m
 // Evita cache miss por diferença de 0.0001 grau
 function buildGeoKey(params: SearchPlacesDTO): string {
-  const latRounded = Math.round(params.lat * 1000) / 1000;  // ~111m
+  const latRounded = Math.round(params.lat * 1000) / 1000; // ~111m
   const lngRounded = Math.round(params.lng * 1000) / 1000;
   return [
     'places',
     latRounded,
     lngRounded,
     params.radiusMeters ?? 3000,
-    params.mealType    ?? 'all',
-    params.cuisine     ?? 'all',
-    params.maxPrice    ?? 'all',
+    params.mealType ?? 'all',
+    params.cuisine ?? 'all',
+    params.maxPrice ?? 'all',
   ].join(':');
 }
 
 // TTL por contexto
 const TTL = {
-  LUNCH_RUSH: 60,    // segundos — 11h-14h, cache curto (novos lugares aparecem)
-  OFF_PEAK:   300,   // 5 minutos fora do rush
-  NIGHT:      600,   // 10 minutos à noite
+  LUNCH_RUSH: 60, // segundos — 11h-14h, cache curto (novos lugares aparecem)
+  OFF_PEAK: 300, // 5 minutos fora do rush
+  NIGHT: 600, // 10 minutos à noite
 };
 ```
 
@@ -566,13 +572,13 @@ Regra:
 
 **Comparativo de custo dos provedores:**
 
-| | LocationIQ | Mapbox | Google Maps |
-|---|---|---|---|
-| Geocoding (por 1k req) | ~$1 | $0.75 | $5 |
-| Free tier diário | 5.000 req | — | — |
-| Free tier mensal | — | 100.000 req | $200 crédito |
-| Tiles de mapa | Gratuito (OSM) | $0.50 / 1k loads | $7 / 1k loads |
-| **Adequado para MVP** | ✅ | ✅ | ⚠️ caro |
+|                        | LocationIQ     | Mapbox           | Google Maps   |
+| ---------------------- | -------------- | ---------------- | ------------- |
+| Geocoding (por 1k req) | ~$1            | $0.75            | $5            |
+| Free tier diário       | 5.000 req      | —                | —             |
+| Free tier mensal       | —              | 100.000 req      | $200 crédito  |
+| Tiles de mapa          | Gratuito (OSM) | $0.50 / 1k loads | $7 / 1k loads |
+| **Adequado para MVP**  | ✅             | ✅               | ⚠️ caro       |
 
 ---
 
@@ -669,6 +675,7 @@ $$ LANGUAGE plpgsql STABLE;
 ```
 
 **Operadores pgvector:**
+
 - `<=>` distância coseno (semântica — padrão para texto)
 - `<->` distância euclidiana (L2)
 - `<#>` produto interno negativo
@@ -707,7 +714,7 @@ export class OpenAIEmbeddingProvider implements IEmbeddingProvider {
     const response = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ input: text, model: this.model }),
@@ -740,7 +747,9 @@ function buildEmbeddingText(place: CreatePlaceDTO): string {
     place.bairro,
     place.cidade,
     place.priceBucket,
-  ].filter(Boolean).join(' | ');
+  ]
+    .filter(Boolean)
+    .join(' | ');
 }
 // Exemplo: "Temakeria Zen | restaurante | japonesa, sushi | almoço, jantar | Vila Madalena | São Paulo | 25_40"
 ```
@@ -749,12 +758,12 @@ function buildEmbeddingText(place: CreatePlaceDTO): string {
 
 ### 7.6 Custo estimado
 
-| Operação | Modelo | Custo |
-|---|---|---|
+| Operação                    | Modelo                 | Custo              |
+| --------------------------- | ---------------------- | ------------------ |
 | Gerar embedding no cadastro | text-embedding-3-small | ~$0.000002 / lugar |
-| Gerar embedding na busca | text-embedding-3-small | ~$0.000002 / query |
-| 10.000 cadastros | | ~$0.02 total |
-| 100.000 buscas/mês | | ~$0.20 total |
+| Gerar embedding na busca    | text-embedding-3-small | ~$0.000002 / query |
+| 10.000 cadastros            |                        | ~$0.02 total       |
+| 100.000 buscas/mês          |                        | ~$0.20 total       |
 
 **Custo prático: insignificante.** O free tier do MVP cobre tudo.
 
@@ -902,16 +911,16 @@ Use cases dependem de abstrações, nunca de Supabase diretamente.
 // src/presentation/lib/container.ts
 // Composição raiz: único lugar que sabe quais implementações usar
 
-import { SupabasePlaceRepository }  from '@/infrastructure/database/supabase/SupabasePlaceRepository';
-import { UpstashCacheProvider }     from '@/infrastructure/cache/UpstashCacheProvider';
-import { SearchNearbyPlaces }       from '@/application/use-cases/places/SearchNearbyPlaces';
-import { CreatePlace }              from '@/application/use-cases/places/CreatePlace';
+import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
+import { UpstashCacheProvider } from '@/infrastructure/cache/UpstashCacheProvider';
+import { SearchNearbyPlaces } from '@/application/use-cases/places/SearchNearbyPlaces';
+import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
 
 const placeRepository = new SupabasePlaceRepository();
-const cacheProvider   = new UpstashCacheProvider();
+const cacheProvider = new UpstashCacheProvider();
 
 export const searchNearbyPlaces = new SearchNearbyPlaces(placeRepository, cacheProvider);
-export const createPlace        = new CreatePlace(placeRepository);
+export const createPlace = new CreatePlace(placeRepository);
 
 // API Route usa o container, nunca instancia repositórios
 // src/presentation/app/api/places/route.ts
@@ -950,10 +959,13 @@ import { NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { supabase, response } = createServerClient(request);
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  const isProtected = request.nextUrl.pathname.startsWith('/add-place')
-    || request.nextUrl.pathname.startsWith('/profile');
+  const isProtected =
+    request.nextUrl.pathname.startsWith('/add-place') ||
+    request.nextUrl.pathname.startsWith('/profile');
 
   if (isProtected && !session) {
     return NextResponse.redirect(new URL('/login', request.url));
@@ -968,6 +980,7 @@ export async function middleware(request: NextRequest) {
 ## 10. API Design
 
 ### Convenções
+
 - Todas as rotas em `/api/`
 - Validação com Zod em toda entrada
 - Erros padronizados: `{ error: string, code: string }`
@@ -1087,46 +1100,46 @@ Camada 3 — Componentes com variantes (CVA)
 @layer base {
   :root {
     /* --- Cores de marca --- */
-    --color-brand:          #f97316;  /* laranja principal */
-    --color-brand-hover:    #ea6c0a;
-    --color-brand-subtle:   #fff7ed;
+    --color-brand: #f97316; /* laranja principal */
+    --color-brand-hover: #ea6c0a;
+    --color-brand-subtle: #fff7ed;
 
     /* --- Superfícies --- */
-    --color-bg:             #ffffff;
-    --color-bg-subtle:      #f9fafb;
-    --color-bg-card:        #ffffff;
-    --color-border:         #e5e7eb;
+    --color-bg: #ffffff;
+    --color-bg-subtle: #f9fafb;
+    --color-bg-card: #ffffff;
+    --color-border: #e5e7eb;
 
     /* --- Texto --- */
-    --color-text-primary:   #111827;
+    --color-text-primary: #111827;
     --color-text-secondary: #6b7280;
-    --color-text-disabled:  #d1d5db;
-    --color-text-inverse:   #ffffff;
+    --color-text-disabled: #d1d5db;
+    --color-text-inverse: #ffffff;
 
     /* --- Feedback --- */
-    --color-success:        #16a34a;
-    --color-warning:        #d97706;
-    --color-error:          #dc2626;
-    --color-info:           #2563eb;
+    --color-success: #16a34a;
+    --color-warning: #d97706;
+    --color-error: #dc2626;
+    --color-info: #2563eb;
 
     /* --- Espaçamento base --- */
-    --spacing-page-x:       1rem;      /* padding horizontal das páginas */
-    --spacing-card-gap:     0.75rem;
+    --spacing-page-x: 1rem; /* padding horizontal das páginas */
+    --spacing-card-gap: 0.75rem;
 
     /* --- Tipografia --- */
-    --font-sans:            'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-size-base:       1rem;
-    --line-height-base:     1.5;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-size-base: 1rem;
+    --line-height-base: 1.5;
 
     /* --- Raios de borda --- */
-    --radius-sm:            0.375rem;
-    --radius-md:            0.75rem;
-    --radius-lg:            1rem;
-    --radius-full:          9999px;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-full: 9999px;
 
     /* --- Sombras --- */
-    --shadow-card:          0 1px 3px 0 rgb(0 0 0 / 0.08);
-    --shadow-modal:         0 10px 40px -4px rgb(0 0 0 / 0.15);
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.08);
+    --shadow-modal: 0 10px 40px -4px rgb(0 0 0 / 0.15);
   }
 
   /* Tema escuro — basta adicionar estas overrides no futuro */
@@ -1147,23 +1160,23 @@ Tailwind v4 usa `@theme` em CSS puro — sem `tailwind.config.js`.
 
 @theme {
   /* Tailwind gera: bg-brand, text-brand, border-brand, ring-brand… */
-  --color-brand:          var(--color-brand);
-  --color-brand-hover:    var(--color-brand-hover);
-  --color-brand-subtle:   var(--color-brand-subtle);
-  --color-bg:             var(--color-bg);
-  --color-bg-subtle:      var(--color-bg-subtle);
-  --color-bg-card:        var(--color-bg-card);
-  --color-border:         var(--color-border);
-  --color-text-primary:   var(--color-text-primary);
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-subtle: var(--color-brand-subtle);
+  --color-bg: var(--color-bg);
+  --color-bg-subtle: var(--color-bg-subtle);
+  --color-bg-card: var(--color-bg-card);
+  --color-border: var(--color-border);
+  --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
-  --color-success:        var(--color-success);
-  --color-error:          var(--color-error);
+  --color-success: var(--color-success);
+  --color-error: var(--color-error);
 
-  --font-family-sans:     var(--font-sans);
-  --radius-sm:            var(--radius-sm);
-  --radius-md:            var(--radius-md);
-  --radius-lg:            var(--radius-lg);
-  --radius-full:          var(--radius-full);
+  --font-family-sans: var(--font-sans);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
 }
 ```
 
@@ -1241,6 +1254,7 @@ src/
 ```
 
 **Regras dos componentes `ui/`:**
+
 - Zero conhecimento de domínio (`Place`, `Review` etc.)
 - Zero chamadas de API ou hooks de dados
 - Apenas aparência + variantes
@@ -1413,18 +1427,18 @@ ORDER BY day DESC;
 
 **Objetivo:** Infraestrutura funcionando, busca geo básica rodando.
 
-| # | Tarefa | Critério de aceite |
-|---|---|---|
-| 1.1 | Setup Next.js 15 + Tailwind + TypeScript strict | `npm run dev` sem erros |
-| 1.2 | Supabase: projeto criado + migrations rodando | `supabase db push` OK |
-| 1.3 | PostGIS: tabela `places` com coluna `geography` | INSERT + ST_DWithin funciona |
-| 1.4 | Índices GIST + GIN criados e validados | EXPLAIN ANALYZE mostra Index Scan |
-| 1.5 | Função `search_nearby_places` SQL criada | RPC retorna resultados ordenados |
-| 1.6 | Magic link auth funcionando end-to-end | Login + sessão + logout |
-| 1.7 | Middleware de proteção de rotas | `/add-place` redireciona sem auth |
-| 1.8 | PWA manifest + service worker básico | Lighthouse PWA score > 90 |
-| 1.9 | Estrutura de pastas + interfaces domain criadas | Zero dependência em domain/ |
-| 1.10 | Container de DI configurado | Use cases instanciam via container |
+| #    | Tarefa                                          | Critério de aceite                 |
+| ---- | ----------------------------------------------- | ---------------------------------- |
+| 1.1  | Setup Next.js 15 + Tailwind + TypeScript strict | `npm run dev` sem erros            |
+| 1.2  | Supabase: projeto criado + migrations rodando   | `supabase db push` OK              |
+| 1.3  | PostGIS: tabela `places` com coluna `geography` | INSERT + ST_DWithin funciona       |
+| 1.4  | Índices GIST + GIN criados e validados          | EXPLAIN ANALYZE mostra Index Scan  |
+| 1.5  | Função `search_nearby_places` SQL criada        | RPC retorna resultados ordenados   |
+| 1.6  | Magic link auth funcionando end-to-end          | Login + sessão + logout            |
+| 1.7  | Middleware de proteção de rotas                 | `/add-place` redireciona sem auth  |
+| 1.8  | PWA manifest + service worker básico            | Lighthouse PWA score > 90          |
+| 1.9  | Estrutura de pastas + interfaces domain criadas | Zero dependência em domain/        |
+| 1.10 | Container de DI configurado                     | Use cases instanciam via container |
 
 ---
 
@@ -1432,18 +1446,18 @@ ORDER BY day DESC;
 
 **Objetivo:** Usuário consegue buscar e cadastrar lugares.
 
-| # | Tarefa | Critério de aceite |
-|---|---|---|
-| 2.1 | Hook `useGeolocation` + permissão no browser | Captura lat/lng com fallback |
-| 2.2 | `SearchNearbyPlaces` use case + testes unitários | 100% testável sem banco |
-| 2.3 | API `GET /api/places` com todos os filtros | Query params validados com Zod |
-| 2.4 | Feed principal com lista de lugares | Renderiza cards com distância |
-| 2.5 | Filtros de preço + refeição + cozinha + raio | Filtros atualizam busca |
-| 2.6 | Formulário multi-step de cadastro (6 steps) | Completa em < 30s |
-| 2.7 | API `POST /api/places` com validação | Cria com status `pending` |
-| 2.8 | Upload de foto para Supabase Storage | URL salva no lugar |
-| 2.9 | Geocoding via GPS (passo 1 do form) | Captura localização com 1 clique |
-| 2.10 | Geocoding via endereço (Mapbox fallback) | Busca endereço e preenche lat/lng |
+| #    | Tarefa                                           | Critério de aceite                |
+| ---- | ------------------------------------------------ | --------------------------------- |
+| 2.1  | Hook `useGeolocation` + permissão no browser     | Captura lat/lng com fallback      |
+| 2.2  | `SearchNearbyPlaces` use case + testes unitários | 100% testável sem banco           |
+| 2.3  | API `GET /api/places` com todos os filtros       | Query params validados com Zod    |
+| 2.4  | Feed principal com lista de lugares              | Renderiza cards com distância     |
+| 2.5  | Filtros de preço + refeição + cozinha + raio     | Filtros atualizam busca           |
+| 2.6  | Formulário multi-step de cadastro (6 steps)      | Completa em < 30s                 |
+| 2.7  | API `POST /api/places` com validação             | Cria com status `pending`         |
+| 2.8  | Upload de foto para Supabase Storage             | URL salva no lugar                |
+| 2.9  | Geocoding via GPS (passo 1 do form)              | Captura localização com 1 clique  |
+| 2.10 | Geocoding via endereço (Mapbox fallback)         | Busca endereço e preenche lat/lng |
 
 ---
 
@@ -1451,18 +1465,18 @@ ORDER BY day DESC;
 
 **Objetivo:** Reviews funcionando, moderação básica, cache implementado.
 
-| # | Tarefa | Critério de aceite |
-|---|---|---|
-| 3.1 | Tabela `reviews` + trigger de atualização de stats | Rating e median_price atualizados auto |
-| 3.2 | `SubmitReview` use case | Um review por usuário por lugar |
-| 3.3 | Formulário de review (👍/👎 + quanto pagou + refeição) | Submete em < 10s |
-| 3.4 | Página de detalhe do lugar + lista de reviews | Exibe todas informações |
-| 3.5 | Painel de admin (rota protegida por role) | Aprovar/rejeitar lugares pendentes |
-| 3.6 | Upstash Redis integrado no use case de busca | Cache hit visível nos logs |
-| 3.7 | Invalidação de cache ao aprovar lugar | Novo lugar aparece na busca |
-| 3.8 | Score de ranking composto implementado | Ordenação faz sentido |
-| 3.9 | RLS policies completas testadas | Usuário B não edita lugar do A |
-| 3.10 | Testes de integração nas APIs críticas | CI não quebra com PRs |
+| #    | Tarefa                                                 | Critério de aceite                     |
+| ---- | ------------------------------------------------------ | -------------------------------------- |
+| 3.1  | Tabela `reviews` + trigger de atualização de stats     | Rating e median_price atualizados auto |
+| 3.2  | `SubmitReview` use case                                | Um review por usuário por lugar        |
+| 3.3  | Formulário de review (👍/👎 + quanto pagou + refeição) | Submete em < 10s                       |
+| 3.4  | Página de detalhe do lugar + lista de reviews          | Exibe todas informações                |
+| 3.5  | Painel de admin (rota protegida por role)              | Aprovar/rejeitar lugares pendentes     |
+| 3.6  | Upstash Redis integrado no use case de busca           | Cache hit visível nos logs             |
+| 3.7  | Invalidação de cache ao aprovar lugar                  | Novo lugar aparece na busca            |
+| 3.8  | Score de ranking composto implementado                 | Ordenação faz sentido                  |
+| 3.9  | RLS policies completas testadas                        | Usuário B não edita lugar do A         |
+| 3.10 | Testes de integração nas APIs críticas                 | CI não quebra com PRs                  |
 
 ---
 
@@ -1470,18 +1484,18 @@ ORDER BY day DESC;
 
 **Objetivo:** Produto pronto para beta real com usuários reais.
 
-| # | Tarefa | Critério de aceite |
-|---|---|---|
-| 4.1 | Mapa interativo com Mapbox (lista + mapa) | Places exibidos como pins no mapa |
-| 4.2 | Onboarding para novos usuários | Explica como funciona em 3 telas |
-| 4.3 | Empty states e error states em todas as telas | Nunca tela em branco sem contexto |
-| 4.4 | Loading skeletons para listas | UX fluida em 3G |
-| 4.5 | Vercel Analytics + Speed Insights configurados | Dashboard de Web Vitals ativo |
-| 4.6 | Meta tags OG para compartilhamento de lugares | Link de lugar gera preview no WhatsApp |
-| 4.7 | Testes A/B de filtros (qual ordem importa) | Hipótese definida e medida |
-| 4.8 | EXPLAIN ANALYZE nas 3 queries mais usadas | Nenhum Seq Scan em produção |
-| 4.9 | Checklist OWASP: XSS, CSRF, IDOR revisados | Nenhuma vulnerabilidade crítica |
-| 4.10 | Beta launch com 20–50 usuários reais | Primeiros dados reais de uso |
+| #    | Tarefa                                         | Critério de aceite                     |
+| ---- | ---------------------------------------------- | -------------------------------------- |
+| 4.1  | Mapa interativo com Mapbox (lista + mapa)      | Places exibidos como pins no mapa      |
+| 4.2  | Onboarding para novos usuários                 | Explica como funciona em 3 telas       |
+| 4.3  | Empty states e error states em todas as telas  | Nunca tela em branco sem contexto      |
+| 4.4  | Loading skeletons para listas                  | UX fluida em 3G                        |
+| 4.5  | Vercel Analytics + Speed Insights configurados | Dashboard de Web Vitals ativo          |
+| 4.6  | Meta tags OG para compartilhamento de lugares  | Link de lugar gera preview no WhatsApp |
+| 4.7  | Testes A/B de filtros (qual ordem importa)     | Hipótese definida e medida             |
+| 4.8  | EXPLAIN ANALYZE nas 3 queries mais usadas      | Nenhum Seq Scan em produção            |
+| 4.9  | Checklist OWASP: XSS, CSRF, IDOR revisados     | Nenhuma vulnerabilidade crítica        |
+| 4.10 | Beta launch com 20–50 usuários reais           | Primeiros dados reais de uso           |
 
 ---
 
@@ -1489,13 +1503,13 @@ ORDER BY day DESC;
 
 ### Por que LocationIQ e não Google Maps ou Mapbox?
 
-| | LocationIQ (MVP) | Mapbox | Google Maps |
-|---|---|---|---|
-| Geocoding | ~$1 / 1.000 req | $0.75 / 1.000 req | $5 / 1.000 req |
-| Free tier diário | **5.000 req/dia** | — | — |
-| Free tier mensal | — | 100.000 req | $200 crédito |
-| Tiles de mapa | **Gratuito (OSM)** | $0.50 / 1k loads | $7 / 1k loads |
-| Lock-in | Baixo (isolado por interface) | Moderado | Alto |
+|                  | LocationIQ (MVP)              | Mapbox            | Google Maps    |
+| ---------------- | ----------------------------- | ----------------- | -------------- |
+| Geocoding        | ~$1 / 1.000 req               | $0.75 / 1.000 req | $5 / 1.000 req |
+| Free tier diário | **5.000 req/dia**             | —                 | —              |
+| Free tier mensal | —                             | 100.000 req       | $200 crédito   |
+| Tiles de mapa    | **Gratuito (OSM)**            | $0.50 / 1k loads  | $7 / 1k loads  |
+| Lock-in          | Baixo (isolado por interface) | Moderado          | Alto           |
 
 LocationIQ oferece free tier diário generoso, tiles gratuitos via OpenStreetMap e custo de geocoding competitivo. O isolamento via `IMapProvider` garante que a troca de provedor no futuro seja uma mudança de 1 arquivo.
 
@@ -1511,13 +1525,13 @@ Prisma não tem suporte nativo a tipos PostGIS. Queries geo precisariam de raw S
 
 ### Por que PostGIS e não MongoDB geospatial ou Elasticsearch?
 
-| | PostGIS | MongoDB Geo | Elasticsearch Geo |
-|---|---|---|---|
-| Precisão (metros) | ✅ geography type | ⚠️ apenas geometry | ✅ |
-| SQL + joins | ✅ | ❌ | ❌ |
-| Custo | $0 (Supabase free) | $57/mês mínimo | $95/mês mínimo |
-| Supabase integrado | ✅ | ❌ | ❌ |
-| Índice espacial | GIST (robusto) | 2dsphere | Geohash |
+|                    | PostGIS            | MongoDB Geo        | Elasticsearch Geo |
+| ------------------ | ------------------ | ------------------ | ----------------- |
+| Precisão (metros)  | ✅ geography type  | ⚠️ apenas geometry | ✅                |
+| SQL + joins        | ✅                 | ❌                 | ❌                |
+| Custo              | $0 (Supabase free) | $57/mês mínimo     | $95/mês mínimo    |
+| Supabase integrado | ✅                 | ❌                 | ❌                |
+| Índice espacial    | GIST (robusto)     | 2dsphere           | Geohash           |
 
 PostGIS no Supabase é **gratuito, preciso e integrado**.
 
@@ -1535,4 +1549,4 @@ Quando o volume justificar:
 
 ---
 
-*Documento gerado com base nas especificações do produto. Versão de arquitetura para o MVP. Revisão recomendada antes de cada sprint.*
+_Documento gerado com base nas especificações do produto. Versão de arquitetura para o MVP. Revisão recomendada antes de cada sprint._
