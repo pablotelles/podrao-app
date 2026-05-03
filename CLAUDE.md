@@ -64,6 +64,11 @@ Cache keys for geo results are built by rounding lat/lng to 3 decimal places (~1
 
 All colors, spacing, and radii are CSS custom properties defined in `src/app/globals.css` under `:root`. Tailwind v4 `@theme` block maps those tokens to utility classes (`bg-brand`, `text-text-secondary`, `rounded-md`). Components use CVA (`class-variance-authority`) for type-safe variants. **No hex values or hardcoded numbers in component files.**
 
+**Tailwind v4 class syntax rules:**
+- Token defined in `@theme` → use generated utility: `text-text-primary`, `bg-brand-subtle`, `rounded-lg`
+- CSS var NOT in `@theme` → use shorthand: `shadow-(--shadow-card)`, `px-(--spacing-page-x)`
+- Never write `[var(--...)]` — always use one of the two forms above
+
 ### Auth
 
 Magic-link only (Supabase Auth). Session lives in an httpOnly cookie via `@supabase/ssr`. Server components and API routes use `createServerClient()`; the middleware at `src/middleware.ts` guards `/add-place` and `/profile`.
