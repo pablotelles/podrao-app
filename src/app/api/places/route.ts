@@ -60,6 +60,12 @@ export async function POST(req: NextRequest) {
       );
 
     const place = await createPlace.execute({ ...parsed.data, createdBy: user.id });
+    
+    // Se foi enviado photoUrl, adicionar na tabela place_photos
+    if (parsed.data.photoUrl) {
+      await placeRepository.addPlacePhoto(place.id, parsed.data.photoUrl, 'logo');
+    }
+    
     return NextResponse.json(place, { status: 201 });
   } catch (err) {
     return errorResponse(err);

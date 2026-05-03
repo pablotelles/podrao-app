@@ -23,4 +23,14 @@ export class SupabaseStorageProvider implements IStorageProvider {
     const { error } = await this.db.storage.from(BUCKET).remove([path]);
     if (error) throw new Error(error.message);
   }
+
+  async deleteByUrl(url: string): Promise<void> {
+    // Extrair path da URL pública
+    // URL formato: https://[project].supabase.co/storage/v1/object/public/place-photos/places/[user_id]/[timestamp].jpg
+    const match = url.match(/\/place-photos\/(.+)$/);
+    if (!match) throw new Error('URL inválida para extração de path');
+    
+    const path = match[1];
+    await this.delete(path);
+  }
 }

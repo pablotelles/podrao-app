@@ -1,4 +1,5 @@
 import type { Place, PlaceStatus } from '../entities/Place';
+import type { PlacePhoto, PhotoType } from '../entities/PlacePhoto';
 import type { CreatePlaceData } from './shared';
 import type { SearchPlacesParams } from './shared';
 
@@ -14,4 +15,10 @@ export interface IPlaceWriter {
   saveEmbedding(id: string, embedding: number[]): Promise<void>;
 }
 
-export interface IPlaceRepository extends IPlaceReader, IPlaceWriter {}
+export interface IPlacePhotoManager {
+  getPlacePhotos(placeId: string): Promise<PlacePhoto[]>;
+  addPlacePhoto(placeId: string, url: string, type: PhotoType): Promise<PlacePhoto>;
+  deletePlacePhoto(photoId: string): Promise<void>;
+}
+
+export interface IPlaceRepository extends IPlaceReader, IPlaceWriter, IPlacePhotoManager {}

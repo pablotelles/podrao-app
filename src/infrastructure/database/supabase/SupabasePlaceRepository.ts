@@ -1,4 +1,5 @@
 import type { Place, PlaceStatus } from '@/domain/entities/Place';
+import type { PlacePhoto, PhotoType } from '@/domain/entities/PlacePhoto';
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
 import type { CreatePlaceData, SearchPlacesParams } from '@/domain/interfaces/shared';
 import type { CuisineType } from '@/domain/value-objects/CuisineType';
@@ -23,7 +24,7 @@ interface PlaceRow {
   meal_types: string[];
   price_bucket: string;
   median_price: number | null;
-  photo_url: string | null;
+  logo_url: string | null;
   rating: number;
   reviews_count: number;
   status: string;
@@ -50,7 +51,7 @@ function toDomain(row: PlaceRow): Place {
     mealTypes: row.meal_types as MealType[],
     priceBucket: row.price_bucket as PriceBucket,
     medianPrice: row.median_price ?? undefined,
-    photoUrl: row.photo_url ?? undefined,
+    logoUrl: row.logo_url ?? undefined,
     rating: row.rating,
     reviewsCount: row.reviews_count,
     status: row.status as PlaceStatus,
@@ -65,10 +66,28 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   constructor(private readonly db: SupabaseClient = supabase) {}
 
   async findById(id: string): Promise<Place | null> {
-    const { data, error } = await this.db.from('places').select('*').eq('id', id).single();
+    // Buscar o place
+    const { data, error } = await this.db
+      .from('places')
+      .select('*')
+      .eq('id', id)
+      .single();
 
     if (error || !data) return null;
-    return toDomain(data as PlaceRow);
+
+    // Buscar logo (se existir)
+    const { data: logoData } = await this.db
+      .from('place_photos')
+      .select('url')
+      .eq('place_id', id)
+      .eq('type', 'logo')
+      .limit(1)
+      .maybeSingle();
+
+    const row = data as any;
+    row.logo_url = logoData?.url ?? null;
+    
+    return toDomain(row as PlaceRow);
   }
 
   async searchNearby(params: SearchPlacesParams): Promise<Place[]> {
@@ -106,7 +125,6 @@ export class SupabasePlaceRepository implements IPlaceRepository {
         cuisine_types: data.cuisineTypes,
         meal_types: data.mealTypes,
         price_bucket: data.priceBucket,
-        photo_url: data.photoUrl,
         created_by: data.createdBy,
         status: 'pending',
       })
@@ -130,7 +148,6 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     if (data.cuisineTypes) patch.cuisine_types = data.cuisineTypes;
     if (data.mealTypes) patch.meal_types = data.mealTypes;
     if (data.priceBucket) patch.price_bucket = data.priceBucket;
-    if (data.photoUrl !== undefined) patch.photo_url = data.photoUrl;
 
     const { data: row, error } = await this.db
       .from('places')
@@ -151,6 +168,61 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
   async saveEmbedding(id: string, embedding: number[]): Promise<void> {
     const { error } = await this.db.from('places').update({ embedding }).eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  // ========== Photo Management ==========
+
+  async getPlacePhotos(placeId: string): Promise<PlacePhoto[]> {
+    const { data, error } = await this.db
+      .from('place_photos')
+      .select('*')
+      .eq('place_id', placeId)
+      .order('type')
+      .order('position');
+
+    if (error) throw new Error(error.message);
+    
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      placeId: row.place_id,
+      url: row.url,
+      type: row.type as PhotoType,
+      position: row.position,
+      uploadedBy: row.uploaded_by ?? undefined,
+      uploadedAt: new Date(row.uploaded_at),
+    }));
+  }
+
+  async addPlacePhoto(placeId: string, url: string, type: PhotoType): Promise<PlacePhoto> {
+    const { data, error } = await this.db
+      .from('place_photos')
+      .insert({
+        place_id: placeId,
+        url,
+        type,
+        position: 0,
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    const row = data as any;
+    return {
+      id: row.id,
+      placeId: row.place_id,
+      url: row.url,
+      type: row.type as PhotoType,
+      position: row.position,
+      uploadedBy: row.uploaded_by ?? undefined,
+      uploadedAt: new Date(row.uploaded_at),
+    };
+  }
+
+  async deletePlacePhoto(photoId: string): Promise<void> {
+    const { error } = await this.db.from('place_photos').delete().eq('id', photoId);
 
     if (error) throw new Error(error.message);
   }

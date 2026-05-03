@@ -16,10 +16,10 @@ export function PlaceCard({ place }: PlaceCardProps) {
   return (
     <Link href={`/places/${place.id}`}>
       <Card className="overflow-hidden transition-shadow hover:shadow-md">
-        {place.photoUrl ? (
+        {place.logoUrl ? (
           <div className="relative h-40 w-full">
             <Image
-              src={place.photoUrl}
+              src={place.logoUrl}
               alt={place.name}
               fill
               className="object-cover"

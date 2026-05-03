@@ -20,7 +20,8 @@ export interface Place {
   mealTypes: MealType[];
   priceBucket: PriceBucket;
   medianPrice?: number;
-  photoUrl?: string;
+  /** URL do logo (extraída da relação place_photos where type='logo') */
+  logoUrl?: string;
   rating: number;
   reviewsCount: number;
   status: PlaceStatus;

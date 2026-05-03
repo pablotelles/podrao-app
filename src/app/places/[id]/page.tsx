@@ -5,7 +5,7 @@ import { Badge } from '@/presentation/components/ui';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
-import { createRouteSupabaseClient } from '@/presentation/lib/api-helpers';
+import { createServerSupabaseClient } from '@/presentation/lib/api-helpers';
 import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
 import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
@@ -20,7 +20,7 @@ export default async function PlaceDetailPage({ params }: Props) {
 
   try {
     // Usar client autenticado para que RLS policies funcionem corretamente
-    const supabase = await createRouteSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const placeRepository = new SupabasePlaceRepository(supabase);
     const reviewRepository = new SupabaseReviewRepository(supabase);
 
@@ -41,9 +41,9 @@ export default async function PlaceDetailPage({ params }: Props) {
 
     return (
       <main className="mx-auto max-w-2xl pb-24">
-        {place.photoUrl && (
+        {place.logoUrl && (
           <div className="relative h-56 w-full">
-            <Image src={place.photoUrl} alt={place.name} fill className="object-cover" priority />
+            <Image src={place.logoUrl} alt={place.name} fill className="object-cover" priority />
           </div>
         )}
 
@@ -75,7 +75,7 @@ export default async function PlaceDetailPage({ params }: Props) {
           {/* Botão para o criador adicionar/editar foto */}
           {isOwner && (
             <div className="mt-4">
-              <PhotoUploadButton placeId={place.id} hasPhoto={!!place.photoUrl} />
+              <PhotoUploadButton placeId={place.id} hasPhoto={!!place.logoUrl} />
             </div>
           )}
 
