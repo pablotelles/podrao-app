@@ -5,6 +5,8 @@ import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 export interface CreatePlaceDTO {
   name: string;
   address: string;
+  numero?: string;
+  complemento?: string;
   bairro?: string;
   cidade: string;
   estado: string;

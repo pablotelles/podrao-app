@@ -19,6 +19,8 @@ export class CreatePlace {
     const place = await this.placeRepo.create({
       name: dto.name.trim(),
       address: dto.address,
+      numero: dto.numero,
+      complemento: dto.complemento,
       bairro: dto.bairro,
       cidade: dto.cidade,
       estado: dto.estado,

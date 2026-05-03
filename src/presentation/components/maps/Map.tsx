@@ -6,8 +6,8 @@ import { createUserPinHtml, USER_PIN_SIZE, USER_PIN_ANCHOR } from './pins/userPi
 import { ACTIVE_TILE_PROVIDER } from './tileProviders';
 import {
   createPlacePinHtml,
-  PLACE_PIN_SIZE,
-  PLACE_PIN_ANCHOR,
+  getPinLeafletConfig,
+  type PinSize,
 } from './pins/placePin';
 
 export interface MapMarker {
@@ -17,6 +17,7 @@ export interface MapMarker {
   content?: string;
   draggable?: boolean;
   icon?: 'default' | 'user' | 'brand';
+  pinSize?: PinSize;
   onClick?: () => void;
 }
 
@@ -58,12 +59,11 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
           });
         }
         if (marker.icon === 'brand') {
+          const cfg = getPinLeafletConfig(marker.pinSize ?? 'md');
           return L.divIcon({
             className: '',
-            html: createPlacePinHtml(),
-            iconSize: PLACE_PIN_SIZE,
-            iconAnchor: PLACE_PIN_ANCHOR,
-            popupAnchor: [0, -PLACE_PIN_ANCHOR[1]],
+            html: createPlacePinHtml(marker.pinSize ?? 'md'),
+            ...cfg,
           });
         }
         return L.icon({

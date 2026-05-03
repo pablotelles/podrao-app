@@ -44,4 +44,4 @@ export const TILE_PROVIDERS = {
 } satisfies Record<string, TileProvider>;
 
 // ─── TROCAR AQUI PARA MUDAR O MAPA GLOBALMENTE ───────────────────────────────
-export const ACTIVE_TILE_PROVIDER: TileProvider = TILE_PROVIDERS.cartodb_light;
+export const ACTIVE_TILE_PROVIDER: TileProvider = TILE_PROVIDERS.stadia_light;
