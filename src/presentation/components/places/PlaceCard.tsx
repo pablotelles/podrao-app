@@ -18,23 +18,29 @@ export function PlaceCard({ place }: PlaceCardProps) {
       <Card className="overflow-hidden transition-shadow hover:shadow-md">
         {place.photoUrl ? (
           <div className="relative h-40 w-full">
-            <Image src={place.photoUrl} alt={place.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+            <Image
+              src={place.photoUrl}
+              alt={place.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
           </div>
         ) : (
-          <div className="h-40 w-full bg-[var(--color-bg-subtle)]" />
+          <div className="h-40 w-full bg-bg-subtle" />
         )}
         <div className="flex flex-col gap-2 p-4">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-[var(--color-text-primary)] leading-tight">{place.name}</h3>
+            <h3 className="font-semibold text-text-primary leading-tight">{place.name}</h3>
             {place.distanceM !== undefined && (
-              <span className="shrink-0 text-xs text-[var(--color-text-secondary)]">
+              <span className="shrink-0 text-xs text-text-secondary">
                 {formatDistance(place.distanceM)}
               </span>
             )}
           </div>
 
           {place.bairro && (
-            <p className="text-xs text-[var(--color-text-secondary)]">{place.bairro}</p>
+            <p className="text-xs text-text-secondary">{place.bairro}</p>
           )}
 
           <div className="flex flex-wrap gap-1.5">
@@ -45,8 +51,8 @@ export function PlaceCard({ place }: PlaceCardProps) {
           </div>
 
           {place.reviewsCount > 0 && (
-            <div className="flex items-center gap-1 text-xs text-[var(--color-text-secondary)]">
-              <span className="text-[var(--color-warning)]">★</span>
+            <div className="flex items-center gap-1 text-xs text-text-secondary">
+              <span className="text-warning">★</span>
               <span>{place.rating.toFixed(1)}</span>
               <span>({place.reviewsCount})</span>
             </div>

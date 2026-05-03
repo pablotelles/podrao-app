@@ -46,14 +46,14 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div>
-        <p className="mb-2 text-sm font-medium text-[var(--color-text-primary)]">Sua avaliação</p>
+        <p className="mb-2 text-sm font-medium text-text-primary">Sua avaliação</p>
         <div className="flex gap-3">
           <button
             type="button"
             onClick={() => setValue('thumbsUp', true)}
             className={[
               'flex h-12 w-12 items-center justify-center rounded-full text-2xl border-2 transition-colors',
-              thumbsUp === true ? 'border-[var(--color-success)] bg-green-50' : 'border-[var(--color-border)]',
+              thumbsUp === true ? 'border-success bg-green-50' : 'border-border',
             ].join(' ')}
             aria-label="Recomendo"
           >
@@ -64,14 +64,14 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
             onClick={() => setValue('thumbsUp', false)}
             className={[
               'flex h-12 w-12 items-center justify-center rounded-full text-2xl border-2 transition-colors',
-              thumbsUp === false ? 'border-[var(--color-error)] bg-red-50' : 'border-[var(--color-border)]',
+              thumbsUp === false ? 'border-error bg-red-50' : 'border-border',
             ].join(' ')}
             aria-label="Não recomendo"
           >
             👎
           </button>
         </div>
-        {errors.thumbsUp && <p className="mt-1 text-xs text-[var(--color-error)]">Selecione uma avaliação</p>}
+        {errors.thumbsUp && <p className="mt-1 text-xs text-error">Selecione uma avaliação</p>}
       </div>
 
       <Input
@@ -85,12 +85,12 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
       />
 
       <div>
-        <p className="mb-2 text-sm font-medium text-[var(--color-text-primary)]">Tipo de refeição</p>
+        <p className="mb-2 text-sm font-medium text-text-primary">Tipo de refeição</p>
         <div className="flex flex-wrap gap-2">
           {MEAL_TYPES.map((m) => (
             <label key={m} className="cursor-pointer">
               <input type="radio" value={m} className="sr-only" {...register('mealType')} />
-              <span className="rounded-full border border-[var(--color-border)] px-3 py-1 text-sm text-[var(--color-text-secondary)]">
+              <span className="rounded-full border border-border px-3 py-1 text-sm text-text-secondary">
                 {m}
               </span>
             </label>
@@ -99,16 +99,16 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-[var(--color-text-primary)]">Comentário (opcional)</label>
+        <label className="text-sm font-medium text-text-primary">Comentário (opcional)</label>
         <textarea
           rows={3}
           maxLength={500}
-          className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
+          className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           {...register('comment')}
         />
       </div>
 
-      {serverError && <p className="text-sm text-[var(--color-error)]">{serverError}</p>}
+      {serverError && <p className="text-sm text-error">{serverError}</p>}
 
       <Button type="submit" disabled={submitting}>
         {submitting ? 'Enviando...' : 'Enviar avaliação'}

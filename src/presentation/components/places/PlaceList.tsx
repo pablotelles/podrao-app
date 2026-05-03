@@ -11,7 +11,7 @@ interface PlaceListProps {
 export function PlaceList({ places, isLoading, error }: PlaceListProps) {
   if (isLoading) {
     return (
-      <div className="grid gap-[var(--spacing-card-gap)] sm:grid-cols-2">
+      <div className="grid gap-(--spacing-card-gap) sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <PlaceCardSkeleton key={i} />
         ))}
@@ -21,7 +21,7 @@ export function PlaceList({ places, isLoading, error }: PlaceListProps) {
 
   if (error) {
     return (
-      <p className="py-8 text-center text-sm text-[var(--color-error)]">
+      <p className="py-8 text-center text-sm text-error">
         Erro ao carregar lugares. Tente novamente.
       </p>
     );
@@ -29,14 +29,14 @@ export function PlaceList({ places, isLoading, error }: PlaceListProps) {
 
   if (!places.length) {
     return (
-      <p className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
+      <p className="py-8 text-center text-sm text-text-secondary">
         Nenhum lugar encontrado nessa região. Que tal cadastrar o primeiro?
       </p>
     );
   }
 
   return (
-    <div className="grid gap-[var(--spacing-card-gap)] sm:grid-cols-2">
+    <div className="grid gap-(--spacing-card-gap) sm:grid-cols-2">
       {places.map((place) => (
         <PlaceCard key={place.id} place={place} />
       ))}

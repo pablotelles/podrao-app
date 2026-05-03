@@ -76,7 +76,9 @@ export function FilterBar({ values, onChange }: FilterBarProps) {
             label="Raio de busca"
             options={RADIUS_OPTIONS.map(String)}
             selected={values.radiusMeters !== undefined ? String(values.radiusMeters) : undefined}
-            labels={Object.fromEntries(RADIUS_OPTIONS.map((r) => [String(r), r < 1000 ? `${r}m` : `${r / 1000}km`]))}
+            labels={Object.fromEntries(
+              RADIUS_OPTIONS.map((r) => [String(r), r < 1000 ? `${r}m` : `${r / 1000}km`]),
+            )}
             onSelect={(v) => onChange({ ...values, radiusMeters: v !== undefined ? Number(v) : undefined })}
           />
 
@@ -100,7 +102,7 @@ interface FilterSectionProps {
 function FilterSection({ label, options, selected, labels, onSelect }: FilterSectionProps) {
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-[var(--color-text-primary)]">{label}</p>
+      <p className="mb-2 text-sm font-medium text-text-primary">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => (
           <button
@@ -109,8 +111,8 @@ function FilterSection({ label, options, selected, labels, onSelect }: FilterSec
             className={[
               'rounded-full border px-3 py-1 text-sm transition-colors',
               selected === opt
-                ? 'border-[var(--color-brand)] bg-[var(--color-brand-subtle)] text-[var(--color-brand)]'
-                : 'border-[var(--color-border)] text-[var(--color-text-secondary)]',
+                ? 'border-brand bg-brand-subtle text-brand'
+                : 'border-border text-text-secondary',
             ].join(' ')}
           >
             {labels?.[opt] ?? opt}
