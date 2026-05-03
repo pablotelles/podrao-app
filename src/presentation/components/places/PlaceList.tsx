@@ -1,6 +1,6 @@
 import type { Place } from '@/domain/entities/Place';
 import { PlaceCard } from './PlaceCard';
-import { PlaceCardSkeleton } from '@/presentation/components/ui';
+import { PlaceCardSkeleton, EmptyState } from '@/presentation/components/ui';
 
 interface PlaceListProps {
   places: Place[];
@@ -21,17 +21,21 @@ export function PlaceList({ places, isLoading, error }: PlaceListProps) {
 
   if (error) {
     return (
-      <p className="py-8 text-center text-sm text-error">
-        Erro ao carregar lugares. Tente novamente.
-      </p>
+      <EmptyState
+        icon="⚠️"
+        title="Erro ao carregar lugares"
+        description="Tente novamente em alguns instantes."
+      />
     );
   }
 
   if (!places.length) {
     return (
-      <p className="py-8 text-center text-sm text-text-secondary">
-        Nenhum lugar encontrado nessa região. Que tal cadastrar o primeiro?
-      </p>
+      <EmptyState
+        icon="🍽️"
+        title="Nenhum lugar encontrado"
+        description="Que tal cadastrar o primeiro lugar nessa região?"
+      />
     );
   }
 
@@ -43,3 +47,4 @@ export function PlaceList({ places, isLoading, error }: PlaceListProps) {
     </div>
   );
 }
+

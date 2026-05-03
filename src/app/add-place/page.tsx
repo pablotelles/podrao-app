@@ -7,13 +7,15 @@ import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/for
 import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
-import { Button, Input, Badge } from '@/presentation/components/ui';
+import { Button, Input, Select, Badge, ProgressSteps, ToggleGroup } from '@/presentation/components/ui';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 
 // Mapa de nome completo do estado (retornado pelo LocationIQ) para sigla
 const ESTADO_SIGLAS: Record<string, string> = {
+  // (used for reverse-geocoding only)
+  // ← intentional: keeps all 27 entries below
   Acre: 'AC',
   Alagoas: 'AL',
   Amapá: 'AP',
@@ -48,6 +50,19 @@ function toEstadoSigla(state: string): string {
   return ESTADO_SIGLAS[state] ?? state.slice(0, 2).toUpperCase();
 }
 
+// Options for the Select — value = sigla, label = full name
+const ESTADOS_OPTIONS = Object.entries(ESTADO_SIGLAS).map(([label, value]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label, 'pt'));
+
+// Which form fields must be valid before advancing each step
+const STEP_FIELDS: (keyof CreatePlaceInput)[][] = [
+  ['address', 'numero', 'cidade', 'estado', 'lat', 'lng'], // step 0
+  ['mealTypes'],                                  // step 1
+  ['name', 'establishmentType'],                  // step 2
+  ['cuisineTypes'],                               // step 3
+  ['priceBucket'],                               // step 4
+  [],                                             // step 5 (foto opcional)
+];
+
 const STEPS = ['Localização', 'Refeições', 'Estabelecimento', 'Cozinha', 'Preço', 'Foto'] as const;
 const ESTABLISHMENT_TYPES = [
   'Restaurante',
@@ -72,6 +87,7 @@ export default function AddPlacePage() {
     handleSubmit,
     setValue,
     watch,
+    trigger,
     formState: { errors },
   } = useZodForm<CreatePlaceInput>({
     schema: createPlaceSchema,
@@ -80,10 +96,6 @@ export default function AddPlacePage() {
 
   const mealTypes = watch('mealTypes') ?? [];
   const cuisineTypes = watch('cuisineTypes') ?? [];
-
-  function toggleArray<T extends string>(arr: T[], val: T): T[] {
-    return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
-  }
 
   async function onSubmit(data: CreatePlaceInput) {
     let photoUrl: string | undefined;
@@ -100,8 +112,8 @@ export default function AddPlacePage() {
     if (!geo.lat || !geo.lng) return;
 
     console.log('[add-place] GPS capturado:', { lat: geo.lat, lng: geo.lng });
-    setValue('lat', geo.lat);
-    setValue('lng', geo.lng);
+    setValue('lat', geo.lat, { shouldValidate: true });
+    setValue('lng', geo.lng, { shouldValidate: true });
 
     setGeocoding(true);
     fetch(`/api/geocode/reverse?lat=${geo.lat}&lng=${geo.lng}`)
@@ -109,9 +121,9 @@ export default function AddPlacePage() {
       .then((data) => {
         console.log('[add-place] Endereço retornado:', data);
         if (data.address) {
-          if (data.address.road) setValue('address', data.address.road);
-          if (data.address.city) setValue('cidade', data.address.city);
-          if (data.address.state) setValue('estado', toEstadoSigla(data.address.state));
+          if (data.address.road) setValue('address', data.address.road, { shouldValidate: true });
+          if (data.address.city) setValue('cidade', data.address.city, { shouldValidate: true });
+          if (data.address.state) setValue('estado', toEstadoSigla(data.address.state), { shouldValidate: true });
           if (data.address.neighbourhood) setValue('bairro', data.address.neighbourhood);
         }
       })
@@ -122,16 +134,8 @@ export default function AddPlacePage() {
   return (
     <main className="mx-auto max-w-lg px-(--spacing-page-x) pb-24 pt-6">
       {/* Progress */}
-      <div className="mb-8 flex gap-1">
-        {STEPS.map((s, i) => (
-          <div
-            key={s}
-            className={[
-              'h-1 flex-1 rounded-full transition-colors',
-              i <= step ? 'bg-brand' : 'bg-border',
-            ].join(' ')}
-          />
-        ))}
+      <div className="mb-8">
+        <ProgressSteps currentStep={step} totalSteps={STEPS.length} labels={STEPS} />
       </div>
 
       <h1 className="mb-1 text-xl font-bold text-text-primary">{STEPS[step]}</h1>
@@ -159,14 +163,15 @@ export default function AddPlacePage() {
             {geo.error && <p className="text-xs text-error">{geo.error}</p>}
             <Input label="Endereço" error={errors.address?.message} {...register('address')} />
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Número (opcional)" {...register('numero')} />
+              <Input label="Número" error={errors.numero?.message} {...register('numero')} />
               <Input label="Complemento (opcional)" {...register('complemento')} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Input label="Cidade" error={errors.cidade?.message} {...register('cidade')} />
-              <Input
-                label="Estado (sigla)"
-                maxLength={2}
+              <Select
+                label="Estado"
+                placeholder="Selecione"
+                options={ESTADOS_OPTIONS}
                 error={errors.estado?.message}
                 {...register('estado')}
               />
@@ -176,92 +181,49 @@ export default function AddPlacePage() {
         )}
 
         {step === 1 && (
-          <div className="flex flex-wrap gap-2">
-            {MEAL_TYPES.map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setValue('mealTypes', toggleArray(mealTypes, m))}
-                className={[
-                  'rounded-full border px-4 py-2 text-sm transition-colors',
-                  mealTypes.includes(m)
-                    ? 'border-brand bg-brand-subtle text-brand'
-                    : 'border-border text-text-secondary',
-                ].join(' ')}
-              >
-                {m}
-              </button>
-            ))}
-            {errors.mealTypes && (
-              <p className="w-full text-xs text-error">{errors.mealTypes.message}</p>
-            )}
+          <div className="flex flex-col gap-2">
+            <ToggleGroup
+              mode="multi"
+              options={MEAL_TYPES}
+              value={mealTypes}
+              onChange={(v) => setValue('mealTypes', v)}
+            />
+            {errors.mealTypes && <p className="text-xs text-error">{errors.mealTypes.message}</p>}
           </div>
         )}
 
         {step === 2 && (
           <>
             <Input label="Nome do lugar" error={errors.name?.message} {...register('name')} />
-            <div className="flex flex-wrap gap-2">
-              {ESTABLISHMENT_TYPES.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setValue('establishmentType', t)}
-                  className={[
-                    'rounded-full border px-4 py-2 text-sm transition-colors',
-                    watch('establishmentType') === t
-                      ? 'border-brand bg-brand-subtle text-brand'
-                      : 'border-border text-text-secondary',
-                  ].join(' ')}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <ToggleGroup
+              mode="single"
+              options={ESTABLISHMENT_TYPES}
+              value={watch('establishmentType')}
+              onChange={(v) => v && setValue('establishmentType', v)}
+            />
           </>
         )}
 
         {step === 3 && (
-          <div className="flex flex-wrap gap-2">
-            {CUISINE_TYPES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setValue('cuisineTypes', toggleArray(cuisineTypes, c))}
-                className={[
-                  'rounded-full border px-4 py-2 text-sm transition-colors',
-                  cuisineTypes.includes(c)
-                    ? 'border-brand bg-brand-subtle text-brand'
-                    : 'border-border text-text-secondary',
-                ].join(' ')}
-              >
-                {c}
-              </button>
-            ))}
-            {errors.cuisineTypes && (
-              <p className="w-full text-xs text-error">{errors.cuisineTypes.message}</p>
-            )}
+          <div className="flex flex-col gap-2">
+            <ToggleGroup
+              mode="multi"
+              options={CUISINE_TYPES}
+              value={cuisineTypes}
+              onChange={(v) => setValue('cuisineTypes', v)}
+            />
+            {errors.cuisineTypes && <p className="text-xs text-error">{errors.cuisineTypes.message}</p>}
           </div>
         )}
 
         {step === 4 && (
-          <div className="flex flex-wrap gap-2">
-            {PRICE_BUCKETS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setValue('priceBucket', p)}
-                className={[
-                  'rounded-full border px-4 py-2 text-sm transition-colors',
-                  watch('priceBucket') === p
-                    ? 'border-brand bg-brand-subtle text-brand'
-                    : 'border-border text-text-secondary',
-                ].join(' ')}
-              >
-                {PRICE_BUCKET_LABELS[p]}
-              </button>
-            ))}
-          </div>
+          <ToggleGroup
+            mode="single"
+            options={PRICE_BUCKETS}
+            value={watch('priceBucket')}
+            onChange={(v) => v && setValue('priceBucket', v)}
+            renderLabel={(p) => PRICE_BUCKET_LABELS[p]}
+          />
         )}
 
         {step === 5 && (
@@ -292,7 +254,15 @@ export default function AddPlacePage() {
             </Button>
           )}
           {step < STEPS.length - 1 ? (
-            <Button type="button" className="flex-1" onClick={() => setStep(step + 1)}>
+            <Button
+              type="button"
+              className="flex-1"
+              onClick={async () => {
+                const fields = STEP_FIELDS[step];
+                const valid = fields.length === 0 || await trigger(fields);
+                if (valid) setStep(step + 1);
+              }}
+            >
               Próximo
             </Button>
           ) : (

@@ -1,4 +1,5 @@
 import type { Review } from '@/domain/entities/Review';
+import { EmptyState } from '@/presentation/components/ui';
 
 interface ReviewListProps {
   reviews: Review[];
@@ -7,9 +8,11 @@ interface ReviewListProps {
 export function ReviewList({ reviews }: ReviewListProps) {
   if (!reviews.length) {
     return (
-      <p className="py-4 text-sm text-text-secondary">
-        Nenhuma avaliação ainda. Seja o primeiro!
-      </p>
+      <EmptyState
+        icon="💬"
+        title="Nenhuma avaliação ainda"
+        description="Seja o primeiro a avaliar este lugar!"
+      />
     );
   }
 
@@ -18,7 +21,9 @@ export function ReviewList({ reviews }: ReviewListProps) {
       {reviews.map((r) => (
         <li key={r.id} className="rounded-md border border-border p-3">
           <div className="flex items-center gap-2">
-            <span className="text-lg">{r.thumbsUp ? '👍' : '👎'}</span>
+            <span className="text-lg" aria-label={r.thumbsUp ? 'Recomendado' : 'Não recomendado'}>
+              {r.thumbsUp ? '👍' : '👎'}
+            </span>
             {r.mealType && (
               <span className="text-xs text-text-secondary">{r.mealType}</span>
             )}
@@ -39,3 +44,4 @@ export function ReviewList({ reviews }: ReviewListProps) {
     </ul>
   );
 }
+

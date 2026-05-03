@@ -22,5 +22,6 @@ export function useZodForm<T extends FieldValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
     defaultValues,
+    mode: 'onTouched',
   });
 }

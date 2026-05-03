@@ -6,10 +6,10 @@ import { PRICE_BUCKETS } from '@/domain/value-objects/PriceBucket';
 export const createPlaceSchema = z.object({
   name: z.string().min(2, 'Nome deve ter ao menos 2 caracteres').max(120),
   address: z.string().min(5, 'Endereço inválido'),
-  numero: z.string().optional(),
+  numero: z.string().min(1, 'Informe o número'),
   complemento: z.string().optional(),
   bairro: z.string().optional(),
-  cidade: z.string().min(2),
+  cidade: z.string().min(2, 'Informe a cidade'),
   estado: z.string().length(2, 'Use a sigla do estado (ex: SP)'),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),

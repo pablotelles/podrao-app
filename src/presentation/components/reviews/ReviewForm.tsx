@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
 import { submitReviewInitialValues } from '@/presentation/lib/forms/review/initialValues';
-import { Button, Input } from '@/presentation/components/ui';
+import { Button, Input, Textarea, ThumbToggle, ToggleGroup } from '@/presentation/components/ui';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 
 interface ReviewFormProps {
@@ -28,6 +28,7 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
   });
 
   const thumbsUp = watch('thumbsUp');
+  const mealType = watch('mealType');
 
   async function onSubmit(data: SubmitReviewInput) {
     setSubmitting(true);
@@ -54,31 +55,11 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div>
         <p className="mb-2 text-sm font-medium text-text-primary">Sua avaliação</p>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setValue('thumbsUp', true)}
-            className={[
-              'flex h-12 w-12 items-center justify-center rounded-full text-2xl border-2 transition-colors',
-              thumbsUp === true ? 'border-success bg-green-50' : 'border-border',
-            ].join(' ')}
-            aria-label="Recomendo"
-          >
-            👍
-          </button>
-          <button
-            type="button"
-            onClick={() => setValue('thumbsUp', false)}
-            className={[
-              'flex h-12 w-12 items-center justify-center rounded-full text-2xl border-2 transition-colors',
-              thumbsUp === false ? 'border-error bg-red-50' : 'border-border',
-            ].join(' ')}
-            aria-label="Não recomendo"
-          >
-            👎
-          </button>
-        </div>
-        {errors.thumbsUp && <p className="mt-1 text-xs text-error">Selecione uma avaliação</p>}
+        <ThumbToggle
+          value={thumbsUp}
+          onChange={(v) => setValue('thumbsUp', v)}
+          error={errors.thumbsUp ? 'Selecione uma avaliação' : undefined}
+        />
       </div>
 
       <Input
@@ -93,27 +74,21 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
 
       <div>
         <p className="mb-2 text-sm font-medium text-text-primary">Tipo de refeição</p>
-        <div className="flex flex-wrap gap-2">
-          {MEAL_TYPES.map((m) => (
-            <label key={m} className="cursor-pointer">
-              <input type="radio" value={m} className="sr-only" {...register('mealType')} />
-              <span className="rounded-full border border-border px-3 py-1 text-sm text-text-secondary">
-                {m}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-text-primary">Comentário (opcional)</label>
-        <textarea
-          rows={3}
-          maxLength={500}
-          className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          {...register('comment')}
+        <ToggleGroup
+          mode="single"
+          options={MEAL_TYPES}
+          value={mealType}
+          onChange={(v) => setValue('mealType', v)}
         />
       </div>
+
+      <Textarea
+        label="Comentário (opcional)"
+        maxLength={500}
+        helperText="Máximo 500 caracteres"
+        error={errors.comment?.message}
+        {...register('comment')}
+      />
 
       {serverError && <p className="text-sm text-error">{serverError}</p>}
 
