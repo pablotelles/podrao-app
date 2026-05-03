@@ -1,15 +1,7 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useDistance } from '@/presentation/hooks/useDistance';
-
-const PlaceDetailMap = dynamic(
-  () => import('@/presentation/components/places/PlaceDetailMap').then((m) => m.PlaceDetailMap),
-  {
-    ssr: false,
-    loading: () => <div className="h-48 w-full animate-pulse bg-bg-subtle" />,
-  },
-);
+import { DynamicPlaceDetailMap } from '@/presentation/components/maps/dynamic';
 
 interface PlaceDetailHeaderProps {
   lat: number;
@@ -23,7 +15,7 @@ export function PlaceDetailHeader({ lat, lng, name }: PlaceDetailHeaderProps) {
 
   return (
     <div className="relative h-48 w-full overflow-hidden">
-      <PlaceDetailMap lat={lat} lng={lng} name={name} />
+      <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
 
       {/* Distância - canto inferior esquerdo */}
       {hasUserLocation && (

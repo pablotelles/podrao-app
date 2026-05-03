@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
+import { DynamicLocationPickerMap } from '@/presentation/components/maps/dynamic';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/forms/place/schema';
 import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
@@ -20,13 +20,6 @@ import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 
-const LocationPickerMap = dynamic(
-  () => import('@/presentation/components/maps/LocationPickerMap'),
-  {
-    ssr: false,
-    loading: () => <div className="h-[220px] w-full animate-pulse rounded-md bg-bg-subtle" />,
-  },
-);
 
 // Mapa de nome completo do estado (retornado pelo LocationIQ) para sigla
 const ESTADO_SIGLAS: Record<string, string> = {
@@ -203,7 +196,7 @@ export default function AddPlacePage() {
             {geo.error && <p className="text-xs text-error">{geo.error}</p>}
 
             {hasLocation && (
-              <LocationPickerMap
+              <DynamicLocationPickerMap
                 lat={formLat}
                 lng={formLng}
                 onLocationChange={handleLocationChange}

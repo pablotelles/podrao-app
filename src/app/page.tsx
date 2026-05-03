@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
@@ -10,13 +9,9 @@ import { FilterBar, type FilterValues } from '@/presentation/components/filters/
 import { PlaceList } from '@/presentation/components/places/PlaceList';
 import { LocationSearch } from '@/presentation/components/location/LocationSearch';
 import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
+import { DynamicPlaceMap } from '@/presentation/components/maps/dynamic';
 import { Button } from '@/presentation/components/ui';
 import type { Place } from '@/domain/entities/Place';
-
-const PlaceMap = dynamic(() => import('@/presentation/components/places/PlaceMap'), {
-  ssr: false,
-  loading: () => <MapSkeleton />,
-});
 
 type ViewMode = 'list' | 'map';
 
@@ -122,7 +117,7 @@ export default function HomePage() {
                 <PlaceList places={places} isLoading={isLoading} error={error} />
               </div>
             ) : (
-              <PlaceMap
+              <DynamicPlaceMap
                 places={places}
                 userLat={geo.lat}
                 userLng={geo.lng}
