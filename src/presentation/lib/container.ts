@@ -6,6 +6,8 @@ import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/Supa
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
 import { SupabaseUserRepository } from '@/infrastructure/database/supabase/SupabaseUserRepository';
 import { UpstashCacheProvider } from '@/infrastructure/cache/UpstashCacheProvider';
+import { NullCacheProvider } from '@/infrastructure/cache/NullCacheProvider';
+import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
 import { SupabaseStorageProvider } from '@/infrastructure/storage/SupabaseStorageProvider';
 import { LocationIQMapProvider } from '@/infrastructure/maps/LocationIQMapProvider';
 import { OpenAIEmbeddingProvider } from '@/infrastructure/ai/OpenAIEmbeddingProvider';
@@ -22,7 +24,10 @@ import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews
 const placeRepository = new SupabasePlaceRepository();
 const reviewRepository = new SupabaseReviewRepository();
 const userRepository = new SupabaseUserRepository();
-const cacheProvider = new UpstashCacheProvider();
+const cacheProvider: ICacheProvider =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new UpstashCacheProvider()
+    : new NullCacheProvider();
 const storageProvider = new SupabaseStorageProvider();
 const mapProvider = new LocationIQMapProvider(process.env.LOCATIONIQ_API_KEY!);
 const embeddingProvider = new OpenAIEmbeddingProvider(process.env.OPENAI_API_KEY ?? '');
