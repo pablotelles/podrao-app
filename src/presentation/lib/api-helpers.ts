@@ -52,6 +52,8 @@ export const createServerSupabaseClient = createRouteSupabaseClient;
 export async function getSession(): Promise<SupabaseUser | null> {
   const supabase = await createRouteSupabaseClient();
   const { data: { user }, error } = await supabase.auth.getUser();
+  if (error) console.error('[getSession] getUser error:', error.message, error.status);
+  if (!user) console.warn('[getSession] no user found');
   if (error || !user) return null;
   return user;
 }

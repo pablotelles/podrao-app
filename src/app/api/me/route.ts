@@ -10,7 +10,18 @@ export async function GET() {
     if (!session) throw new UnauthorizedError();
 
     const user = await userRepository.findById(session.id);
-    if (!user) throw new UnauthorizedError();
+
+    // Profile pode não existir ainda (migration pendente ou usuário antigo sem perfil).
+    // Retorna dados básicos do auth para não bloquear o acesso à conta.
+    if (!user) {
+      const emailLocal = session.email?.split('@')[0] ?? session.id.slice(0, 8);
+      return NextResponse.json({
+        id: session.id,
+        email: session.email ?? '',
+        nickname: emailLocal,
+        createdAt: new Date(),
+      });
+    }
 
     return NextResponse.json(user);
   } catch (err) {
