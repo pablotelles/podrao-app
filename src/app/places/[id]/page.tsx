@@ -4,6 +4,7 @@ import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { Badge } from '@/presentation/components/ui';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
+import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 import { createServerSupabaseClient } from '@/presentation/lib/api-helpers';
 import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
@@ -41,19 +42,37 @@ export default async function PlaceDetailPage({ params }: Props) {
 
     return (
       <main className="mx-auto max-w-2xl pb-24">
-        {place.logoUrl && (
-          <div className="relative h-56 w-full">
-            <Image src={place.logoUrl} alt={place.name} fill className="object-cover" priority />
-          </div>
-        )}
+        {/* Cover: Mapa da localização */}
+        <PlaceDetailHeader lat={place.lat} lng={place.lng} name={place.name} />
 
         <div className="px-(--spacing-page-x) pt-5">
-          <h1 className="text-2xl font-bold text-text-primary">{place.name}</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            {place.address}
-            {place.bairro ? `, ${place.bairro}` : ''}
-          </p>
+          {/* Header: Logo + Info */}
+          <div className="flex gap-4">
+            {/* Logo menor */}
+            {place.logoUrl && (
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border">
+                <Image src={place.logoUrl} alt={place.name} fill className="object-cover" />
+              </div>
+            )}
 
+            {/* Info ao lado do logo */}
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-text-primary leading-tight">{place.name}</h1>
+              <p className="mt-1 text-xs text-text-secondary">
+                {place.address}
+                {place.bairro ? `, ${place.bairro}` : ''}
+              </p>
+              {place.reviewsCount > 0 && (
+                <p className="mt-1 text-xs text-text-secondary">
+                  <span className="text-warning">★</span> {place.rating.toFixed(1)} ·{' '}
+                  {place.reviewsCount} avaliações
+                  {place.medianPrice && ` · Mediana R$${place.medianPrice.toFixed(2)}`}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Badges */}
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="brand">{PRICE_BUCKET_LABELS[place.priceBucket]}</Badge>
             {place.mealTypes.map((m) => (
@@ -63,14 +82,6 @@ export default async function PlaceDetailPage({ params }: Props) {
               <Badge key={c}>{c}</Badge>
             ))}
           </div>
-
-          {place.reviewsCount > 0 && (
-            <p className="mt-3 text-sm text-text-secondary">
-              <span className="text-warning">★</span> {place.rating.toFixed(1)} ·{' '}
-              {place.reviewsCount} avaliações
-              {place.medianPrice && ` · Mediana R$${place.medianPrice.toFixed(2)}`}
-            </p>
-          )}
 
           {/* Botão para o criador adicionar/editar foto */}
           {isOwner && (
