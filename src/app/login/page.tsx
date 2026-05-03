@@ -1,23 +1,34 @@
 'use client';
 
 import { useState } from 'react';
+import { useZodForm } from '@/presentation/lib/forms/useZodForm';
+import { loginSchema, type LoginInput } from '@/presentation/lib/forms/login/schema';
+import { loginInitialValues } from '@/presentation/lib/forms/login/initialValues';
 import { Button, Input } from '@/presentation/components/ui';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors },
+  } = useZodForm<LoginInput>({
+    schema: loginSchema,
+    defaultValues: loginInitialValues,
+  });
+
+  async function onSubmit(data: LoginInput) {
     setLoading(true);
-    setError(null);
+    setServerError(null);
     try {
       const res = await fetch('/api/auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) {
         const body = (await res.json()) as { error: string };
@@ -25,7 +36,7 @@ export default function LoginPage() {
       }
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao enviar email');
+      setServerError(err instanceof Error ? err.message : 'Erro ao enviar email');
     } finally {
       setLoading(false);
     }
@@ -41,19 +52,18 @@ export default function LoginPage() {
 
         {sent ? (
           <div className="rounded-lg bg-brand-subtle p-4 text-sm text-text-primary">
-            Verifique seu email — o link de acesso foi enviado para <strong>{email}</strong>.
+            Verifique seu email — o link de acesso foi enviado para{' '}
+            <strong>{getValues('email')}</strong>.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <Input
               id="email"
               label="Email"
               type="email"
               placeholder="voce@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              error={error ?? undefined}
+              error={errors.email?.message ?? serverError ?? undefined}
+              {...register('email')}
             />
             <Button type="submit" disabled={loading}>
               {loading ? 'Enviando...' : 'Enviar link de acesso'}

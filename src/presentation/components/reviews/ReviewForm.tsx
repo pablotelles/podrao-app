@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/schemas/reviewSchema';
+import { useZodForm } from '@/presentation/lib/forms/useZodForm';
+import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
+import { submitReviewInitialValues } from '@/presentation/lib/forms/review/initialValues';
 import { Button, Input } from '@/presentation/components/ui';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 
@@ -16,8 +16,15 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<SubmitReviewInput>({
-    resolver: zodResolver(submitReviewSchema),
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useZodForm<SubmitReviewInput>({
+    schema: submitReviewSchema,
+    defaultValues: submitReviewInitialValues,
   });
 
   const thumbsUp = watch('thumbsUp');

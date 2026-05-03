@@ -78,9 +78,7 @@ export default function PlaceMap({
           iconSize: [14, 14],
           iconAnchor: [7, 7],
         });
-        L.marker([userLat, userLng], { icon: userIcon })
-          .addTo(map)
-          .bindPopup('Você está aqui');
+        L.marker([userLat, userLng], { icon: userIcon }).addTo(map).bindPopup('Você está aqui');
       }
 
       mapRef.current = map;

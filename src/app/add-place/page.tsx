@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/schemas/placeSchema';
+import { useZodForm } from '@/presentation/lib/forms/useZodForm';
+import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/forms/place/schema';
+import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
 import { Button, Input, Badge } from '@/presentation/components/ui';
@@ -14,15 +14,33 @@ import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/Price
 
 // Mapa de nome completo do estado (retornado pelo LocationIQ) para sigla
 const ESTADO_SIGLAS: Record<string, string> = {
-  'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM',
-  'Bahia': 'BA', 'Ceará': 'CE', 'Distrito Federal': 'DF',
-  'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA',
-  'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG',
-  'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE',
-  'Piauí': 'PI', 'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN',
-  'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR',
-  'Santa Catarina': 'SC', 'São Paulo': 'SP', 'Sergipe': 'SE',
-  'Tocantins': 'TO',
+  Acre: 'AC',
+  Alagoas: 'AL',
+  Amapá: 'AP',
+  Amazonas: 'AM',
+  Bahia: 'BA',
+  Ceará: 'CE',
+  'Distrito Federal': 'DF',
+  'Espírito Santo': 'ES',
+  Goiás: 'GO',
+  Maranhão: 'MA',
+  'Mato Grosso': 'MT',
+  'Mato Grosso do Sul': 'MS',
+  'Minas Gerais': 'MG',
+  Pará: 'PA',
+  Paraíba: 'PB',
+  Paraná: 'PR',
+  Pernambuco: 'PE',
+  Piauí: 'PI',
+  'Rio de Janeiro': 'RJ',
+  'Rio Grande do Norte': 'RN',
+  'Rio Grande do Sul': 'RS',
+  Rondônia: 'RO',
+  Roraima: 'RR',
+  'Santa Catarina': 'SC',
+  'São Paulo': 'SP',
+  Sergipe: 'SE',
+  Tocantins: 'TO',
 };
 
 function toEstadoSigla(state: string): string {
@@ -31,7 +49,15 @@ function toEstadoSigla(state: string): string {
 }
 
 const STEPS = ['Localização', 'Refeições', 'Estabelecimento', 'Cozinha', 'Preço', 'Foto'] as const;
-const ESTABLISHMENT_TYPES = ['Restaurante', 'Padaria', 'Lanchonete', 'Cafeteria', 'Food truck', 'Mercado', 'Outro'] as const;
+const ESTABLISHMENT_TYPES = [
+  'Restaurante',
+  'Padaria',
+  'Lanchonete',
+  'Cafeteria',
+  'Food truck',
+  'Mercado',
+  'Outro',
+] as const;
 
 export default function AddPlacePage() {
   const router = useRouter();
@@ -41,9 +67,15 @@ export default function AddPlacePage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [geocoding, setGeocoding] = useState(false);
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreatePlaceInput>({
-    resolver: zodResolver(createPlaceSchema),
-    defaultValues: { cuisineTypes: [], mealTypes: [] },
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useZodForm<CreatePlaceInput>({
+    schema: createPlaceSchema,
+    defaultValues: createPlaceInitialValues,
   });
 
   const mealTypes = watch('mealTypes') ?? [];
@@ -94,7 +126,10 @@ export default function AddPlacePage() {
         {STEPS.map((s, i) => (
           <div
             key={s}
-            className={['h-1 flex-1 rounded-full transition-colors', i <= step ? 'bg-brand' : 'bg-border'].join(' ')}
+            className={[
+              'h-1 flex-1 rounded-full transition-colors',
+              i <= step ? 'bg-brand' : 'bg-border',
+            ].join(' ')}
           />
         ))}
       </div>
@@ -104,8 +139,17 @@ export default function AddPlacePage() {
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 flex flex-col gap-4">
         {step === 0 && (
           <>
-            <Button type="button" onClick={geo.request} disabled={geo.loading || geocoding} variant="secondary">
-              {geo.loading ? 'Buscando GPS...' : geocoding ? 'Preenchendo endereço...' : '📍 Usar minha localização'}
+            <Button
+              type="button"
+              onClick={geo.request}
+              disabled={geo.loading || geocoding}
+              variant="secondary"
+            >
+              {geo.loading
+                ? 'Buscando GPS...'
+                : geocoding
+                  ? 'Preenchendo endereço...'
+                  : '📍 Usar minha localização'}
             </Button>
             {geo.lat && geo.lng && !geocoding && (
               <p className="text-xs text-text-secondary">
@@ -120,7 +164,12 @@ export default function AddPlacePage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Input label="Cidade" error={errors.cidade?.message} {...register('cidade')} />
-              <Input label="Estado (sigla)" maxLength={2} error={errors.estado?.message} {...register('estado')} />
+              <Input
+                label="Estado (sigla)"
+                maxLength={2}
+                error={errors.estado?.message}
+                {...register('estado')}
+              />
             </div>
             <Input label="Bairro (opcional)" {...register('bairro')} />
           </>
@@ -133,14 +182,19 @@ export default function AddPlacePage() {
                 key={m}
                 type="button"
                 onClick={() => setValue('mealTypes', toggleArray(mealTypes, m))}
-                className={['rounded-full border px-4 py-2 text-sm transition-colors',
-                  mealTypes.includes(m) ? 'border-brand bg-brand-subtle text-brand' : 'border-border text-text-secondary',
+                className={[
+                  'rounded-full border px-4 py-2 text-sm transition-colors',
+                  mealTypes.includes(m)
+                    ? 'border-brand bg-brand-subtle text-brand'
+                    : 'border-border text-text-secondary',
                 ].join(' ')}
               >
                 {m}
               </button>
             ))}
-            {errors.mealTypes && <p className="w-full text-xs text-error">{errors.mealTypes.message}</p>}
+            {errors.mealTypes && (
+              <p className="w-full text-xs text-error">{errors.mealTypes.message}</p>
+            )}
           </div>
         )}
 
@@ -153,8 +207,11 @@ export default function AddPlacePage() {
                   key={t}
                   type="button"
                   onClick={() => setValue('establishmentType', t)}
-                  className={['rounded-full border px-4 py-2 text-sm transition-colors',
-                    watch('establishmentType') === t ? 'border-brand bg-brand-subtle text-brand' : 'border-border text-text-secondary',
+                  className={[
+                    'rounded-full border px-4 py-2 text-sm transition-colors',
+                    watch('establishmentType') === t
+                      ? 'border-brand bg-brand-subtle text-brand'
+                      : 'border-border text-text-secondary',
                   ].join(' ')}
                 >
                   {t}
@@ -171,14 +228,19 @@ export default function AddPlacePage() {
                 key={c}
                 type="button"
                 onClick={() => setValue('cuisineTypes', toggleArray(cuisineTypes, c))}
-                className={['rounded-full border px-4 py-2 text-sm transition-colors',
-                  cuisineTypes.includes(c) ? 'border-brand bg-brand-subtle text-brand' : 'border-border text-text-secondary',
+                className={[
+                  'rounded-full border px-4 py-2 text-sm transition-colors',
+                  cuisineTypes.includes(c)
+                    ? 'border-brand bg-brand-subtle text-brand'
+                    : 'border-border text-text-secondary',
                 ].join(' ')}
               >
                 {c}
               </button>
             ))}
-            {errors.cuisineTypes && <p className="w-full text-xs text-error">{errors.cuisineTypes.message}</p>}
+            {errors.cuisineTypes && (
+              <p className="w-full text-xs text-error">{errors.cuisineTypes.message}</p>
+            )}
           </div>
         )}
 
@@ -189,8 +251,11 @@ export default function AddPlacePage() {
                 key={p}
                 type="button"
                 onClick={() => setValue('priceBucket', p)}
-                className={['rounded-full border px-4 py-2 text-sm transition-colors',
-                  watch('priceBucket') === p ? 'border-brand bg-brand-subtle text-brand' : 'border-border text-text-secondary',
+                className={[
+                  'rounded-full border px-4 py-2 text-sm transition-colors',
+                  watch('priceBucket') === p
+                    ? 'border-brand bg-brand-subtle text-brand'
+                    : 'border-border text-text-secondary',
                 ].join(' ')}
               >
                 {PRICE_BUCKET_LABELS[p]}
@@ -211,7 +276,9 @@ export default function AddPlacePage() {
               className="text-sm text-text-secondary"
             />
             {photoFile && (
-              <Badge variant="brand" className="mt-2">{photoFile.name}</Badge>
+              <Badge variant="brand" className="mt-2">
+                {photoFile.name}
+              </Badge>
             )}
           </div>
         )}

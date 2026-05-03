@@ -42,7 +42,10 @@ export const searchNearbyPlaces = new SearchNearbyPlaces(placeRepository, cacheP
 export const createPlace = new CreatePlace(placeRepository, cacheProvider);
 export const getPlaceById = new GetPlaceById(placeRepository);
 export const approvePlace = new ApprovePlace(placeRepository, cacheProvider);
-export const generatePlaceEmbedding = new GeneratePlaceEmbedding(placeRepository, embeddingProvider);
+export const generatePlaceEmbedding = new GeneratePlaceEmbedding(
+  placeRepository,
+  embeddingProvider,
+);
 export const submitReview = new SubmitReview(reviewRepository, placeRepository);
 export const getPlaceReviews = new GetPlaceReviews(reviewRepository, placeRepository);
 

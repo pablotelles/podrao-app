@@ -62,11 +62,7 @@ function toDomain(row: PlaceRow): Place {
 
 export class SupabasePlaceRepository implements IPlaceRepository {
   async findById(id: string): Promise<Place | null> {
-    const { data, error } = await supabase
-      .from('places')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('places').select('*').eq('id', id).single();
 
     if (error || !data) return null;
     return toDomain(data as PlaceRow);
@@ -145,19 +141,13 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   }
 
   async updateStatus(id: string, status: PlaceStatus): Promise<void> {
-    const { error } = await supabase
-      .from('places')
-      .update({ status })
-      .eq('id', id);
+    const { error } = await supabase.from('places').update({ status }).eq('id', id);
 
     if (error) throw new Error(error.message);
   }
 
   async saveEmbedding(id: string, embedding: number[]): Promise<void> {
-    const { error } = await supabase
-      .from('places')
-      .update({ embedding })
-      .eq('id', id);
+    const { error } = await supabase.from('places').update({ embedding }).eq('id', id);
 
     if (error) throw new Error(error.message);
   }
