@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet';
 import { createUserPinHtml, USER_PIN_SIZE, USER_PIN_ANCHOR } from './pins/userPin';
+import { ACTIVE_TILE_PROVIDER } from './tileProviders';
 import {
   createPlacePinHtml,
   PLACE_PIN_SIZE,
@@ -145,8 +146,8 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
         attributionControl: false,
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
+      L.tileLayer(ACTIVE_TILE_PROVIDER.url, {
+        maxZoom: ACTIVE_TILE_PROVIDER.maxZoom,
       }).addTo(map);
 
       if (onClick) {
