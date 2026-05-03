@@ -21,6 +21,7 @@ import { ApprovePlace } from '@/application/use-cases/places/ApprovePlace';
 import { GeneratePlaceEmbedding } from '@/application/use-cases/places/GeneratePlaceEmbedding';
 import { SubmitReview } from '@/application/use-cases/reviews/SubmitReview';
 import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
+import { UpdateProfile } from '@/application/use-cases/user/UpdateProfile';
 
 // --- Infra ---
 const placeRepository = new SupabasePlaceRepository();
@@ -48,6 +49,7 @@ export const generatePlaceEmbedding = new GeneratePlaceEmbedding(
 );
 export const submitReview = new SubmitReview(reviewRepository, placeRepository);
 export const getPlaceReviews = new GetPlaceReviews(reviewRepository, placeRepository);
+export const updateProfile = new UpdateProfile(userRepository);
 
 // --- Providers exportados para uso direto em routes ---
 export { mapProvider, storageProvider, userRepository };
