@@ -10,6 +10,8 @@ interface PlaceRow {
   id: string;
   name: string;
   address: string;
+  numero: string | null;
+  complemento: string | null;
   bairro: string | null;
   cidade: string;
   estado: string;
@@ -35,6 +37,8 @@ function toDomain(row: PlaceRow): Place {
     id: row.id,
     name: row.name,
     address: row.address,
+    numero: row.numero ?? undefined,
+    complemento: row.complemento ?? undefined,
     bairro: row.bairro ?? undefined,
     cidade: row.cidade,
     estado: row.estado,
@@ -90,6 +94,8 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       .insert({
         name: data.name,
         address: data.address,
+        numero: data.numero,
+        complemento: data.complemento,
         bairro: data.bairro,
         cidade: data.cidade,
         estado: data.estado,

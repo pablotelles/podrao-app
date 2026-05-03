@@ -1,0 +1,3 @@
+ALTER TABLE places
+  ADD COLUMN IF NOT EXISTS numero      TEXT,
+  ADD COLUMN IF NOT EXISTS complemento TEXT;

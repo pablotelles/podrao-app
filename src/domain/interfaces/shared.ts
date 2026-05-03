@@ -18,6 +18,8 @@ export interface SearchPlacesParams {
 export interface CreatePlaceData {
   name: string;
   address: string;
+  numero?: string;
+  complemento?: string;
   bairro?: string;
   cidade: string;
   estado: string;

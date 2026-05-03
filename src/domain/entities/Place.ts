@@ -8,6 +8,8 @@ export interface Place {
   id: string;
   name: string;
   address: string;
+  numero?: string;
+  complemento?: string;
   bairro?: string;
   cidade: string;
   estado: string;

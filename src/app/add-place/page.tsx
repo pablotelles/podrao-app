@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,24 @@ import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 
+// Mapa de nome completo do estado (retornado pelo LocationIQ) para sigla
+const ESTADO_SIGLAS: Record<string, string> = {
+  'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM',
+  'Bahia': 'BA', 'Ceará': 'CE', 'Distrito Federal': 'DF',
+  'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA',
+  'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG',
+  'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE',
+  'Piauí': 'PI', 'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN',
+  'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR',
+  'Santa Catarina': 'SC', 'São Paulo': 'SP', 'Sergipe': 'SE',
+  'Tocantins': 'TO',
+};
+
+function toEstadoSigla(state: string): string {
+  if (state.length === 2) return state.toUpperCase();
+  return ESTADO_SIGLAS[state] ?? state.slice(0, 2).toUpperCase();
+}
+
 const STEPS = ['Localização', 'Refeições', 'Estabelecimento', 'Cozinha', 'Preço', 'Foto'] as const;
 const ESTABLISHMENT_TYPES = ['Restaurante', 'Padaria', 'Lanchonete', 'Cafeteria', 'Food truck', 'Mercado', 'Outro'] as const;
 
@@ -21,6 +39,7 @@ export default function AddPlacePage() {
   const { submit, uploadPhoto, loading, error: submitError } = useAddPlace();
   const [step, setStep] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreatePlaceInput>({
     resolver: zodResolver(createPlaceSchema),
@@ -44,13 +63,29 @@ export default function AddPlacePage() {
     if (place) router.push(`/places/${place.id}`);
   }
 
-  function useGps() {
-    geo.request();
-    if (geo.lat && geo.lng) {
-      setValue('lat', geo.lat);
-      setValue('lng', geo.lng);
-    }
-  }
+  // Quando o GPS responder, seta lat/lng e faz reverse geocoding para preencher endereço
+  useEffect(() => {
+    if (!geo.lat || !geo.lng) return;
+
+    console.log('[add-place] GPS capturado:', { lat: geo.lat, lng: geo.lng });
+    setValue('lat', geo.lat);
+    setValue('lng', geo.lng);
+
+    setGeocoding(true);
+    fetch(`/api/geocode/reverse?lat=${geo.lat}&lng=${geo.lng}`)
+      .then((r) => r.json())
+      .then((data) => {
+        console.log('[add-place] Endereço retornado:', data);
+        if (data.address) {
+          if (data.address.road) setValue('address', data.address.road);
+          if (data.address.city) setValue('cidade', data.address.city);
+          if (data.address.state) setValue('estado', toEstadoSigla(data.address.state));
+          if (data.address.neighbourhood) setValue('bairro', data.address.neighbourhood);
+        }
+      })
+      .catch((e) => console.error('[add-place] Erro no reverse geocoding:', e))
+      .finally(() => setGeocoding(false));
+  }, [geo.lat, geo.lng, setValue]);
 
   return (
     <main className="mx-auto max-w-lg px-(--spacing-page-x) pb-24 pt-6">
@@ -69,11 +104,20 @@ export default function AddPlacePage() {
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 flex flex-col gap-4">
         {step === 0 && (
           <>
-            <Button type="button" onClick={useGps} disabled={geo.loading} variant="secondary">
-              {geo.loading ? 'Buscando...' : '📍 Usar minha localização'}
+            <Button type="button" onClick={geo.request} disabled={geo.loading || geocoding} variant="secondary">
+              {geo.loading ? 'Buscando GPS...' : geocoding ? 'Preenchendo endereço...' : '📍 Usar minha localização'}
             </Button>
+            {geo.lat && geo.lng && !geocoding && (
+              <p className="text-xs text-text-secondary">
+                ✓ Localização capturada ({geo.lat.toFixed(5)}, {geo.lng.toFixed(5)})
+              </p>
+            )}
             {geo.error && <p className="text-xs text-error">{geo.error}</p>}
             <Input label="Endereço" error={errors.address?.message} {...register('address')} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Número (opcional)" {...register('numero')} />
+              <Input label="Complemento (opcional)" {...register('complemento')} />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Input label="Cidade" error={errors.cidade?.message} {...register('cidade')} />
               <Input label="Estado (sigla)" maxLength={2} error={errors.estado?.message} {...register('estado')} />
