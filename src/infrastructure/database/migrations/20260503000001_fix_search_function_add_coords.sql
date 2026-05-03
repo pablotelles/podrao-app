@@ -1,5 +1,7 @@
--- Busca geográfica principal via Supabase RPC
--- Regra PostGIS: ST_DWithin no WHERE (usa índice GIST), ST_Distance só no SELECT/ORDER BY
+-- Fix: adiciona lat/lng e outros campos faltantes no retorno de search_nearby_places
+-- Necessário DROP antes de recriar pois mudamos a assinatura do RETURNS TABLE
+DROP FUNCTION IF EXISTS search_nearby_places(FLOAT, FLOAT, FLOAT, TEXT, TEXT, NUMERIC, INT, INT);
+
 CREATE OR REPLACE FUNCTION search_nearby_places(
   p_lat          FLOAT,
   p_lng          FLOAT,
@@ -83,39 +85,5 @@ BEGIN
     ) DESC
   LIMIT  p_limit
   OFFSET p_offset;
-END;
-$$ LANGUAGE plpgsql STABLE;
-
--- Busca semântica combinada geo + pgvector (pós-MVP)
-CREATE OR REPLACE FUNCTION search_places_semantic(
-  p_lat          FLOAT,
-  p_lng          FLOAT,
-  p_radius_m     FLOAT,
-  p_query_embed  vector(1536),
-  p_limit        INT DEFAULT 20
-)
-RETURNS TABLE (
-  id           UUID,
-  name         TEXT,
-  distance_m   FLOAT,
-  similarity   FLOAT
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    p.id,
-    p.name,
-    ST_Distance(p.location, ST_MakePoint(p_lng, p_lat)::geography) AS distance_m,
-    1 - (p.embedding <=> p_query_embed)                            AS similarity
-  FROM places p
-  WHERE
-    p.status = 'approved'
-    AND ST_DWithin(p.location, ST_MakePoint(p_lng, p_lat)::geography, p_radius_m)
-    AND p.embedding IS NOT NULL
-  ORDER BY
-    ((1 - (p.embedding <=> p_query_embed)) * 0.6)
-    + ((1.0 - LEAST(ST_Distance(p.location, ST_MakePoint(p_lng, p_lat)::geography) / p_radius_m, 1.0)) * 0.4)
-    DESC
-  LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql STABLE;

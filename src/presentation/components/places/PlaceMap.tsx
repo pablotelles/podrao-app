@@ -9,7 +9,7 @@
  *   const PlaceMap = dynamic(() => import('./PlaceMap'), { ssr: false });
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useId, useState } from 'react';
 import type { Place } from '@/domain/entities/Place';
 
 // Tiles gratuitos OpenStreetMap — sem cota, sem chave
@@ -32,16 +32,42 @@ export default function PlaceMap({
   height = '100%',
   onPlaceClick,
 }: PlaceMapProps) {
+  console.log('[PlaceMap] Render - places.length:', places.length, 'userLat:', userLat, 'userLng:', userLng);
+  
+  const mapId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import('leaflet').Map | null>(null);
   const userMarkerRef = useRef<import('leaflet').Marker | null>(null);
   const placeMarkersRef = useRef<import('leaflet').Marker[]>([]);
+  const isInitializingRef = useRef(false);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    console.log('[PlaceMap] useEffect init - containerRef.current:', !!containerRef.current, 'mapRef.current:', !!mapRef.current);
+    
+    if (!containerRef.current) return;
+    if (mapRef.current) return; // já inicializado
+    if (isInitializingRef.current) return; // está inicializando
+
+    console.log('[PlaceMap] Iniciando mapa...');
+    isInitializingRef.current = true;
 
     // Importação dinâmica do Leaflet (só roda no browser)
     import('leaflet').then((L) => {
+      // Se já foi inicializado enquanto importava, cancela
+      if (mapRef.current) {
+        isInitializingRef.current = false;
+        return;
+      }
+
+      // Verifica se o container já tem um mapa (proteção extra)
+      const container = containerRef.current as HTMLDivElement & { _leaflet_id?: number };
+      if (container && container._leaflet_id) {
+        console.warn('[PlaceMap] Container já tem mapa inicializado, pulando');
+        isInitializingRef.current = false;
+        return;
+      }
+
       // Corrige ícones padrão quebrados no bundler
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -87,21 +113,41 @@ export default function PlaceMap({
       }
 
       mapRef.current = map;
+      setMapReady(true);
+      isInitializingRef.current = false;
+      console.log('[PlaceMap] Mapa criado com sucesso!');
     });
 
     return () => {
-      mapRef.current?.remove();
-      mapRef.current = null;
+      console.log('[PlaceMap] Cleanup - removendo mapa');
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
       userMarkerRef.current = null;
       placeMarkersRef.current = [];
+      isInitializingRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // monta uma vez
 
-  // Atualiza markers quando places muda
+  // Atualiza markers quando places muda OU quando o mapa fica pronto
   useEffect(() => {
+    console.log('[PlaceMap] useEffect markers - mapReady:', mapReady, 'mapRef.current:', !!mapRef.current, 'places.length:', places.length);
+    
+    if (!mapReady) {
+      console.log('[PlaceMap] Aguardando mapa ficar pronto...');
+      return;
+    }
+    
     const map = mapRef.current;
-    if (!map) return;
+    if (!map) {
+      console.log('[PlaceMap] Map ainda não inicializado, pulando atualização de marcadores');
+      return;
+    }
+
+    console.log('[PlaceMap] Places recebidos:', places.length);
+    places.forEach(p => console.log(`  - ${p.name}: lat=${p.lat}, lng=${p.lng}`));
 
     import('leaflet').then((L) => {
       // Remove apenas os marcadores de lugares antigos
@@ -112,6 +158,14 @@ export default function PlaceMap({
 
       // Cria novos marcadores para cada lugar
       for (const place of places) {
+        // Skip lugares sem coordenadas (proteção contra dados inconsistentes)
+        if (!place.lat || !place.lng) {
+          console.warn('[PlaceMap] Skip - sem coordenadas:', place.name);
+          continue;
+        }
+
+        console.log('[PlaceMap] Criando marcador:', place.name, [place.lat, place.lng]);
+
         const marker = L.marker([place.lat, place.lng])
           .addTo(map)
           .bindPopup(
@@ -128,6 +182,8 @@ export default function PlaceMap({
         placeMarkersRef.current.push(marker);
       }
 
+      console.log('[PlaceMap] Total marcadores criados:', placeMarkersRef.current.length);
+
       // Ajusta bounds para mostrar todos os lugares
       if (places.length > 0) {
         const coords = places.map((p): [number, number] => [p.lat, p.lng]);
@@ -135,7 +191,7 @@ export default function PlaceMap({
         map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 });
       }
     });
-  }, [places, userLat, userLng, onPlaceClick]);
+  }, [mapReady, places, userLat, userLng, onPlaceClick]);
 
   return (
     <>
@@ -146,7 +202,7 @@ export default function PlaceMap({
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         crossOrigin=""
       />
-      <div ref={containerRef} style={{ height, width: '100%' }} />
+      <div ref={containerRef} id={mapId} style={{ height, width: '100%' }} />
     </>
   );
 }
