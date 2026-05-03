@@ -9,12 +9,13 @@ import { useNearbyPlaces } from '@/presentation/hooks/useNearbyPlaces';
 import { FilterBar, type FilterValues } from '@/presentation/components/filters/FilterBar';
 import { PlaceList } from '@/presentation/components/places/PlaceList';
 import { LocationSearch } from '@/presentation/components/location/LocationSearch';
+import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
 import { Button } from '@/presentation/components/ui';
 import type { Place } from '@/domain/entities/Place';
 
 const PlaceMap = dynamic(() => import('@/presentation/components/places/PlaceMap'), {
   ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse bg-bg-subtle rounded-lg" />,
+  loading: () => <MapSkeleton />,
 });
 
 type ViewMode = 'list' | 'map';
@@ -23,7 +24,7 @@ export default function HomePage() {
   const geo = useGeolocation();
   const router = useRouter();
   const [filters, setFilters] = useState<FilterValues>({});
-  const [view, setView] = useState<ViewMode>('list');
+  const [view, setView] = useState<ViewMode>('map');
 
   const { places, isLoading, error } = useNearbyPlaces(
     geo.lat && geo.lng
@@ -58,17 +59,6 @@ export default function HomePage() {
           {hasLocation && (
             <div className="flex rounded-full border border-border overflow-hidden text-sm">
               <button
-                onClick={() => setView('list')}
-                className={
-                  'px-3 py-1 transition-colors ' +
-                  (view === 'list'
-                    ? 'bg-brand text-text-inverse'
-                    : 'text-text-secondary hover:bg-bg-subtle')
-                }
-              >
-                Lista
-              </button>
-              <button
                 onClick={() => setView('map')}
                 className={
                   'px-3 py-1 transition-colors ' +
@@ -79,6 +69,17 @@ export default function HomePage() {
               >
                 Mapa
               </button>
+              <button
+                onClick={() => setView('list')}
+                className={
+                  'px-3 py-1 transition-colors ' +
+                  (view === 'list'
+                    ? 'bg-brand text-text-inverse'
+                    : 'text-text-secondary hover:bg-bg-subtle')
+                }
+              >
+                Lista
+              </button>
             </div>
           )}
           <Link href="/add-place">
@@ -87,31 +88,26 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Estado: inicializando (GPS sendo solicitado) */}
+      {/* Skeleton enquanto aguarda GPS */}
       {geo.initializing && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-text-secondary">
-          <div className="h-8 w-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
-          <p className="text-sm">Obtendo localização…</p>
+        <div className="flex-1">
+          <MapSkeleton />
         </div>
       )}
 
-      {/* Estado: GPS falhou — busca manual */}
-      {!geo.initializing && !hasLocation && geo.error && (
+      {/* GPS falhou — busca manual por cidade */}
+      {!geo.initializing && !hasLocation && (
         <>
           <LocationSearch
             onLocation={(lat, lng) => geo.setLocation(lat, lng)}
             onRetry={geo.request}
             retrying={geo.loading}
           />
-          <div className="flex-1 overflow-auto">
-            <div className="mx-auto max-w-2xl px-(--spacing-page-x) py-4">
-              <PlaceList places={[]} isLoading={false} error={null} />
-            </div>
-          </div>
+          <div className="flex-1 bg-bg-subtle" />
         </>
       )}
 
-      {/* Estado: localização disponível */}
+      {/* Localização disponível */}
       {!geo.initializing && hasLocation && (
         <>
           {view === 'list' && (
