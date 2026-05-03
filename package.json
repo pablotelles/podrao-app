@@ -21,6 +21,7 @@
     "@upstash/redis": "^1.37.0",
     "class-variance-authority": "^0.7.1",
     "leaflet": "^1.9.4",
+    "lucide-react": "^1.14.0",
     "next": "15.5.15",
     "openai": "^6.35.0",
     "react": "19.1.0",
