@@ -1,10 +1,15 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { getPlaceById, getPlaceReviews } from '@/presentation/lib/container';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { Badge } from '@/presentation/components/ui';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
+import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
+import { createRouteSupabaseClient } from '@/presentation/lib/api-helpers';
+import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
+import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
+import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
+import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -14,10 +19,23 @@ export default async function PlaceDetailPage({ params }: Props) {
   const { id } = await params;
 
   try {
+    // Usar client autenticado para que RLS policies funcionem corretamente
+    const supabase = await createRouteSupabaseClient();
+    const placeRepository = new SupabasePlaceRepository(supabase);
+    const reviewRepository = new SupabaseReviewRepository(supabase);
+    
+    const getPlaceById = new GetPlaceById(placeRepository);
+    const getPlaceReviews = new GetPlaceReviews(reviewRepository, placeRepository);
+
+    // Pegar dados do usuário logado (se houver)
+    const { data: { user } } = await supabase.auth.getUser();
+
     const [place, reviews] = await Promise.all([
       getPlaceById.execute(id),
       getPlaceReviews.execute(id),
     ]);
+
+    const isOwner = user?.id === place.createdBy;
 
     return (
       <main className="mx-auto max-w-2xl pb-24">
@@ -42,6 +60,13 @@ export default async function PlaceDetailPage({ params }: Props) {
               <span className="text-warning">★</span> {place.rating.toFixed(1)} · {place.reviewsCount} avaliações
               {place.medianPrice && ` · Mediana R$${place.medianPrice.toFixed(2)}`}
             </p>
+          )}
+
+          {/* Botão para o criador adicionar/editar foto */}
+          {isOwner && (
+            <div className="mt-4">
+              <PhotoUploadButton placeId={place.id} hasPhoto={!!place.photoUrl} />
+            </div>
           )}
 
           <hr className="my-6 border-border" />

@@ -1,6 +1,7 @@
 import type { Review } from '@/domain/entities/Review';
 import type { IReviewRepository, CreateReviewData } from '@/domain/interfaces/IReviewRepository';
 import type { MealType } from '@/domain/value-objects/MealType';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
 
 interface ReviewRow {
@@ -28,8 +29,10 @@ function toDomain(row: ReviewRow): Review {
 }
 
 export class SupabaseReviewRepository implements IReviewRepository {
+  constructor(private readonly db: SupabaseClient = supabase) {}
+
   async findByPlace(placeId: string): Promise<Review[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('reviews')
       .select('*')
       .eq('place_id', placeId)
@@ -40,7 +43,7 @@ export class SupabaseReviewRepository implements IReviewRepository {
   }
 
   async findByUser(userId: string): Promise<Review[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('reviews')
       .select('*')
       .eq('user_id', userId)
@@ -51,7 +54,7 @@ export class SupabaseReviewRepository implements IReviewRepository {
   }
 
   async create(data: CreateReviewData): Promise<Review> {
-    const { data: row, error } = await supabase
+    const { data: row, error } = await this.db
       .from('reviews')
       .insert({
         place_id: data.placeId,
@@ -69,7 +72,7 @@ export class SupabaseReviewRepository implements IReviewRepository {
   }
 
   async existsForUser(placeId: string, userId: string): Promise<boolean> {
-    const { count, error } = await supabase
+    const { count, error } = await this.db
       .from('reviews')
       .select('*', { count: 'exact', head: true })
       .eq('place_id', placeId)
