@@ -64,20 +64,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Se estiver atualizando foto, gerenciar place_photos table
     if (parsed.data.photoUrl) {
       const storageProvider = new SupabaseStorageProvider(supabase);
-      
+
       // Buscar logo atual
       const currentPhotos = await placeRepository.getPlacePhotos(id);
       const currentLogo = currentPhotos.find((p) => p.type === 'logo');
-      
+
       // Se existe logo antigo, deletar do storage e da tabela
       if (currentLogo) {
         await storageProvider.deleteByUrl(currentLogo.url);
         await placeRepository.deletePlacePhoto(currentLogo.id);
       }
-      
+
       // Adicionar novo logo
       await placeRepository.addPlacePhoto(id, parsed.data.photoUrl, 'logo');
-      
+
       // Remover photoUrl do parsed.data para não tentar atualizar o campo DEPRECATED
       delete parsed.data.photoUrl;
     }

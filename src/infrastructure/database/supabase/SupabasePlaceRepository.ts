@@ -67,11 +67,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
   async findById(id: string): Promise<Place | null> {
     // Buscar o place
-    const { data, error } = await this.db
-      .from('places')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await this.db.from('places').select('*').eq('id', id).single();
 
     if (error || !data) return null;
 
@@ -86,7 +82,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     const row = data as any;
     row.logo_url = logoData?.url ?? null;
-    
+
     return toDomain(row as PlaceRow);
   }
 
@@ -183,7 +179,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       .order('position');
 
     if (error) throw new Error(error.message);
-    
+
     return (data || []).map((row: any) => ({
       id: row.id,
       placeId: row.place_id,

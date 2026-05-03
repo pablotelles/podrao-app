@@ -29,7 +29,7 @@ export class SupabaseStorageProvider implements IStorageProvider {
     // URL formato: https://[project].supabase.co/storage/v1/object/public/place-photos/places/[user_id]/[timestamp].jpg
     const match = url.match(/\/place-photos\/(.+)$/);
     if (!match) throw new Error('URL inválida para extração de path');
-    
+
     const path = match[1];
     await this.delete(path);
   }

@@ -39,9 +39,7 @@ export function PlaceCard({ place }: PlaceCardProps) {
             )}
           </div>
 
-          {place.bairro && (
-            <p className="text-xs text-text-secondary">{place.bairro}</p>
-          )}
+          {place.bairro && <p className="text-xs text-text-secondary">{place.bairro}</p>}
 
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="brand">{PRICE_BUCKET_LABELS[place.priceBucket]}</Badge>
