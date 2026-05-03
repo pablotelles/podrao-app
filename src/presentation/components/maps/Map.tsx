@@ -110,12 +110,30 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
       };
 
       const fitMarkers = (map: LeafletMap) => {
-        if (markers.length > 1) {
-          const coords = markers.map((m) => [m.lat, m.lng] as [number, number]);
-          map.fitBounds(L.latLngBounds(coords), { padding: [48, 48], maxZoom: 15 });
-        } else if (markers.length === 1 && !center) {
-          map.setView([markers[0].lat, markers[0].lng], zoom);
+        if (markers.length === 1 && !center) {
+          // Um único marcador — zoom próximo fixo
+          map.setView([markers[0].lat, markers[0].lng], 16);
+          return;
         }
+
+        if (markers.length < 2) return;
+
+        const coords = markers.map((m) => [m.lat, m.lng] as [number, number]);
+        const bounds = L.latLngBounds(coords);
+
+        // Diagonal do bounding box em km — decide o quão próximo ficar
+        const diagonalKm =
+          map.distance(bounds.getNorthWest(), bounds.getSouthEast()) / 1000;
+
+        // Quanto menor a diagonal, mais podemos aproximar
+        // < 0.5 km → zoom 17 | < 2 km → 16 | < 8 km → 15 | maior → 13
+        const maxZoom =
+          diagonalKm < 0.5 ? 17
+          : diagonalKm < 2  ? 16
+          : diagonalKm < 8  ? 15
+          : 13;
+
+        map.fitBounds(bounds, { padding: [52, 52], maxZoom });
       };
 
       // --- Atualizar mapa existente ---
