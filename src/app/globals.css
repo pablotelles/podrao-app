@@ -93,3 +93,41 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-base);
 }
+
+/* ===================================================================
+   MAPA — animações e overrides do Leaflet
+   =================================================================== */
+
+@keyframes map-pulse {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Remove borda padrão do Leaflet nos divIcon */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Popup do Leaflet — visual limpo e alinhado ao design system */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-modal) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: var(--line-height-base) !important;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.leaflet-popup-close-button {
+  color: var(--color-text-secondary) !important;
+  font-size: 18px !important;
+  padding: 6px 8px !important;
+}

@@ -2,20 +2,27 @@
 
 import { useEffect, useRef } from 'react';
 import type { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet';
+import { createUserPinHtml, USER_PIN_SIZE, USER_PIN_ANCHOR } from './pins/userPin';
+import {
+  createPlacePinHtml,
+  PLACE_PIN_SIZE,
+  PLACE_PIN_ANCHOR,
+} from './pins/placePin';
 
 export interface MapMarker {
   lat: number;
   lng: number;
   id?: string;
-  content?: string; // HTML popup
+  content?: string;
   draggable?: boolean;
   icon?: 'default' | 'user' | 'brand';
+  onClick?: () => void;
 }
 
 export interface MapConfig {
   center?: { lat: number; lng: number };
   zoom?: number;
-  interactive?: boolean; // permite arrastar, zoom, etc
+  interactive?: boolean;
   onClick?: (lat: number, lng: number) => void;
   onMarkerDragEnd?: (lat: number, lng: number) => void;
 }
@@ -32,31 +39,57 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<LeafletMarker[]>([]);
 
-  const { center, zoom = 13, interactive = true, onClick, onMarkerDragEnd } = config;
+  const { center, zoom = 14, interactive = true, onClick, onMarkerDragEnd } = config;
 
-  // Criar/atualizar mapa
   useEffect(() => {
     if (!containerRef.current) return;
 
     (async () => {
       const L = (await import('leaflet')).default;
 
-      // Se mapa já existe, apenas atualizar
-      if (mapRef.current) {
-        // Limpar marcadores antigos
-        markersRef.current.forEach((m) => m.remove());
-        markersRef.current = [];
+      const buildIcon = (marker: MapMarker) => {
+        if (marker.icon === 'user') {
+          return L.divIcon({
+            className: '',
+            html: createUserPinHtml(),
+            iconSize: USER_PIN_SIZE,
+            iconAnchor: USER_PIN_ANCHOR,
+          });
+        }
+        if (marker.icon === 'brand') {
+          return L.divIcon({
+            className: '',
+            html: createPlacePinHtml(),
+            iconSize: PLACE_PIN_SIZE,
+            iconAnchor: PLACE_PIN_ANCHOR,
+            popupAnchor: [0, -PLACE_PIN_ANCHOR[1]],
+          });
+        }
+        return L.icon({
+          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41],
+        });
+      };
 
-        // Adicionar novos marcadores
+      const addMarkers = (map: LeafletMap) => {
         markers.forEach((marker) => {
-          const icon = getIcon(L, marker.icon);
+          const icon = buildIcon(marker);
           const leafletMarker = L.marker([marker.lat, marker.lng], {
             icon,
-            draggable: marker.draggable || false,
+            draggable: marker.draggable ?? false,
           });
 
           if (marker.content) {
-            leafletMarker.bindPopup(marker.content);
+            leafletMarker.bindPopup(marker.content, {
+              maxWidth: 260,
+              minWidth: 200,
+              closeButton: true,
+            });
           }
 
           if (marker.draggable && onMarkerDragEnd) {
@@ -66,25 +99,39 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
             });
           }
 
-          leafletMarker.addTo(mapRef.current!);
+          if (marker.onClick) {
+            leafletMarker.on('click', marker.onClick);
+          }
+
+          leafletMarker.addTo(map);
           markersRef.current.push(leafletMarker);
         });
+      };
 
-        // Ajustar bounds se múltiplos marcadores
+      const fitMarkers = (map: LeafletMap) => {
         if (markers.length > 1) {
           const coords = markers.map((m) => [m.lat, m.lng] as [number, number]);
-          mapRef.current.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 });
+          map.fitBounds(L.latLngBounds(coords), { padding: [48, 48], maxZoom: 15 });
         } else if (markers.length === 1 && !center) {
-          mapRef.current.setView([markers[0].lat, markers[0].lng], zoom);
+          map.setView([markers[0].lat, markers[0].lng], zoom);
         }
+      };
 
+      // --- Atualizar mapa existente ---
+      if (mapRef.current) {
+        markersRef.current.forEach((m) => m.remove());
+        markersRef.current = [];
+        addMarkers(mapRef.current);
+        fitMarkers(mapRef.current);
         return;
       }
 
-      // Criar mapa pela primeira vez
+      // --- Criar mapa pela primeira vez ---
       const initialCenter =
-        center ||
-        (markers[0] ? { lat: markers[0].lat, lng: markers[0].lng } : { lat: -23.55, lng: -46.63 });
+        center ??
+        (markers[0]
+          ? { lat: markers[0].lat, lng: markers[0].lng }
+          : { lat: -23.55, lng: -46.63 });
 
       const map = L.map(containerRef.current!, {
         center: [initialCenter.lat, initialCenter.lng],
@@ -98,118 +145,30 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
         attributionControl: false,
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(map);
 
-      // Event listener para click no mapa
       if (onClick) {
-        map.on('click', (e) => {
-          onClick(e.latlng.lat, e.latlng.lng);
-        });
+        map.on('click', (e) => onClick(e.latlng.lat, e.latlng.lng));
       }
 
-      // Adicionar marcadores
-      markers.forEach((marker) => {
-        const icon = getIcon(L, marker.icon);
-        const leafletMarker = L.marker([marker.lat, marker.lng], {
-          icon,
-          draggable: marker.draggable || false,
-        });
-
-        if (marker.content) {
-          leafletMarker.bindPopup(marker.content);
-        }
-
-        if (marker.draggable && onMarkerDragEnd) {
-          leafletMarker.on('dragend', () => {
-            const pos = leafletMarker.getLatLng();
-            onMarkerDragEnd(pos.lat, pos.lng);
-          });
-        }
-
-        leafletMarker.addTo(map);
-        markersRef.current.push(leafletMarker);
-      });
-
-      // Ajustar bounds se múltiplos marcadores
-      if (markers.length > 1 && !center) {
-        const coords = markers.map((m) => [m.lat, m.lng] as [number, number]);
-        map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 });
-      }
-
+      addMarkers(map);
+      fitMarkers(map);
       mapRef.current = map;
     })();
 
     return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
   }, [markers, center, zoom, interactive, onClick, onMarkerDragEnd]);
 
   return (
     <>
-      {/* CSS do Leaflet */}
       {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossOrigin=""
-      />
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
       <div ref={containerRef} style={{ height, width: '100%' }} className={className} />
     </>
   );
-}
-
-// Helper para criar ícones
-function getIcon(L: any, type: MapMarker['icon'] = 'default') {
-  if (type === 'user') {
-    return L.divIcon({
-      className: 'user-marker',
-      html: `<div style="width: 12px; height: 12px; background: hsl(var(--warning)); border: 2px solid white; border-radius: 50%; box-shadow: 0 0 8px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
-    });
-  }
-
-  if (type === 'brand') {
-    return L.divIcon({
-      className: 'brand-marker',
-      html: `
-        <div style="
-          width: 32px;
-          height: 32px;
-          background: hsl(var(--brand));
-          border: 3px solid white;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        ">
-          <div style="
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: rotate(45deg);
-            font-size: 16px;
-            color: white;
-          ">📍</div>
-        </div>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-    });
-  }
-
-  // default - ícone padrão do Leaflet (marker azul)
-  return L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
 }

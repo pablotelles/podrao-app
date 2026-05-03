@@ -1,10 +1,5 @@
 'use client';
 
-/**
- * PlaceMap — mapa interativo mostrando múltiplos lugares.
- * Importado com dynamic() + ssr:false pois Leaflet depende de window.
- */
-
 import { useMemo } from 'react';
 import type { Place } from '@/domain/entities/Place';
 import { Map, type MapMarker } from '@/presentation/components/maps/Map';
@@ -18,6 +13,34 @@ interface PlaceMapProps {
   onPlaceClick?: (place: Place) => void;
 }
 
+function buildPopupHtml(place: Place): string {
+  const price = PRICE_BUCKET_LABELS[place.priceBucket];
+  const rating =
+    place.reviewsCount > 0
+      ? `<span style="color:#d97706;font-size:12px;">★ ${place.rating.toFixed(1)}</span>
+         <span style="color:#9ca3af;font-size:11px;">(${place.reviewsCount})</span>`
+      : '';
+  const bairro = place.bairro
+    ? `<p style="margin:2px 0 0;font-size:12px;color:#6b7280;">${place.bairro}</p>`
+    : '';
+
+  return `
+    <div style="padding:12px 14px;min-width:180px;font-family:ui-sans-serif,system-ui,sans-serif;">
+      <p style="margin:0;font-size:14px;font-weight:600;color:#111827;line-height:1.3;">${place.name}</p>
+      ${bairro}
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <span style="
+          background:#fff7ed;color:#f97316;
+          font-size:11px;font-weight:500;
+          padding:2px 8px;border-radius:999px;
+          border:1px solid #fed7aa;
+        ">${price}</span>
+        ${rating}
+      </div>
+    </div>
+  `.trim();
+}
+
 export default function PlaceMap({
   places,
   userLat,
@@ -28,62 +51,35 @@ export default function PlaceMap({
   const markers: MapMarker[] = useMemo(() => {
     const result: MapMarker[] = [];
 
-    // Marcador de usuário (se disponível)
     if (userLat != null && userLng != null) {
-      result.push({
-        lat: userLat,
-        lng: userLng,
-        icon: 'user',
-        id: 'user-location',
-      });
+      result.push({ lat: userLat, lng: userLng, icon: 'user', id: 'user-location' });
     }
 
-    // Marcadores dos lugares
     places.forEach((place) => {
       if (place.lat == null || place.lng == null) return;
-
-      const popup = `
-        <div class="min-w-[200px] p-2">
-          <h3 class="font-semibold text-sm">${place.name}</h3>
-          <p class="text-xs text-text-secondary mt-1">${place.bairro || ''}</p>
-          <div class="flex gap-1 mt-2 flex-wrap">
-            <span class="px-2 py-0.5 text-xs rounded-full bg-brand/10 text-brand">${PRICE_BUCKET_LABELS[place.priceBucket]}</span>
-            ${place.rating ? `<span class="text-xs text-warning">★ ${place.rating.toFixed(1)}</span>` : ''}
-          </div>
-        </div>
-      `;
-
       result.push({
         lat: place.lat,
         lng: place.lng,
         id: place.id,
-        content: popup,
         icon: 'brand',
+        content: buildPopupHtml(place),
+        onClick: onPlaceClick ? () => onPlaceClick(place) : undefined,
       });
     });
 
     return result;
   }, [places, userLat, userLng]);
 
-  // Auto-ajustar bounds para mostrar todos os marcadores
   const center = useMemo(() => {
-    if (userLat != null && userLng != null) {
-      return { lat: userLat, lng: userLng };
-    }
-    if (places.length > 0 && places[0].lat != null && places[0].lng != null) {
-      return { lat: places[0].lat, lng: places[0].lng };
-    }
-    return { lat: -15.7801, lng: -47.9292 }; // Brasília fallback
+    if (userLat != null && userLng != null) return { lat: userLat, lng: userLng };
+    if (places.length > 0) return { lat: places[0].lat, lng: places[0].lng };
+    return { lat: -15.7801, lng: -47.9292 };
   }, [userLat, userLng, places]);
 
   return (
     <Map
       markers={markers}
-      config={{
-        center: markers.length > 1 ? undefined : center,
-        zoom: 14,
-        interactive: true,
-      }}
+      config={{ center: markers.length > 1 ? undefined : center, zoom: 14 }}
       height={height}
     />
   );
