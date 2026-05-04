@@ -80,6 +80,7 @@ export default function AddPlacePage() {
   const [geocoding, setGeocoding] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AutocompleteResult | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const {
     register,
@@ -216,13 +217,26 @@ export default function AddPlacePage() {
   }, [geo.lat, geo.lng]);
 
   async function onSubmit(data: CreatePlaceInput) {
-    let photoUrl: string | undefined;
-    if (photoFile) {
-      const url = await uploadPhoto(photoFile);
-      if (url) photoUrl = url;
+    // Dupla proteção contra submits simultâneos
+    if (submitted || isSubmittingRef.current) {
+      return;
     }
-    const place = await submit({ ...data, photoUrl });
-    if (place) setSubmitted(true);
+
+    isSubmittingRef.current = true;
+
+    try {
+      let photoUrl: string | undefined;
+      if (photoFile) {
+        const url = await uploadPhoto(photoFile);
+        if (url) photoUrl = url;
+      }
+      const place = await submit({ ...data, photoUrl });
+      if (place) {
+        setSubmitted(true);
+      }
+    } finally {
+      isSubmittingRef.current = false;
+    }
   }
 
   const handleBack = () => {
@@ -232,12 +246,7 @@ export default function AddPlacePage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <PageHeader
-        title={STEPS[step]}
-        showBackButton
-        onBack={handleBack}
-        sticky
-      />
+      <PageHeader title={STEPS[step]} showBackButton onBack={handleBack} sticky />
 
       <PageContent className="mx-auto w-full max-w-lg flex-1 pb-28">
         <div className="mb-6">
@@ -344,7 +353,7 @@ export default function AddPlacePage() {
                 type="submit"
                 form="add-place-form"
                 className="w-full"
-                disabled={loading}
+                disabled={loading || submitted}
               >
                 {loading ? 'Cadastrando...' : 'Cadastrar lugar'}
               </Button>

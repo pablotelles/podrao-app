@@ -25,11 +25,11 @@ export function ListDetailHeader({ coverUrl, name }: ListDetailHeaderProps) {
       {coverUrl ? (
         <Image src={coverUrl} alt={name} fill className="object-cover" priority sizes="100vw" />
       ) : (
-        <div className="h-full w-full bg-gradient-to-br from-brand-subtle to-bg-muted" />
+        <div className="h-full w-full bg-linear-to-br from-brand-subtle to-bg-subtle" />
       )}
 
       {/* Overlay gradient para legibilidade dos botões */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-transparent" />
 
       {/* Botões de navegação */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-safe pt-3">

@@ -50,7 +50,7 @@ export function CoverSelector({ value, onChange }: CoverSelectorProps) {
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-medium text-text-primary">
-        Capa da lista <span className="text-text-tertiary">(opcional)</span>
+        Capa da lista <span className="text-text-secondary">(opcional)</span>
       </h3>
       <p className="text-sm text-text-secondary">Usar uma foto dos lugares para criar sua capa</p>
       <div className="grid grid-cols-2 gap-3">

@@ -4,23 +4,24 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLists } from '@/presentation/hooks/useLists';
 import { Button } from '@/presentation/components/ui/Button';
-import { ListCard } from './ListCard';
+import { ListList } from './ListList';
+import type { UserList } from '@/domain/entities/List';
 
 export function UserListsSection() {
   const router = useRouter();
   const { lists, deleteList, isLoading } = useLists();
   const [deletingListId, setDeletingListId] = useState<string | null>(null);
+  const [menuList, setMenuList] = useState<UserList | null>(null);
 
-  const handleDelete = async (listId: string) => {
+  const handleDelete = async (list: UserList) => {
     if (!confirm('Tem certeza que deseja deletar esta lista?')) return;
 
-    setDeletingListId(listId);
+    setDeletingListId(list.id);
     try {
-      await deleteList(listId);
-      // TODO: mostrar toast de sucesso
+      await deleteList(list.id);
+      setMenuList(null);
     } catch (err) {
       console.error('Erro ao deletar lista:', err);
-      // TODO: mostrar toast de erro
     } finally {
       setDeletingListId(null);
     }
@@ -35,24 +36,12 @@ export function UserListsSection() {
         </Button>
       </div>
 
-      {isLoading ? (
-        <p className="text-text-secondary">Carregando listas...</p>
-      ) : lists.length === 0 ? (
-        <div className="rounded-lg border border-border bg-bg-subtle p-8 text-center">
-          <p className="mb-4 text-text-secondary">Você ainda não criou nenhuma lista.</p>
-          <Button onClick={() => router.push('/lists/new')}>Criar minha primeira lista</Button>
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {lists.map((list) => (
-            <ListCard
-              key={list.id}
-              list={list}
-              onDelete={deletingListId === list.id ? undefined : () => handleDelete(list.id)}
-            />
-          ))}
-        </div>
-      )}
+      <ListList
+        lists={lists}
+        isLoading={isLoading}
+        onMenuClick={(list) => setMenuList(list)}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

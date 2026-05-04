@@ -148,6 +148,7 @@ CREATE TABLE lists (
   name            TEXT NOT NULL CHECK (length(trim(name)) >= 1),
   description     TEXT,
   is_public       BOOLEAN NOT NULL DEFAULT true,
+  cover_url       TEXT,
   view_count      INTEGER NOT NULL DEFAULT 0,
   favorites_count INTEGER NOT NULL DEFAULT 0,
   saves_count     INTEGER NOT NULL DEFAULT 0,

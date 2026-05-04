@@ -41,12 +41,14 @@ export function StepLocation({
         error={locationError}
       />
       {hasLocation && (
-        <DynamicLocationPickerMap
-          lat={formLat!}
-          lng={formLng!}
-          onLocationChange={onLocationChange}
-          height="150px"
-        />
+        <div className="mt-3">
+          <DynamicLocationPickerMap
+            lat={formLat!}
+            lng={formLng!}
+            onLocationChange={onLocationChange}
+            height="150px"
+          />
+        </div>
       )}
       <button
         type="button"

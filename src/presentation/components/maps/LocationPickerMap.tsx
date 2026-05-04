@@ -60,7 +60,10 @@ export default function LocationPickerMap({
   ];
 
   return (
-    <div className="relative overflow-hidden rounded-md border border-border">
+    <div
+      className="relative overflow-hidden rounded-md border border-border"
+      style={{ zIndex: 'var(--z-base)' }}
+    >
       <Map
         markers={markers}
         config={{
@@ -73,7 +76,7 @@ export default function LocationPickerMap({
         height={height}
       />
       {/* Hint text overlay */}
-      <div className="pointer-events-none absolute left-1/2 top-3 z-[500] -translate-x-1/2 rounded bg-white/90 px-3 py-1.5 text-xs text-text-secondary shadow-sm">
+      <div className="pointer-events-none absolute left-1/2 top-3 z-500 -translate-x-1/2 rounded bg-white/90 px-3 py-1.5 text-xs text-text-secondary shadow-sm">
         Arraste o pin ou toque no mapa
       </div>
     </div>

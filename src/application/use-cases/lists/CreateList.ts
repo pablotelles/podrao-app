@@ -17,6 +17,7 @@ export class CreateList {
       name: trimmedName,
       description: dto.description,
       isPublic: dto.isPublic ?? true,
+      coverUrl: dto.coverUrl,
     });
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { mutate } from 'swr';
 import type { CreatePlaceInput } from '@/presentation/lib/schemas/placeSchema';
 import type { Place } from '@/domain/entities/Place';
@@ -8,8 +8,15 @@ import type { Place } from '@/domain/entities/Place';
 export function useAddPlace() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
 
   async function submit(data: CreatePlaceInput): Promise<Place | null> {
+    // Prevenir submits simultâneos
+    if (submittingRef.current) {
+      return null;
+    }
+
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -31,6 +38,7 @@ export function useAddPlace() {
       return null;
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   }
 
