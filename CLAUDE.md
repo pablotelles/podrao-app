@@ -155,10 +155,12 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(result);
 }
 ```
+
 CREATE POLICY "table_update_own"
-  ON table_name FOR UPDATE
-  USING (auth.uid() = created_by);  -- NO! JWT doesn't propagate correctly
-```
+ON table_name FOR UPDATE
+USING (auth.uid() = created_by); -- NO! JWT doesn't propagate correctly
+
+````
 
 **Why `USING (true)`?**
 
@@ -192,7 +194,7 @@ export async function POST(req: NextRequest) {
   const result = await useCase.execute({ userId: user.id, ...data });
   return NextResponse.json(result);
 }
-```
+````
 
 **Use Case Pattern**: DTOs receive `userId` (who is authenticated), not domain fields like `createdBy`. The Use Case sets domain fields internally:
 
@@ -226,6 +228,102 @@ This pattern is **mandatory** for all authenticated write operations (POST/PATCH
 `"{name} | {establishmentType} | {cuisines} | {mealTypes} | {bairro} | {cidade} | {priceBucket}"`
 
 Semantic search runs via `search_places_semantic` RPC, combining pgvector cosine distance (60%) with geo proximity (40%).
+
+---
+
+## Monorepo Strategy & Mobile Migration Readiness
+
+**Current decision: monorepo (Next.js full-stack).** This is intentional and correct for the current team size. A React Native / Expo mobile client is planned for the future. When that happens, we will split into a separate Node.js/Express backend that both web and mobile consume.
+
+Full feasibility analysis: [`docs/FE_BE_SPLIT_ANALYSIS.md`](docs/FE_BE_SPLIT_ANALYSIS.md)
+
+### Rules that keep future migration cheap
+
+These rules are **mandatory** now — not because of current complexity, but because violating them makes the future split expensive.
+
+**1. API routes must be thin shells**
+
+Route handlers do exactly three things: validate auth, call a use case, return JSON. Nothing else.
+
+```typescript
+// ✅ Correct — thin shell
+export async function POST(req: NextRequest) {
+  const user = await requireAuth();           // 1. auth
+  const dto = parseBody(req, schema);         // 1. validate input
+  const result = await useCase.execute(dto);  // 2. use case
+  return NextResponse.json(result);           // 3. return
+}
+
+// ❌ Wrong — business logic in route handler
+export async function POST(req: NextRequest) {
+  const user = await requireAuth();
+  const body = await req.json();
+  // calculating things, querying DB directly, building domain objects here...
+  const place = await supabase.from('places').insert({ ...body, createdBy: user.id });
+  return NextResponse.json(place);
+}
+```
+
+When the split happens, each route file becomes a 1:1 Express route with zero logic changes.
+
+**2. `container.ts` is the only composition root**
+
+Infrastructure classes (`SupabasePlaceRepository`, `UpstashCacheProvider`, etc.) are instantiated **only** in `src/presentation/lib/container.ts`. API routes import use cases from the container; they never `new` a repository or provider directly.
+
+```typescript
+// ✅ Correct
+import { createPlace } from '@/presentation/lib/container';
+const result = await createPlace.execute(dto);
+
+// ❌ Wrong — infrastructure instantiated in route
+import { SupabasePlaceRepository } from '@/infrastructure/...';
+const repo = new SupabasePlaceRepository();
+```
+
+At split time, `container.ts` is the only file that changes location/content.
+
+**3. Domain and application layers must have zero framework imports**
+
+`src/domain/` and `src/application/` must never import from `next`, `react`, `@supabase/ssr`, or any infrastructure package. They are the portable core that will be copied as-is to the Express backend.
+
+If you need to add something to these layers, ask: "would this compile in a plain Node.js process with no framework?" If yes, it's fine. If no, it belongs in `infrastructure/` or `presentation/`.
+
+**4. DTOs receive `userId`, not auth context**
+
+Use cases receive the authenticated user's ID as a plain string in the DTO. They never receive Supabase client objects, session tokens, or Next.js request objects. Auth is validated before the use case is called; the use case only knows about `userId`.
+
+```typescript
+// ✅ Correct — auth-agnostic DTO
+await submitReview.execute({ placeId, userId: user.id, thumbsUp, comment });
+
+// ❌ Wrong — leaking auth context into use case
+await submitReview.execute({ placeId, session, thumbsUp, comment });
+```
+
+**5. Client hooks fetch from `/api/*` paths only**
+
+SWR hooks and client-side fetch calls always use relative `/api/...` URLs. Never import repositories or infrastructure directly in client components or hooks.
+
+```typescript
+// ✅ Correct — hooks are transport-agnostic
+const { data } = useSWR(`/api/places?lat=${lat}&lng=${lng}`, fetcher);
+
+// ❌ Wrong — importing infra in client hook
+import { placeRepository } from '@/presentation/lib/container';
+const places = await placeRepository.searchNearby(params);
+```
+
+At split time, swapping `/api/places` → `https://api.podrao.com/places` is a one-line config change.
+
+### When to split (trigger conditions)
+
+Split into FE + Express backend when **any** of these is true:
+
+- React Native / Expo mobile client is being built
+- A third-party integration needs to consume the API directly
+- The backend requires independent scaling (high DB load, separate infra)
+
+Do not split before these conditions — the overhead is not worth it.
 
 ---
 
