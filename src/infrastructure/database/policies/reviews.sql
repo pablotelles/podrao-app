@@ -3,6 +3,9 @@
 -- ============================================================================
 -- Este arquivo é idempotente — pode ser re-executado para atualizar policies.
 -- Rode via: npm run db:policies
+--
+-- FILOSOFIA: RLS apenas para proteção básica de autenticação.
+-- Lógica de ownership é validada no Use Case SubmitReview.
 -- ============================================================================
 
 -- Ativar RLS (idempotente)
@@ -23,20 +26,9 @@ CREATE POLICY "reviews_read_all"
 -- ============================================================================
 
 -- Apenas usuários autenticados podem criar reviews
--- E devem ser o autor (user_id = seu user_id)
+-- Validação de ownership (user_id correto) feita no Use Case
 DROP POLICY IF EXISTS "reviews_insert_auth" ON reviews;
-CREATE POLICY "reviews_insert_auth"
+DROP POLICY IF EXISTS "reviews_insert_authenticated" ON reviews;
+CREATE POLICY "reviews_insert_authenticated"
   ON reviews FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
--- ============================================================================
--- UPDATE (edição)
--- ============================================================================
-
--- Sem política de UPDATE — reviews são imutáveis após criação
-
--- ============================================================================
--- DELETE (deleção)
--- ============================================================================
-
--- Sem política de DELETE — reviews não podem ser deletadas
+  WITH CHECK (auth.role() = 'authenticated');

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { submitReview, getPlaceReviews } from '@/presentation/lib/container';
+import { getPlaceReviews } from '@/presentation/lib/container';
 import { submitReviewSchema } from '@/presentation/lib/schemas/reviewSchema';
-import { errorResponse, getSession } from '@/presentation/lib/api-helpers';
+import { errorResponse, createRouteSupabaseClient } from '@/presentation/lib/api-helpers';
 import { UnauthorizedError } from '@/application/errors/UnauthorizedError';
+import { createAdminClient } from '@/infrastructure/database/supabase/client';
+import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
+import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
+import { SubmitReview } from '@/application/use-cases/reviews/SubmitReview';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -16,8 +20,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getSession();
-    if (!session) throw new UnauthorizedError();
+    // 1. Validar autenticação
+    const supabase = await createRouteSupabaseClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) throw new UnauthorizedError();
+
+    // 2. Usar admin client para bypass de RLS (seguro pois auth já validada)
+    const adminClient = createAdminClient();
+    const reviewRepository = new SupabaseReviewRepository(adminClient);
+    const placeRepository = new SupabasePlaceRepository(adminClient);
+    const submitReview = new SubmitReview(reviewRepository, placeRepository);
 
     const { id } = await params;
     const body = await req.json();
@@ -31,7 +46,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const review = await submitReview.execute({
       ...parsed.data,
       placeId: id,
-      userId: session.id,
+      userId: user.id,
     });
     return NextResponse.json(review, { status: 201 });
   } catch (err) {

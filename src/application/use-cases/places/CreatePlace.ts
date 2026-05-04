@@ -31,7 +31,7 @@ export class CreatePlace {
       mealTypes: dto.mealTypes,
       priceBucket: dto.priceBucket,
       photoUrl: dto.photoUrl,
-      createdBy: dto.createdBy,
+      createdBy: dto.userId, // Use Case define created_by a partir do userId autenticado
     });
 
     // Invalida cache da região para o novo lugar aparecer nas buscas

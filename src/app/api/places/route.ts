@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
 
-    const place = await createPlace.execute({ ...parsed.data, createdBy: user.id });
+    const place = await createPlace.execute({ ...parsed.data, userId: user.id });
 
     // Se foi enviado photoUrl, adicionar na tabela place_photos
     if (parsed.data.photoUrl) {

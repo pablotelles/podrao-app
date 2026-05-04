@@ -17,6 +17,6 @@ export interface CreatePlaceDTO {
   mealTypes: MealType[];
   priceBucket: PriceBucket;
   photoUrl?: string;
-  /** ID do usuário autenticado — preenchido pelo use case, não pelo cliente */
-  createdBy: string;
+  /** ID do usuário autenticado criando o lugar */
+  userId: string;
 }

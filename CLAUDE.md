@@ -132,6 +132,91 @@ npm run db:policies
 
 Why separate? Policies change frequently as features evolve. Migrations are append-only and track structural changes.
 
+#### RLS Philosophy: Authentication Only, Business Logic in Code
+
+**Core Principle**: Database policies ONLY check authentication. ALL business logic (ownership, permissions, status filtering) lives in application code (Use Cases and API routes).
+
+**Why?**
+
+- RLS with `auth.uid()` is unreliable in SSR contexts — JWT context doesn't always propagate correctly from Next.js to Postgres
+- Business logic belongs in the application layer (Clean Architecture)
+- Makes code testable and maintainable without database coupling
+
+**RLS Pattern** (applies to all tables):
+
+```sql
+-- ✅ CORRECT: Only check authentication role
+CREATE POLICY "table_operation_authenticated"
+  ON table_name FOR OPERATION
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- ❌ WRONG: Never put business logic in RLS
+CREATE POLICY "table_update_own"
+  ON table_name FOR UPDATE
+  USING (auth.uid() = created_by);  -- NO! Unreliable + couples business logic to DB
+```
+
+**API Route Pattern** (3-step validation):
+
+```typescript
+export async function POST(req: NextRequest) {
+  // 1. Validate authentication with regular client (reads cookies)
+  const supabase = await createRouteSupabaseClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) throw new UnauthorizedError();
+
+  // 2. Use admin client for DB operations (bypasses RLS)
+  const adminClient = createAdminClient();
+  const repository = new SupabaseRepository(adminClient);
+
+  // 3. Validate business logic in Use Case or route
+  // Example: ownership, status, permissions, etc.
+  const place = await repository.findById(id);
+  if (place.createdBy !== user.id) throw new UnauthorizedError();
+
+  // Safe to proceed — auth validated, ownership validated
+  const result = await useCase.execute({ userId: user.id, ...data });
+  return NextResponse.json(result);
+}
+```
+
+**Use Case Pattern**: DTOs receive `userId` (who is authenticated), not domain fields like `createdBy`. The Use Case sets domain fields internally:
+
+```typescript
+export interface CreatePlaceDTO {
+  name: string;
+  // ...other fields
+  userId: string; // ✅ Who is creating (from auth)
+  // createdBy: string;  ❌ Never in DTO — set internally
+}
+
+export class CreatePlace {
+  async execute(dto: CreatePlaceDTO): Promise<Place> {
+    // Validate business rules
+    if (!dto.name.trim()) throw new ValidationError('...');
+
+    // Set domain fields from userId
+    return this.repo.create({
+      ...dto,
+      createdBy: dto.userId, // Use Case controls this
+    });
+  }
+}
+```
+
+**Security Model**:
+
+1. **RLS**: Prevents anonymous access (basic auth check only)
+2. **API Route**: Validates JWT, extracts `user.id`
+3. **Use Case**: Validates ownership, permissions, business rules
+4. **Admin Client**: Bypasses RLS after validation (safe because steps 2-3 validated everything)
+
+This pattern is **mandatory** for all authenticated write operations (POST/PATCH/DELETE).
+
 ### AI (pós-MVP)
 
 `IEmbeddingProvider` abstracts the embedding model. `OpenAIEmbeddingProvider` uses `text-embedding-3-small`. The embedding text for a place is built as:

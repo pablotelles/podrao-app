@@ -4,7 +4,6 @@
  */
 import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
-import { SupabaseUserRepository } from '@/infrastructure/database/supabase/SupabaseUserRepository';
 import { UpstashCacheProvider } from '@/infrastructure/cache/UpstashCacheProvider';
 import { NullCacheProvider } from '@/infrastructure/cache/NullCacheProvider';
 import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
@@ -21,12 +20,10 @@ import { ApprovePlace } from '@/application/use-cases/places/ApprovePlace';
 import { GeneratePlaceEmbedding } from '@/application/use-cases/places/GeneratePlaceEmbedding';
 import { SubmitReview } from '@/application/use-cases/reviews/SubmitReview';
 import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
-import { UpdateProfile } from '@/application/use-cases/user/UpdateProfile';
 
 // --- Infra ---
 const placeRepository = new SupabasePlaceRepository();
 const reviewRepository = new SupabaseReviewRepository();
-const userRepository = new SupabaseUserRepository();
 export const cacheProvider: ICacheProvider =
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
     ? new UpstashCacheProvider()
@@ -49,7 +46,7 @@ export const generatePlaceEmbedding = new GeneratePlaceEmbedding(
 );
 export const submitReview = new SubmitReview(reviewRepository, placeRepository);
 export const getPlaceReviews = new GetPlaceReviews(reviewRepository, placeRepository);
-export const updateProfile = new UpdateProfile(userRepository);
 
 // --- Providers exportados para uso direto em routes ---
-export { mapProvider, storageProvider, userRepository };
+// Nota: UserRepository agora é instanciado com cliente autenticado em cada route
+export { mapProvider, storageProvider };

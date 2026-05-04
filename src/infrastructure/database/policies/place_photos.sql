@@ -3,6 +3,9 @@
 -- ============================================================================
 -- Este arquivo é idempotente — pode ser re-executado para atualizar policies.
 -- Rode via: npm run db:policies
+--
+-- FILOSOFIA: RLS apenas para proteção básica de autenticação.
+-- Lógica de ownership é validada nos Use Cases e API routes.
 -- ============================================================================
 
 -- Ativar RLS (idempotente)
@@ -12,81 +15,47 @@ ALTER TABLE place_photos ENABLE ROW LEVEL SECURITY;
 -- SELECT (leitura)
 -- ============================================================================
 
--- Qualquer pessoa pode ver fotos de lugares aprovados
+-- Todos podem ver todas as fotos (filtragem feita em código)
 DROP POLICY IF EXISTS "place_photos_read_approved" ON place_photos;
-CREATE POLICY "place_photos_read_approved"
-  ON place_photos FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM places 
-      WHERE places.id = place_photos.place_id 
-      AND places.status = 'approved'
-    )
-  );
-
--- Criador pode ver fotos de seus próprios lugares (mesmo se pending)
 DROP POLICY IF EXISTS "place_photos_read_own" ON place_photos;
-CREATE POLICY "place_photos_read_own"
+DROP POLICY IF EXISTS "place_photos_read_all" ON place_photos;
+CREATE POLICY "place_photos_read_all"
   ON place_photos FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM places 
-      WHERE places.id = place_photos.place_id 
-      AND places.created_by = auth.uid()
-    )
-  );
+  USING (true);
 
 -- ============================================================================
 -- INSERT (upload)
 -- ============================================================================
 
--- Apenas o criador do lugar pode adicionar fotos
+-- Apenas usuários autenticados podem adicionar fotos
+-- Validação de ownership (só adicionar em próprios lugares) feita em código
 DROP POLICY IF EXISTS "place_photos_insert_own" ON place_photos;
-CREATE POLICY "place_photos_insert_own"
+DROP POLICY IF EXISTS "place_photos_insert_authenticated" ON place_photos;
+CREATE POLICY "place_photos_insert_authenticated"
   ON place_photos FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM places 
-      WHERE places.id = place_photos.place_id 
-      AND places.created_by = auth.uid()
-    )
-  );
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================================================
 -- UPDATE (editar posição/caption - futuro)
 -- ============================================================================
 
--- Apenas o criador do lugar pode atualizar fotos
+-- Apenas usuários autenticados podem atualizar fotos
+-- Validação de ownership feita em código
 DROP POLICY IF EXISTS "place_photos_update_own" ON place_photos;
-CREATE POLICY "place_photos_update_own"
+DROP POLICY IF EXISTS "place_photos_update_authenticated" ON place_photos;
+CREATE POLICY "place_photos_update_authenticated"
   ON place_photos FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM places 
-      WHERE places.id = place_photos.place_id 
-      AND places.created_by = auth.uid()
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM places 
-      WHERE places.id = place_photos.place_id 
-      AND places.created_by = auth.uid()
-    )
-  );
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================================================
 -- DELETE (deleção)
 -- ============================================================================
 
--- Apenas o criador do lugar pode deletar fotos
+-- Apenas usuários autenticados podem deletar fotos
+-- Validação de ownership feita em código
 DROP POLICY IF EXISTS "place_photos_delete_own" ON place_photos;
-CREATE POLICY "place_photos_delete_own"
+DROP POLICY IF EXISTS "place_photos_delete_authenticated" ON place_photos;
+CREATE POLICY "place_photos_delete_authenticated"
   ON place_photos FOR DELETE
-  USING (
-    EXISTS (
-      SELECT 1 FROM places 
-      WHERE places.id = place_photos.place_id 
-      AND places.created_by = auth.uid()
-    )
-  );
+  USING (auth.role() = 'authenticated');

@@ -1,5 +1,6 @@
 import type { User } from '@/domain/entities/User';
 import type { IUserRepository, UpdateProfileData } from '@/domain/interfaces/IUserRepository';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase, createAdminClient } from './client';
 
 interface ProfileRow {
@@ -27,12 +28,10 @@ async function mergeWithAuth(profile: ProfileRow): Promise<User | null> {
 }
 
 export class SupabaseUserRepository implements IUserRepository {
+  constructor(private readonly db: SupabaseClient = supabase) {}
+
   async findById(id: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await this.db.from('profiles').select('*').eq('id', id).single();
 
     if (error || !data) return null;
     return mergeWithAuth(data as ProfileRow);
@@ -49,11 +48,14 @@ export class SupabaseUserRepository implements IUserRepository {
   async updateProfile(id: string, data: UpdateProfileData): Promise<User> {
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (data.nickname !== undefined) patch.nickname = data.nickname;
-    if (data.name !== undefined)     patch.name = data.name || null;
+    if (data.name !== undefined) patch.name = data.name || null;
     if (data.headline !== undefined) patch.headline = data.headline || null;
     if (data.avatarUrl !== undefined) patch.avatar_url = data.avatarUrl || null;
 
-    const { data: row, error } = await supabase
+    // Usa admin client para bypass de RLS
+    // Seguro porque autenticação já foi validada no endpoint antes de chamar este método
+    const admin = createAdminClient();
+    const { data: row, error } = await admin
       .from('profiles')
       .update(patch)
       .eq('id', id)
@@ -67,7 +69,7 @@ export class SupabaseUserRepository implements IUserRepository {
   }
 
   async isNicknameTaken(nickname: string, excludeId?: string): Promise<boolean> {
-    let query = supabase
+    let query = this.db
       .from('profiles')
       .select('id', { count: 'exact', head: true })
       .eq('nickname', nickname);
