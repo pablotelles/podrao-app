@@ -16,8 +16,24 @@ ALTER TABLE places
   DROP COLUMN IF EXISTS median_price,
   DROP COLUMN IF EXISTS photo_url;
 
+-- ─── normalize values before ENUM conversion ─────────────────────────────────
+-- Lowercases and maps known variants so the CAST below doesn't fail.
+
+UPDATE places SET establishment_type = lower(trim(establishment_type))
+WHERE establishment_type IS DISTINCT FROM lower(trim(establishment_type));
+
+UPDATE places
+SET establishment_type = 'outro'
+WHERE establishment_type NOT IN (
+  'restaurante','lanchonete','cafeteria','bar','padaria',
+  'sorveteria','food_truck','mercado','confeitaria','outro'
+);
+
 -- ─── convert TEXT columns to ENUMs ────────────────────────────────────────────
--- Safe for a new project with no production data.
+-- Drop the original CHECK constraint (auto-named by Postgres) before converting
+-- price_bucket — the ENUM itself enforces valid values.
+
+ALTER TABLE places DROP CONSTRAINT IF EXISTS places_price_bucket_check;
 
 ALTER TABLE places
   ALTER COLUMN establishment_type TYPE establishment_type_enum
