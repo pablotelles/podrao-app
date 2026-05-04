@@ -6,8 +6,6 @@ import { Badge, PageContent } from '@/presentation/components/ui';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
-import { FavoriteButton } from '@/presentation/components/favorites/FavoriteButton';
-import { AddToListButton } from '@/presentation/components/lists/AddToListButton';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 import {
   ESTABLISHMENT_TYPE_META,
@@ -60,7 +58,7 @@ export default async function PlaceDetailPage({ params }: Props) {
     return (
       <div>
         {/* Cover: Mapa da localização */}
-        <PlaceDetailHeader lat={place.lat} lng={place.lng} name={place.name} />
+        <PlaceDetailHeader lat={place.lat} lng={place.lng} name={place.name} placeId={place.id} />
 
         <PageContent centered>
           {/* Header: Logo + Info */}
@@ -120,14 +118,6 @@ export default async function PlaceDetailPage({ params }: Props) {
               <Badge key={c}>{c}</Badge>
             ))}
           </div>
-
-          {/* Ações: Favoritar e Adicionar a Lista */}
-          {user && (
-            <div className="mt-4 flex gap-2">
-              <FavoriteButton placeId={place.id} />
-              <AddToListButton placeId={place.id} />
-            </div>
-          )}
 
           {/* Botão para o criador adicionar/editar foto */}
           {isOwner && (

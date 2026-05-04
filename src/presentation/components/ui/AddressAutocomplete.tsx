@@ -97,7 +97,11 @@ export function AddressAutocomplete({
   }
 
   return (
-    <div ref={containerRef} className="relative z-9999 flex flex-col gap-1">
+    <div
+      ref={containerRef}
+      className="relative flex flex-col gap-1"
+      style={{ zIndex: 'var(--z-dropdown)' }}
+    >
       <div className="relative">
         <input
           type="text"
@@ -120,7 +124,10 @@ export function AddressAutocomplete({
       </div>
       {error && <p className="text-xs text-error">{error}</p>}
       {open && suggestions.length > 0 && (
-        <ul className="absolute top-11 z-50 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-bg shadow-lg">
+        <ul
+          className="absolute top-11 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-bg shadow-lg"
+          style={{ zIndex: 'var(--z-dropdown)' }}
+        >
           {suggestions.map((s, i) => (
             <li key={i}>
               <button

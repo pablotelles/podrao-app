@@ -19,12 +19,16 @@ export function FullScreenDrawer({ open, onClose, title, children }: FullScreenD
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [open]);
 
   // Fecha com Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
@@ -32,10 +36,11 @@ export function FullScreenDrawer({ open, onClose, title, children }: FullScreenD
   return (
     <div
       className={[
-        'fixed inset-0 z-[200] flex flex-col bg-bg',
+        'fixed inset-0 flex flex-col bg-bg',
         'transition-transform duration-300 ease-out',
         open ? 'translate-x-0' : 'translate-x-full',
       ].join(' ')}
+      style={{ zIndex: 'var(--z-modal)' }}
       aria-modal="true"
       role="dialog"
       aria-label={title}
@@ -49,15 +54,11 @@ export function FullScreenDrawer({ open, onClose, title, children }: FullScreenD
         >
           <X size={20} />
         </button>
-        {title && (
-          <h2 className="text-base font-semibold text-text-primary">{title}</h2>
-        )}
+        {title && <h2 className="text-base font-semibold text-text-primary">{title}</h2>}
       </header>
 
       {/* Conteúdo rolável */}
-      <div className="flex-1 overflow-y-auto">
-        {children}
-      </div>
+      <div className="flex-1 overflow-y-auto">{children}</div>
     </div>
   );
 }

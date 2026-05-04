@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 /** Páginas onde a nav não deve aparecer */
-const HIDDEN_ON = ['/login', '/add-place'];
+const HIDDEN_ON = ['/login', '/add-place', '/lists/new', '/lists/edit'];
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -23,7 +23,10 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-stretch border-t border-border bg-bg safe-area-bottom">
+    <nav
+      className="fixed bottom-0 left-0 right-0 flex h-16 items-stretch border-t border-border bg-bg safe-area-bottom"
+      style={{ zIndex: 'var(--z-nav)' }}
+    >
       {TABS.map(({ href, label, Icon, exact }) => {
         const active = exact
           ? pathname === href

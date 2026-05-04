@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLists } from '@/presentation/hooks/useLists';
 import { Input } from '@/presentation/components/ui/Input';
 import { Textarea } from '@/presentation/components/ui/Textarea';
-import { PageHeader, PageContent } from '@/presentation/components/ui';
+import { PageHeader, PageContent, Button } from '@/presentation/components/ui';
 import { CoverSelector } from '@/presentation/components/lists/CoverSelector';
 import { PrivacyToggle } from '@/presentation/components/lists/PrivacyToggle';
 import { ConfigurationToggles } from '@/presentation/components/lists/ConfigurationToggles';
@@ -44,25 +44,11 @@ export default function NewListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-primary">
-      <PageHeader
-        title="Criar lista"
-        showBackButton
-        sticky
-        centered
-        actions={[
-          {
-            label: 'Salvar',
-            onClick: () => handleSubmit({} as React.FormEvent),
-            disabled: !name.trim(),
-            loading: isSubmitting,
-            variant: 'primary',
-          },
-        ]}
-      />
+    <div className="min-h-screen bg-bg pb-24">
+      <PageHeader title="Criar lista" showBackButton sticky centered />
 
       <PageContent centered>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form id="create-list-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Informações da lista */}
           <section className="space-y-4">
             <h2 className="text-base font-semibold text-text-primary">Informações da lista</h2>
@@ -82,7 +68,7 @@ export default function NewListPage() {
                 maxLength={100}
                 disabled={isSubmitting}
               />
-              <div className="mt-1 text-right text-xs text-text-tertiary">{name.length}/100</div>
+              <div className="mt-1 text-right text-xs text-text-secondary">{name.length}/100</div>
             </div>
 
             <div>
@@ -90,7 +76,7 @@ export default function NewListPage() {
                 htmlFor="list-description"
                 className="mb-2 block text-sm font-medium text-text-primary"
               >
-                Descrição <span className="text-text-tertiary">(opcional)</span>
+                Descrição <span className="text-text-secondary">(opcional)</span>
               </label>
               <Textarea
                 id="list-description"
@@ -101,7 +87,7 @@ export default function NewListPage() {
                 disabled={isSubmitting}
                 rows={3}
               />
-              <div className="mt-1 text-right text-xs text-text-tertiary">
+              <div className="mt-1 text-right text-xs text-text-secondary">
                 {description.length}/500
               </div>
             </div>
@@ -128,10 +114,29 @@ export default function NewListPage() {
           </section>
 
           {error && (
-            <div className="rounded-lg bg-error-subtle p-4 text-sm text-error">{error}</div>
+            <div className="rounded-lg border border-error bg-bg-subtle p-4 text-sm text-error">
+              {error}
+            </div>
           )}
         </form>
       </PageContent>
+
+      {/* Botão fixo no bottom */}
+      <div
+        className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg px-(--spacing-page-x) py-4"
+        style={{ zIndex: 'var(--z-sticky)' }}
+      >
+        <div className="mx-auto max-w-lg">
+          <Button
+            type="submit"
+            form="create-list-form"
+            disabled={!name.trim() || isSubmitting}
+            className="w-full"
+          >
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

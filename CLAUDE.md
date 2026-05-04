@@ -72,6 +72,33 @@ All colors, spacing, and radii are CSS custom properties defined in `src/app/glo
 - CSS var NOT in `@theme` → use shorthand: `shadow-(--shadow-card)`, `px-(--spacing-page-x)`
 - Never write `[var(--...)]` — always use one of the two forms above
 
+**Z-index hierarchy** (prevents overlay conflicts):
+
+All z-index values are defined as CSS custom properties in `globals.css`:
+
+```css
+--z-base: 0; /* Normal flow */
+--z-dropdown: 10; /* Dropdowns, autocomplete */
+--z-sticky: 20; /* Sticky headers, form footers */
+--z-nav: 30; /* Bottom navigation */
+--z-overlay: 40; /* Modal/sheet backdrops */
+--z-modal: 50; /* Modals, sheets, drawers */
+--z-toast: 60; /* Toasts, notifications */
+--z-tooltip: 70; /* Tooltips */
+```
+
+**Usage:** Always use inline styles with CSS variables, never hardcoded z-index classes:
+
+```tsx
+// ✅ Correct — uses design token
+<div style={{ zIndex: 'var(--z-modal)' }}>Modal content</div>
+
+// ❌ Wrong — hardcoded value
+<div className="z-50">Modal content</div>
+```
+
+This ensures all overlays (sheets, modals, dropdowns) maintain correct stacking order globally.
+
 ### Auth
 
 Magic-link only (Supabase Auth). Session lives in an httpOnly cookie via `@supabase/ssr`. Server components and API routes use `createServerClient()`; the middleware at `src/middleware.ts` guards `/add-place` and `/profile`.
