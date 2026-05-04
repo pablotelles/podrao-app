@@ -312,4 +312,90 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     const { error } = await this.db.from('place_photos').delete().eq('id', photoId);
     if (error) throw new Error(error.message);
   }
+
+  // ─── helpers ──────────────────────────────────────────────────────────────
+
+  private rowWithRelationsToDomain(row: any): Place {
+    const stats: { rating: number; reviews_count: number; median_price: number | null } | null =
+      Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
+    const cuisineTypes =
+      (row.place_cuisines as { cuisine_type: string }[] | null)?.map(
+        (c) => c.cuisine_type as CuisineType,
+      ) ?? [];
+    const mealTypes =
+      (row.place_meals as { meal_type: string }[] | null)?.map((m) => m.meal_type as MealType) ??
+      [];
+    const logo = (
+      row.place_photos as { url: string; type: string; position: number }[] | null
+    )?.find((p) => p.type === 'logo');
+    return {
+      id: row.id,
+      name: row.name,
+      address: row.address,
+      numero: row.numero ?? undefined,
+      complemento: row.complemento ?? undefined,
+      bairro: row.bairro ?? undefined,
+      cidade: row.cidade,
+      estado: row.estado,
+      lat: Number(row.lat),
+      lng: Number(row.lng),
+      establishmentType: row.establishment_type,
+      cuisineTypes,
+      mealTypes,
+      priceBucket: row.price_bucket as PriceBucket,
+      medianPrice: stats?.median_price ?? undefined,
+      logoUrl: logo?.url ?? undefined,
+      rating: Number(stats?.rating ?? 0),
+      reviewsCount: Number(stats?.reviews_count ?? 0),
+      status: row.status as PlaceStatus,
+      createdBy: row.created_by ?? undefined,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    };
+  }
+
+  async findByCreator(userId: string): Promise<Place[]> {
+    const { data, error } = await this.db
+      .from('places')
+      .select(
+        `*, place_stats(rating, reviews_count, median_price),
+         place_cuisines(cuisine_type), place_meals(meal_type),
+         place_photos(url, type, position)`,
+      )
+      .eq('created_by', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => this.rowWithRelationsToDomain(row));
+  }
+
+  async findFavoritedByUser(userId: string): Promise<Place[]> {
+    const { data: favs, error: favErr } = await this.db
+      .from('favorites')
+      .select('place_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (favErr) throw new Error(favErr.message);
+    if (!favs?.length) return [];
+
+    const ids = favs.map((f: { place_id: string }) => f.place_id);
+    const { data, error } = await this.db
+      .from('places')
+      .select(
+        `*, place_stats(rating, reviews_count, median_price),
+         place_cuisines(cuisine_type), place_meals(meal_type),
+         place_photos(url, type, position)`,
+      )
+      .in('id', ids)
+      .eq('status', 'approved');
+
+    if (error) throw new Error(error.message);
+    // Preserve favorite ordering
+    const map = new Map((data ?? []).map((r: any) => [r.id, r]));
+    return ids
+      .map((id) => map.get(id))
+      .filter(Boolean)
+      .map((r) => this.rowWithRelationsToDomain(r));
+  }
 }

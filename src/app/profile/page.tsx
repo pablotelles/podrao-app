@@ -9,6 +9,8 @@ import {
   EditProfileForm,
   EditableAvatar,
   ProfileTabs,
+  PlacesTabContent,
+  FavoritesTabContent,
 } from '@/presentation/components/profile';
 import { useUserStats } from '@/presentation/hooks/useUserStats';
 import type { User } from '@/domain/entities/User';
@@ -104,20 +106,20 @@ export default function ProfilePage() {
           {/* Tabs de conteúdo */}
           <ProfileTabs>
             {(activeTab) => (
-              <div className="px-(--spacing-page-x) py-4">
-                {activeTab === 'lugares' && (
-                  <p className="text-sm text-text-secondary">Em breve: seus lugares aqui.</p>
-                )}
-                {activeTab === 'favoritos' && (
-                  <p className="text-sm text-text-secondary">Em breve: seus favoritos aqui.</p>
-                )}
+              <>
+                {activeTab === 'lugares' && <PlacesTabContent />}
+                {activeTab === 'favoritos' && <FavoritesTabContent />}
                 {activeTab === 'listas' && (
-                  <p className="text-sm text-text-secondary">Em breve: suas listas aqui.</p>
+                  <div className="px-(--spacing-page-x) py-4">
+                    <p className="text-sm text-text-secondary">Em breve: suas listas aqui.</p>
+                  </div>
                 )}
                 {activeTab === 'avaliacoes' && (
-                  <p className="text-sm text-text-secondary">Em breve: suas avaliações aqui.</p>
+                  <div className="px-(--spacing-page-x) py-4">
+                    <p className="text-sm text-text-secondary">Em breve: suas avaliações aqui.</p>
+                  </div>
                 )}
-              </div>
+              </>
             )}
           </ProfileTabs>
 

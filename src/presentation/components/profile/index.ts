@@ -8,3 +8,5 @@ export { EditableAvatar } from './EditableAvatar';
 export { EditProfileForm } from './EditProfileForm';
 export { ProfileTabs } from './ProfileTabs';
 export type { ProfileTab } from './ProfileTabs';
+export { PlacesTabContent } from './PlacesTabContent';
+export { FavoritesTabContent } from './FavoritesTabContent';

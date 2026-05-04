@@ -7,6 +7,8 @@ export interface IPlaceReader {
   findById(id: string): Promise<Place | null>;
   searchNearby(params: SearchPlacesParams): Promise<Place[]>;
   countByCreator(userId: string): Promise<number>;
+  findByCreator(userId: string): Promise<Place[]>;
+  findFavoritedByUser(userId: string): Promise<Place[]>;
 }
 
 export interface IPlaceWriter {

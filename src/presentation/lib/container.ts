@@ -20,6 +20,8 @@ import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
 import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
 import { ApprovePlace } from '@/application/use-cases/places/ApprovePlace';
 import { GeneratePlaceEmbedding } from '@/application/use-cases/places/GeneratePlaceEmbedding';
+import { GetMyPlaces } from '@/application/use-cases/places/GetMyPlaces';
+import { GetFavoritePlaces } from '@/application/use-cases/places/GetFavoritePlaces';
 import { SubmitReview } from '@/application/use-cases/reviews/SubmitReview';
 import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
 import { ToggleFavorite } from '@/application/use-cases/favorites/ToggleFavorite';
@@ -58,6 +60,8 @@ export const searchNearbyPlaces = new SearchNearbyPlaces(placeRepository, cacheP
 export const createPlace = new CreatePlace(placeRepository, cacheProvider);
 export const getPlaceById = new GetPlaceById(placeRepository);
 export const approvePlace = new ApprovePlace(placeRepository, cacheProvider);
+export const getMyPlaces = new GetMyPlaces(placeRepository);
+export const getFavoritePlaces = new GetFavoritePlaces(placeRepository);
 export const generatePlaceEmbedding = new GeneratePlaceEmbedding(
   placeRepository,
   embeddingProvider,
