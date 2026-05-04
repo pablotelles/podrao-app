@@ -14,6 +14,7 @@ interface UserProfileHeaderProps {
   headline?: string;
   stats?: ReactNode; // Stats estilo Instagram (lugares, avaliações, favoritos)
   actions?: ReactNode; // Slot para botões como "Editar perfil"
+  avatar?: ReactNode; // Slot customizável para avatar (ex: EditableAvatar)
   onEmptyHeadlineClick?: () => void;
 }
 
@@ -26,13 +27,14 @@ export function UserProfileHeader({
   headline,
   stats,
   actions,
+  avatar,
   onEmptyHeadlineClick,
 }: UserProfileHeaderProps) {
   return (
     <div>
       <div className="flex gap-4 items-start">
-        {/* Avatar à esquerda */}
-        <UserAvatar src={avatarSrc} alt={name} fallback={avatarFallback} size="md" />
+        {/* Avatar à esquerda - usa slot customizado se fornecido */}
+        {avatar || <UserAvatar src={avatarSrc} alt={name} fallback={avatarFallback} size="md" />}
 
         {/* Info à direita */}
         <div className="flex-1 min-w-0">

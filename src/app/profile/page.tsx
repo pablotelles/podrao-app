@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, UserCircle, Pencil, MapPin, Star, Heart } from 'lucide-react';
 import { FullScreenDrawer, Button } from '@/presentation/components/ui';
-import { UserProfileHeader, EditProfileForm } from '@/presentation/components/profile';
+import {
+  UserProfileHeader,
+  EditProfileForm,
+  EditableAvatar,
+} from '@/presentation/components/profile';
 import { UserListsSection } from '@/presentation/components/lists/UserListsSection';
 import { UserFavoritesSection } from '@/presentation/components/favorites/UserFavoritesSection';
 import { useUserStats } from '@/presentation/hooks/useUserStats';
@@ -35,6 +39,10 @@ export default function ProfilePage() {
     router.push('/login');
   }
 
+  function handleAvatarUpdate(newAvatarUrl: string) {
+    setUser((prev) => (prev ? { ...prev, avatarUrl: newAvatarUrl } : null));
+  }
+
   const initials = user?.name
     ? user.name
         .split(' ')
@@ -62,15 +70,30 @@ export default function ProfilePage() {
             <UserProfileHeader
               avatarSrc={user?.avatarUrl}
               avatarFallback={initials}
+              avatar={
+                <EditableAvatar
+                  src={user?.avatarUrl}
+                  alt={user?.name || 'Avatar'}
+                  fallback={initials}
+                  size="md"
+                  onUpdate={handleAvatarUpdate}
+                />
+              }
               name={user?.name || 'Sem nome'}
               nickname={user?.nickname || ''}
               headline={user?.headline}
               onEmptyHeadlineClick={() => setEditOpen(true)}
               stats={
                 <div className="flex gap-6">
-                  <ProfileStat icon={<MapPin size={14} />} value={String(stats?.placesCount ?? 0)} />
+                  <ProfileStat
+                    icon={<MapPin size={14} />}
+                    value={String(stats?.placesCount ?? 0)}
+                  />
                   <ProfileStat icon={<Star size={14} />} value={String(stats?.reviewsCount ?? 0)} />
-                  <ProfileStat icon={<Heart size={14} />} value={String(stats?.favoritesCount ?? 0)} />
+                  <ProfileStat
+                    icon={<Heart size={14} />}
+                    value={String(stats?.favoritesCount ?? 0)}
+                  />
                 </div>
               }
               actions={

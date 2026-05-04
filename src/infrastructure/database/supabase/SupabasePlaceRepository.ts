@@ -90,17 +90,18 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     const stats: { rating: number; reviews_count: number; median_price: number | null } | null =
       Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
 
-    const cuisineTypes = (row.place_cuisines as { cuisine_type: string }[] | null)?.map(
-      (c) => c.cuisine_type as CuisineType,
-    ) ?? [];
+    const cuisineTypes =
+      (row.place_cuisines as { cuisine_type: string }[] | null)?.map(
+        (c) => c.cuisine_type as CuisineType,
+      ) ?? [];
 
-    const mealTypes = (row.place_meals as { meal_type: string }[] | null)?.map(
-      (m) => m.meal_type as MealType,
-    ) ?? [];
+    const mealTypes =
+      (row.place_meals as { meal_type: string }[] | null)?.map((m) => m.meal_type as MealType) ??
+      [];
 
-    const logo = (row.place_photos as { url: string; type: string; position: number }[] | null)?.find(
-      (p) => p.type === 'logo',
-    );
+    const logo = (
+      row.place_photos as { url: string; type: string; position: number }[] | null
+    )?.find((p) => p.type === 'logo');
 
     return {
       id: row.id,
@@ -195,7 +196,12 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       if (e) throw new Error(`place_meals insert: ${e.message}`);
     }
 
-    return toDomain({ ...row, logo_url: null, cuisine_types: data.cuisineTypes, meal_types: data.mealTypes } as PlaceRow);
+    return toDomain({
+      ...row,
+      logo_url: null,
+      cuisine_types: data.cuisineTypes,
+      meal_types: data.mealTypes,
+    } as PlaceRow);
   }
 
   async update(id: string, data: Partial<CreatePlaceData>): Promise<Place> {
@@ -241,7 +247,12 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       }
     }
 
-    return toDomain({ ...row, logo_url: null, cuisine_types: data.cuisineTypes ?? [], meal_types: data.mealTypes ?? [] } as PlaceRow);
+    return toDomain({
+      ...row,
+      logo_url: null,
+      cuisine_types: data.cuisineTypes ?? [],
+      meal_types: data.mealTypes ?? [],
+    } as PlaceRow);
   }
 
   async updateStatus(id: string, status: PlaceStatus): Promise<void> {
