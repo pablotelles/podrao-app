@@ -1,19 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLists } from '@/presentation/hooks/useLists';
 import { Button } from '@/presentation/components/ui/Button';
 import { Sheet } from '@/presentation/components/ui/Sheet';
-import { CreateListModal } from './CreateListModal';
 
 interface AddToListButtonProps {
   placeId: string;
 }
 
 export function AddToListButton({ placeId }: AddToListButtonProps) {
+  const router = useRouter();
   const { lists, isLoading: isLoadingLists } = useLists();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [addingToListId, setAddingToListId] = useState<string | null>(null);
 
   const handleAddToList = async (listId: string) => {
@@ -81,13 +81,11 @@ export function AddToListButton({ placeId }: AddToListButtonProps) {
             })
           )}
 
-          <Button onClick={() => setCreateModalOpen(true)} variant="secondary" className="w-full">
-            ➕ Criar nova lista
+          <Button onClick={() => router.push('/lists/new')} variant="secondary" className="w-full">
+            ➞ Criar nova lista
           </Button>
         </div>
       </Sheet>
-
-      <CreateListModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
     </>
   );
 }

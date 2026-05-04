@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLists } from '@/presentation/hooks/useLists';
 import { Button } from '@/presentation/components/ui/Button';
-import { CreateListModal } from './CreateListModal';
 import { ListCard } from './ListCard';
 
 export function UserListsSection() {
+  const router = useRouter();
   const { lists, deleteList, isLoading } = useLists();
-  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deletingListId, setDeletingListId] = useState<string | null>(null);
 
   const handleDelete = async (listId: string) => {
@@ -30,7 +30,7 @@ export function UserListsSection() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-text-primary">Minhas Listas</h2>
-        <Button onClick={() => setCreateModalOpen(true)} size="sm">
+        <Button onClick={() => router.push('/lists/new')} size="sm">
           ➕ Nova Lista
         </Button>
       </div>
@@ -40,7 +40,7 @@ export function UserListsSection() {
       ) : lists.length === 0 ? (
         <div className="rounded-lg border border-border bg-bg-subtle p-8 text-center">
           <p className="mb-4 text-text-secondary">Você ainda não criou nenhuma lista.</p>
-          <Button onClick={() => setCreateModalOpen(true)}>Criar minha primeira lista</Button>
+          <Button onClick={() => router.push('/lists/new')}>Criar minha primeira lista</Button>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -57,8 +57,6 @@ export function UserListsSection() {
           ))}
         </div>
       )}
-
-      <CreateListModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
     </div>
   );
 }

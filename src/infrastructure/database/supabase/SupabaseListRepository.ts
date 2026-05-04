@@ -13,6 +13,7 @@ interface ListRow {
   name: string;
   description: string | null;
   is_public: boolean;
+  cover_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +37,7 @@ function listToDomain(row: ListRow, placesCount?: number): UserList {
     name: row.name,
     description: row.description ?? undefined,
     isPublic: row.is_public,
+    coverUrl: row.cover_url ?? undefined,
     placesCount,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
@@ -95,6 +97,7 @@ export class SupabaseListRepository implements IListRepository {
         name: data.name,
         description: data.description,
         is_public: data.isPublic ?? true,
+        cover_url: data.coverUrl,
       })
       .select()
       .single();
@@ -108,6 +111,7 @@ export class SupabaseListRepository implements IListRepository {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.isPublic !== undefined) updateData.is_public = data.isPublic;
+    if (data.coverUrl !== undefined) updateData.cover_url = data.coverUrl;
 
     const { data: row, error } = await this.db
       .from('lists')

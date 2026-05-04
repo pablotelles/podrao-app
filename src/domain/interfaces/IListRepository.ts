@@ -5,12 +5,14 @@ export interface CreateListData {
   name: string;
   description?: string;
   isPublic?: boolean;
+  coverUrl?: string;
 }
 
 export interface UpdateListData {
   name?: string;
   description?: string;
   isPublic?: boolean;
+  coverUrl?: string;
 }
 
 export interface IListRepository {

@@ -4,6 +4,7 @@ export interface UserList {
   name: string;
   description?: string;
   isPublic: boolean;
+  coverUrl?: string;
   /** Agregado para exibição — preenchido na query */
   placesCount?: number;
   createdAt: Date;

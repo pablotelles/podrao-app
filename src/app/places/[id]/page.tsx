@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
-import { Badge } from '@/presentation/components/ui';
+import { Badge, PageContent } from '@/presentation/components/ui';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
@@ -43,11 +43,11 @@ export default async function PlaceDetailPage({ params }: Props) {
     const isOwner = user?.id === place.createdBy;
 
     return (
-      <main className="mx-auto max-w-2xl pb-24">
+      <div>
         {/* Cover: Mapa da localização */}
         <PlaceDetailHeader lat={place.lat} lng={place.lng} name={place.name} />
 
-        <div className="px-(--spacing-page-x) pt-5">
+        <PageContent centered>
           {/* Header: Logo + Info */}
           <div className="flex gap-4">
             {/* Logo menor */}
@@ -121,8 +121,8 @@ export default async function PlaceDetailPage({ params }: Props) {
           <hr className="my-6 border-border" />
           <h2 className="mb-4 text-base font-semibold text-text-primary">Avaliações</h2>
           <ReviewList reviews={reviews} />
-        </div>
-      </main>
+        </PageContent>
+      </div>
     );
   } catch (err) {
     if (err instanceof PlaceNotFoundError) notFound();

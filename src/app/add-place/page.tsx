@@ -15,11 +15,11 @@ import {
   Badge,
   ProgressSteps,
   ToggleGroup,
+  PageContent,
 } from '@/presentation/components/ui';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
-
 
 // Mapa de nome completo do estado (retornado pelo LocationIQ) para sigla
 const ESTADO_SIGLAS: Record<string, string> = {
@@ -165,7 +165,7 @@ export default function AddPlacePage() {
   }, [geo.lat, geo.lng]);
 
   return (
-    <main className="mx-auto max-w-lg px-(--spacing-page-x) pb-24 pt-6">
+    <PageContent className="mx-auto max-w-lg">
       {/* Progress */}
       <div className="mb-8">
         <ProgressSteps currentStep={step} totalSteps={STEPS.length} labels={STEPS} />
@@ -316,6 +316,6 @@ export default function AddPlacePage() {
           )}
         </div>
       </form>
-    </main>
+    </PageContent>
   );
 }

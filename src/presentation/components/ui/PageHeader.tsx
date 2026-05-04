@@ -1,19 +1,97 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Button } from './Button';
+
+export interface PageHeaderAction {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  loading?: boolean;
+}
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
-  action?: ReactNode;
+  /** Array de ações que serão renderizadas como botões */
+  actions?: PageHeaderAction[];
+  /** Mostrar botão de voltar (padrão: false) */
+  showBackButton?: boolean;
+  /** Callback para voltar (padrão: router.back()) */
+  onBack?: () => void;
+  /** Header fixo no topo (padrão: false) */
+  sticky?: boolean;
+  /** Centralizar conteúdo com max-width (padrão: false) */
+  centered?: boolean;
 }
 
-export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+  showBackButton = false,
+  onBack,
+  sticky = false,
+  centered = false,
+}: PageHeaderProps) {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  };
+
+  const headerClasses = [
+    'shrink-0 flex border-b border-border bg-bg px-(--spacing-page-x) py-4',
+    sticky && 'sticky top-0 z-10',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const contentClasses = [
+    'flex items-center justify-between gap-4 w-full',
+    centered && 'mx-auto max-w-2xl',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <header className="flex items-start justify-between gap-4 px-(--spacing-page-x) py-4 border-b border-border bg-bg">
-      <div>
-        <h1 className="text-lg font-bold text-text-primary">{title}</h1>
-        {subtitle && <p className="mt-0.5 text-sm text-text-secondary">{subtitle}</p>}
+    <header className={headerClasses}>
+      <div className={contentClasses}>
+        <div className="flex items-center gap-2">
+          {showBackButton && (
+            <button
+              type="button"
+              onClick={handleBack}
+              className="flex items-center justify-center hover:opacity-70 transition-opacity"
+              aria-label="Voltar"
+            >
+              <ArrowLeft size={20} className="text-text-primary" />
+            </button>
+          )}
+          <h1 className="text-base font-bold text-text-primary">{title}</h1>
+        </div>
+        {actions && actions.length > 0 && (
+          <div className="flex items-center gap-2">
+            {actions.map((action, index) => (
+              <Button
+                key={index}
+                onClick={action.onClick}
+                disabled={action.disabled || action.loading}
+                variant={action.variant || 'primary'}
+                size="xs"
+              >
+                {action.loading ? 'Carregando...' : action.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
     </header>
   );
 }

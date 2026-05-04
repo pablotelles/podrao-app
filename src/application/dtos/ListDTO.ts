@@ -3,6 +3,7 @@ export interface CreateListDTO {
   name: string;
   description?: string;
   isPublic?: boolean;
+  coverUrl?: string;
 }
 
 export interface UpdateListDTO {
@@ -11,6 +12,7 @@ export interface UpdateListDTO {
   name?: string;
   description?: string;
   isPublic?: boolean;
+  coverUrl?: string;
 }
 
 export interface DeleteListDTO {

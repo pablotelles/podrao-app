@@ -14,11 +14,16 @@ export function useLists() {
     revalidateOnFocus: false,
   });
 
-  const createList = async (name: string, description?: string, isPublic?: boolean) => {
+  const createList = async (
+    name: string,
+    description?: string,
+    isPublic?: boolean,
+    coverUrl?: string,
+  ) => {
     const res = await fetch('/api/lists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description, isPublic }),
+      body: JSON.stringify({ name, description, isPublic, coverUrl }),
     });
 
     if (!res.ok) {
@@ -56,7 +61,7 @@ export function useLists() {
 
   const updateList = async (
     id: string,
-    updateData: { name?: string; description?: string; isPublic?: boolean },
+    updateData: { name?: string; description?: string; isPublic?: boolean; coverUrl?: string },
   ) => {
     const res = await fetch(`/api/lists/${id}`, {
       method: 'PATCH',

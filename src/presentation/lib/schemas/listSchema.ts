@@ -4,12 +4,14 @@ export const createListSchema = z.object({
   name: z.string().min(1, 'Nome da lista é obrigatório').max(100),
   description: z.string().max(500).optional(),
   isPublic: z.boolean().optional(),
+  coverUrl: z.string().url().optional(),
 });
 
 export const updateListSchema = z.object({
   name: z.string().min(1, 'Nome da lista é obrigatório').max(100).optional(),
   description: z.string().max(500).optional(),
   isPublic: z.boolean().optional(),
+  coverUrl: z.string().url().optional(),
 });
 
 export const addPlaceToListSchema = z.object({

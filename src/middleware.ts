@@ -26,7 +26,9 @@ export async function middleware(request: NextRequest) {
 
   const isProtected =
     request.nextUrl.pathname.startsWith('/add-place') ||
-    request.nextUrl.pathname.startsWith('/profile');
+    request.nextUrl.pathname.startsWith('/profile') ||
+    request.nextUrl.pathname.startsWith('/lists/new') ||
+    request.nextUrl.pathname.match(/\/lists\/[^/]+\/edit/);
 
   if (isProtected && !user) {
     return NextResponse.redirect(new URL('/login', request.url));
@@ -36,5 +38,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/add-place/:path*', '/profile/:path*'],
+  matcher: ['/add-place/:path*', '/profile/:path*', '/lists/new', '/lists/:id/edit'],
 };

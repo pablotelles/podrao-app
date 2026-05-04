@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, UserCircle, Pencil, MapPin, Star, Heart } from 'lucide-react';
-import { FullScreenDrawer, Button } from '@/presentation/components/ui';
+import { FullScreenDrawer, Button, PageHeader } from '@/presentation/components/ui';
 import {
   UserProfileHeader,
   EditProfileForm,
@@ -55,9 +55,7 @@ export default function ProfilePage() {
   return (
     <main className="flex h-dvh flex-col bg-bg-subtle pb-16">
       {/* Header */}
-      <header className="flex shrink-0 items-center justify-between bg-bg border-b border-border px-(--spacing-page-x) py-4">
-        <h1 className="text-lg font-bold text-text-primary">Minha Conta</h1>
-      </header>
+      <PageHeader title="Minha Conta" showBackButton />
 
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
