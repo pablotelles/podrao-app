@@ -1,5 +1,5 @@
 'use client';
-import { CUISINE_TYPES, CUISINE_TYPE_EMOJIS } from '@/domain/value-objects/CuisineType';
+import { CUISINE_TYPES, CUISINE_TYPE_META } from '@/domain/value-objects/CuisineType';
 
 interface StepCuisineProps {
   value: string[];
@@ -34,8 +34,8 @@ export function StepCuisine({ value, onChange, error }: StepCuisineProps) {
             onClick={() => handleToggle(type)}
             disabled={value.length >= max && !value.includes(type)}
           >
-            <span className="text-lg mb-1">{CUISINE_TYPE_EMOJIS[type]}</span>
-            {type.charAt(0).toUpperCase() + type.slice(1)}
+            <span className="text-lg mb-1">{CUISINE_TYPE_META[type].emoji}</span>
+            {CUISINE_TYPE_META[type].label}
           </button>
         ))}
       </div>

@@ -5,6 +5,10 @@ import Image from 'next/image';
 import { MoreHorizontal, Heart } from 'lucide-react';
 import type { Place } from '@/domain/entities/Place';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
+import {
+  ESTABLISHMENT_TYPE_META,
+  type EstablishmentType,
+} from '@/domain/value-objects/EstablishmentType';
 import { useDistance } from '@/presentation/hooks/useDistance';
 import { useFavorites } from '@/presentation/hooks/useFavorites';
 
@@ -49,7 +53,8 @@ export function PlaceRow({ place, rank, onMenuClick }: PlaceRowProps) {
       <Link href={`/places/${place.id}`} className="flex-1 min-w-0">
         <p className="font-semibold text-text-primary leading-tight truncate">{place.name}</p>
         <p className="mt-0.5 text-xs text-text-secondary">
-          {place.establishmentType}
+          {ESTABLISHMENT_TYPE_META[place.establishmentType as EstablishmentType]?.label ||
+            place.establishmentType}
           {place.bairro ? ` · ${place.bairro}` : ''}
         </p>
         <p className="mt-0.5 text-xs text-text-secondary">

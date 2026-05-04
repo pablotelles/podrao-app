@@ -9,6 +9,10 @@ import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailH
 import { FavoriteButton } from '@/presentation/components/favorites/FavoriteButton';
 import { AddToListButton } from '@/presentation/components/lists/AddToListButton';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
+import {
+  ESTABLISHMENT_TYPE_META,
+  type EstablishmentType,
+} from '@/domain/value-objects/EstablishmentType';
 import { createServerSupabaseClient } from '@/presentation/lib/api-helpers';
 import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
@@ -40,6 +44,12 @@ export default async function PlaceDetailPage({ params }: Props) {
       getPlaceById.execute(id),
       getPlaceReviews.execute(id),
     ]);
+
+    // Serialize reviews for Client Component (convert Date to string)
+    const serializedReviews = reviews.map((r) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+    }));
 
     const isOwner = user?.id === place.createdBy;
 
@@ -86,7 +96,10 @@ export default async function PlaceDetailPage({ params }: Props) {
                 {place.complemento && ` - ${place.complemento}`}
                 {place.bairro && ` · ${place.bairro}`} · {place.cidade}, {place.estado}
               </p>
-              <p className="mt-1 text-xs text-text-secondary">{place.establishmentType}</p>
+              <p className="mt-1 text-xs text-text-secondary">
+                {ESTABLISHMENT_TYPE_META[place.establishmentType as EstablishmentType]?.label ||
+                  place.establishmentType}
+              </p>
               {place.reviewsCount > 0 && (
                 <p className="mt-1 text-xs text-text-secondary">
                   <span className="text-warning">★</span> {place.rating.toFixed(1)} ·{' '}
@@ -138,7 +151,7 @@ export default async function PlaceDetailPage({ params }: Props) {
             )}
           </div>
 
-          <ReviewList reviews={reviews} />
+          <ReviewList reviews={serializedReviews} />
         </PageContent>
       </div>
     );

@@ -44,7 +44,6 @@ CREATE INDEX idx_review_photos_created_at ON review_photos(created_at DESC);
 
 -- ─── profiles indexes ────────────────────────────────────────────────────────
 CREATE INDEX idx_profiles_nickname ON profiles(nickname);
-CREATE INDEX idx_profiles_user_id ON profiles(user_id);
 
 -- ─── favorites indexes ───────────────────────────────────────────────────────
 CREATE INDEX idx_favorites_user ON favorites(user_id);

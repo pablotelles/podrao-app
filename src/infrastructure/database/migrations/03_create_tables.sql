@@ -1,4 +1,21 @@
 -- Migration 03: Create all database tables
+-- Idempotent: drops existing tables before recreating
+
+-- Drop all tables (CASCADE removes dependencies)
+DROP TABLE IF EXISTS list_saves CASCADE;
+DROP TABLE IF EXISTS list_favorites CASCADE;
+DROP TABLE IF EXISTS list_places CASCADE;
+DROP TABLE IF EXISTS lists CASCADE;
+DROP TABLE IF EXISTS favorites CASCADE;
+DROP TABLE IF EXISTS review_photos CASCADE;
+DROP TABLE IF EXISTS review_scores CASCADE;
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS place_stats CASCADE;
+DROP TABLE IF EXISTS place_photos CASCADE;
+DROP TABLE IF EXISTS place_meals CASCADE;
+DROP TABLE IF EXISTS place_cuisines CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+DROP TABLE IF EXISTS places CASCADE;
 
 -- ─── places ──────────────────────────────────────────────────────────────────
 CREATE TABLE places (
@@ -106,7 +123,6 @@ CREATE TABLE review_photos (
 -- Public user profiles (separate from auth.users to avoid exposing sensitive data)
 CREATE TABLE profiles (
   id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  user_id     UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   nickname    TEXT UNIQUE NOT NULL,
   name        TEXT,
   email       TEXT,

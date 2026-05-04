@@ -3,12 +3,13 @@ import { createServerClient } from '@supabase/ssr';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const code      = searchParams.get('code');       // PKCE flow
-  const tokenHash = searchParams.get('token_hash'); // OTP flow
-  const type      = searchParams.get('type');
+  const code = searchParams.get('code'); // PKCE flow
+  const token = searchParams.get('token'); // Magic link token
+  const tokenHash = searchParams.get('token_hash'); // OTP flow (alternate format)
+  const type = searchParams.get('type');
 
   const successUrl = new URL('/', req.url);
-  const errorUrl   = new URL('/login?error=expired_link', req.url);
+  const errorUrl = new URL('/login?error=expired_link', req.url);
 
   // A response é criada antes — cookies serão setadas NELA, não em cookieStore
   const response = NextResponse.redirect(successUrl);
@@ -21,9 +22,7 @@ export async function GET(req: NextRequest) {
       cookies: {
         getAll: () => req.cookies.getAll(),
         setAll: (list) =>
-          list.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          ),
+          list.forEach(({ name, value, options }) => response.cookies.set(name, value, options)),
       },
     },
   );
@@ -35,11 +34,21 @@ export async function GET(req: NextRequest) {
     return response;
   }
 
-  // Fluxo OTP / magic link
+  // Fluxo magic link (token direto)
+  if (token && type === 'magiclink') {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: token,
+      type: 'magiclink',
+    });
+    if (error) return NextResponse.redirect(errorUrl);
+    return response;
+  }
+
+  // Fluxo OTP / magic link (formato alternativo com token_hash)
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
-      type: type as 'email',
+      type: type as 'email' | 'magiclink',
     });
     if (error) return NextResponse.redirect(errorUrl);
     return response;

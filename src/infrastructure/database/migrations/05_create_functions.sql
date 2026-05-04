@@ -153,6 +153,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger: update stats on review changes
+DROP TRIGGER IF EXISTS trigger_update_place_stats ON reviews;
 CREATE TRIGGER trigger_update_place_stats
   AFTER INSERT OR UPDATE OR DELETE ON reviews
   FOR EACH ROW EXECUTE FUNCTION update_place_stats();
@@ -170,6 +171,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger: initialize stats on place creation
+DROP TRIGGER IF EXISTS trigger_init_place_stats ON places;
 CREATE TRIGGER trigger_init_place_stats
   AFTER INSERT ON places
   FOR EACH ROW EXECUTE FUNCTION init_place_stats();
@@ -194,14 +196,15 @@ BEGIN
     final_nick := base_nick || counter::TEXT;
   END LOOP;
 
-  INSERT INTO profiles (id, user_id, nickname, email)
-  VALUES (NEW.id, NEW.id, final_nick, NEW.email);
+  INSERT INTO profiles (id, nickname, email)
+  VALUES (NEW.id, final_nick, NEW.email);
   
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger: create profile on user signup
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
@@ -213,13 +216,14 @@ RETURNS TRIGGER AS $$
 BEGIN
   UPDATE profiles
   SET points = points + 10
-  WHERE user_id = NEW.user_id;
+  WHERE id = NEW.user_id;
   
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger: award points on review creation
+DROP TRIGGER IF EXISTS trigger_award_review_points ON reviews;
 CREATE TRIGGER trigger_award_review_points
   AFTER INSERT ON reviews
   FOR EACH ROW EXECUTE FUNCTION award_review_points();
@@ -258,6 +262,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger: update favorites count
+DROP TRIGGER IF EXISTS trigger_update_list_favorites_count ON list_favorites;
 CREATE TRIGGER trigger_update_list_favorites_count
   AFTER INSERT OR DELETE ON list_favorites
   FOR EACH ROW EXECUTE FUNCTION update_list_favorites_count();
@@ -285,6 +290,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger: update saves count
+DROP TRIGGER IF EXISTS trigger_update_list_saves_count ON list_saves;
 CREATE TRIGGER trigger_update_list_saves_count
   AFTER INSERT OR DELETE ON list_saves
   FOR EACH ROW EXECUTE FUNCTION update_list_saves_count();

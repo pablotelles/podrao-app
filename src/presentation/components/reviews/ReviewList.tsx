@@ -1,9 +1,14 @@
+'use client';
+
 import type { Review } from '@/domain/entities/Review';
 import { EmptyState } from '@/presentation/components/ui';
 import { StarRating } from '@/presentation/components/ui/StarRating';
 
+// Serialized version of Review with createdAt as string (for Client Component)
+type SerializedReview = Omit<Review, 'createdAt'> & { createdAt: string | Date };
+
 interface ReviewListProps {
-  reviews: Review[];
+  reviews: SerializedReview[];
 }
 
 export function ReviewList({ reviews }: ReviewListProps) {

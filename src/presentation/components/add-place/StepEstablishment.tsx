@@ -20,7 +20,7 @@ export function StepEstablishment({ value, onChange, error }: StepEstablishmentP
           <RadioListItem
             key={type}
             icon={ESTABLISHMENT_TYPE_META[type].icon}
-            label={type}
+            label={ESTABLISHMENT_TYPE_META[type].label}
             selected={value === type}
             onSelect={() => onChange(type)}
           />
