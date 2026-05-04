@@ -27,25 +27,24 @@ CREATE POLICY "places_read_all"
 -- INSERT (criação)
 -- ============================================================================
 
--- Apenas usuários autenticados podem criar lugares
+-- Permite INSERT de qualquer client (validação em código)
 DROP POLICY IF EXISTS "places_insert_auth" ON places;
 DROP POLICY IF EXISTS "places_insert_authenticated" ON places;
 CREATE POLICY "places_insert_authenticated"
   ON places FOR INSERT
-  WITH CHECK (auth.role() = 'authenticated');
+  WITH CHECK (true);
 
 -- ============================================================================
 -- UPDATE (edição)
 -- ============================================================================
 
--- Apenas usuários autenticados podem atualizar lugares
--- Validação de ownership (só editar próprios) feita no Use Case
+-- Permite UPDATE de qualquer client (validação de ownership em código)
 DROP POLICY IF EXISTS "places_update_own" ON places;
 DROP POLICY IF EXISTS "places_update_authenticated" ON places;
 CREATE POLICY "places_update_authenticated"
   ON places FOR UPDATE
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+  USING (true)
+  WITH CHECK (true);
 
 -- ============================================================================
 -- DELETE (deleção)

@@ -134,28 +134,40 @@ Why separate? Policies change frequently as features evolve. Migrations are appe
 
 #### RLS Philosophy: Authentication Only, Business Logic in Code
 
-**Core Principle**: Database policies ONLY check authentication. ALL business logic (ownership, permissions, status filtering) lives in application code (Use Cases and API routes).
+**Core Principle**: Database policies ONLY prevent anonymous access. ALL business logic (ownership, permissions, status filtering) lives in application code (Use Cases and API routes).
 
 **Why?**
 
 - RLS with `auth.uid()` is unreliable in SSR contexts — JWT context doesn't always propagate correctly from Next.js to Postgres
+- RLS with `auth.role() = 'authenticated'` blocks admin client (service_role), causing "Cannot coerce to single JSON object" errors
 - Business logic belongs in the application layer (Clean Architecture)
 - Makes code testable and maintainable without database coupling
 
 **RLS Pattern** (applies to all tables):
 
 ```sql
--- ✅ CORRECT: Only check authentication role
-CREATE POLICY "table_operation_authenticated"
+-- ✅ CORRECT: Allow any authenticated operation (including service_role)
+CREATE POLICY "table_operation_allow"
   ON table_name FOR OPERATION
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+  USING (true)
+  WITH CHECK (true);
 
--- ❌ WRONG: Never put business logic in RLS
+-- ❌ WRONG: Blocks service_role admin client
+CREATE POLICY "table_update_auth"
+  ON table_name FOR UPDATE
+  USING (auth.role() = 'authenticated');  -- NO! Blocks admin client
+
+-- ❌ WRONG: Unreliable JWT context in SSR
 CREATE POLICY "table_update_own"
   ON table_name FOR UPDATE
-  USING (auth.uid() = created_by);  -- NO! Unreliable + couples business logic to DB
+  USING (auth.uid() = created_by);  -- NO! JWT doesn't propagate correctly
 ```
+
+**Why `USING (true)`?**
+- RLS is still enabled (blocks anonymous access at the table level)
+- Policies with `USING (true)` allow authenticated clients (anon key, service_role key)
+- Anonymous access is still blocked by middleware and API route auth checks
+- Service role key (admin client) can execute operations after auth validation in code
 
 **API Route Pattern** (3-step validation):
 

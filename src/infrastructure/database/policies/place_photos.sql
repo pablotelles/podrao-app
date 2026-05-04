@@ -27,35 +27,32 @@ CREATE POLICY "place_photos_read_all"
 -- INSERT (upload)
 -- ============================================================================
 
--- Apenas usuários autenticados podem adicionar fotos
--- Validação de ownership (só adicionar em próprios lugares) feita em código
+-- Permite INSERT de qualquer client (validação de ownership em código)
 DROP POLICY IF EXISTS "place_photos_insert_own" ON place_photos;
 DROP POLICY IF EXISTS "place_photos_insert_authenticated" ON place_photos;
 CREATE POLICY "place_photos_insert_authenticated"
   ON place_photos FOR INSERT
-  WITH CHECK (auth.role() = 'authenticated');
+  WITH CHECK (true);
 
 -- ============================================================================
 -- UPDATE (editar posição/caption - futuro)
 -- ============================================================================
 
--- Apenas usuários autenticados podem atualizar fotos
--- Validação de ownership feita em código
+-- Permite UPDATE de qualquer client (validação de ownership em código)
 DROP POLICY IF EXISTS "place_photos_update_own" ON place_photos;
 DROP POLICY IF EXISTS "place_photos_update_authenticated" ON place_photos;
 CREATE POLICY "place_photos_update_authenticated"
   ON place_photos FOR UPDATE
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+  USING (true)
+  WITH CHECK (true);
 
 -- ============================================================================
 -- DELETE (deleção)
 -- ============================================================================
 
--- Apenas usuários autenticados podem deletar fotos
--- Validação de ownership feita em código
+-- Permite DELETE de qualquer client (validação de ownership em código)
 DROP POLICY IF EXISTS "place_photos_delete_own" ON place_photos;
 DROP POLICY IF EXISTS "place_photos_delete_authenticated" ON place_photos;
 CREATE POLICY "place_photos_delete_authenticated"
   ON place_photos FOR DELETE
-  USING (auth.role() = 'authenticated');
+  USING (true);

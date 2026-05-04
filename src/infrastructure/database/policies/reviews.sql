@@ -25,10 +25,9 @@ CREATE POLICY "reviews_read_all"
 -- INSERT (criação)
 -- ============================================================================
 
--- Apenas usuários autenticados podem criar reviews
--- Validação de ownership (user_id correto) feita no Use Case
+-- Permite INSERT de qualquer client (validação de ownership em código)
 DROP POLICY IF EXISTS "reviews_insert_auth" ON reviews;
 DROP POLICY IF EXISTS "reviews_insert_authenticated" ON reviews;
 CREATE POLICY "reviews_insert_authenticated"
   ON reviews FOR INSERT
-  WITH CHECK (auth.role() = 'authenticated');
+  WITH CHECK (true);

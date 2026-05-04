@@ -46,15 +46,57 @@ export class SupabaseUserRepository implements IUserRepository {
   }
 
   async updateProfile(id: string, data: UpdateProfileData): Promise<User> {
+    const admin = createAdminClient();
+
+    // Primeiro, verificar se o perfil existe
+    const { data: existingProfile } = await admin
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    // Se perfil não existe, criar com dados padrão
+    if (!existingProfile) {
+      // Buscar email do auth para gerar nickname padrão
+      const { data: authUser } = await admin.auth.admin.getUserById(id);
+      if (!authUser.user) throw new Error('Usuário não encontrado no auth');
+
+      const defaultNickname =
+        authUser.user.email?.split('@')[0] ?? authUser.user.id.slice(0, 8);
+
+      // Inserir perfil novo
+      const { data: newProfile, error: insertError } = await admin
+        .from('profiles')
+        .insert({
+          id,
+          nickname: data.nickname ?? defaultNickname,
+          name: data.name ?? null,
+          headline: data.headline ?? null,
+          avatar_url: data.avatarUrl ?? null,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw new Error(`Erro ao criar perfil: ${insertError.message}`);
+
+      return {
+        id: newProfile.id,
+        email: authUser.user.email!,
+        nickname: newProfile.nickname,
+        name: newProfile.name ?? undefined,
+        headline: newProfile.headline ?? undefined,
+        avatarUrl: newProfile.avatar_url ?? undefined,
+        createdAt: new Date(newProfile.created_at),
+      };
+    }
+
+    // Perfil existe, fazer UPDATE
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (data.nickname !== undefined) patch.nickname = data.nickname;
     if (data.name !== undefined) patch.name = data.name || null;
     if (data.headline !== undefined) patch.headline = data.headline || null;
     if (data.avatarUrl !== undefined) patch.avatar_url = data.avatarUrl || null;
 
-    // Usa admin client para bypass de RLS
-    // Seguro porque autenticação já foi validada no endpoint antes de chamar este método
-    const admin = createAdminClient();
     const { data: row, error } = await admin
       .from('profiles')
       .update(patch)
