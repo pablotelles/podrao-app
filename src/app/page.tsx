@@ -45,14 +45,14 @@ export default function HomePage() {
   const hasLocation = geo.lat != null && geo.lng != null;
 
   return (
-    <main className="flex h-dvh flex-col">
-      {/* Header */}
-      <header className="flex shrink-0 items-center justify-between px-(--spacing-page-x) py-4 border-b border-border bg-bg">
-        <h1 className="text-lg font-bold text-text-primary">Onde Comer</h1>
+    <div className="flex h-dvh flex-col">
+      {/* Header — mesmas classes do PageHeader */}
+      <header className="shrink-0 flex items-center justify-between border-b border-border bg-bg px-(--spacing-page-x) py-4 sticky top-0 z-10">
+        <h1 className="text-base font-bold text-text-primary">Onde Comer</h1>
 
         <div className="flex items-center gap-2">
           {hasLocation && (
-            <div className="flex rounded-full border border-border overflow-hidden text-sm">
+            <div className="flex overflow-hidden rounded-full border border-border text-sm">
               <button
                 onClick={() => setView('map')}
                 className={
@@ -83,51 +83,51 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Skeleton enquanto aguarda GPS */}
-      {geo.initializing && (
-        <div className="flex-1">
-          <MapSkeleton />
-        </div>
-      )}
-
-      {/* GPS falhou — busca manual por cidade */}
-      {!geo.initializing && !hasLocation && (
-        <>
-          <LocationSearch
-            onLocation={(lat, lng) => geo.setLocation(lat, lng)}
-            onRetry={geo.request}
-            retrying={geo.loading}
-          />
-          <div className="flex-1 bg-bg-subtle" />
-        </>
-      )}
-
-      {/* Localização disponível */}
-      {!geo.initializing && hasLocation && (
-        <>
-          {view === 'list' && (
-            <div className="shrink-0 px-(--spacing-page-x) py-3 border-b border-border">
-              <FilterBar values={filters} onChange={setFilters} />
-            </div>
-          )}
-
-          <div className="flex-1 overflow-auto">
-            {view === 'list' ? (
-              <div className="mx-auto max-w-2xl px-(--spacing-page-x) py-4 pb-24">
-                <PlaceList places={places} isLoading={isLoading} error={error} />
-              </div>
-            ) : (
-              <DynamicPlaceMap
-                places={places}
-                userLat={geo.lat}
-                userLng={geo.lng}
-                height="100%"
-                onPlaceClick={handlePlaceClick}
-              />
-            )}
+      {/* Conteúdo — pb-16 reserva espaço para o BottomNav fixo (h-16) */}
+      <main className="flex flex-1 flex-col overflow-hidden pb-16">
+        {geo.initializing && (
+          <div className="flex-1">
+            <MapSkeleton />
           </div>
-        </>
-      )}
-    </main>
+        )}
+
+        {!geo.initializing && !hasLocation && (
+          <>
+            <LocationSearch
+              onLocation={(lat, lng) => geo.setLocation(lat, lng)}
+              onRetry={geo.request}
+              retrying={geo.loading}
+            />
+            <div className="flex-1 bg-bg-subtle" />
+          </>
+        )}
+
+        {!geo.initializing && hasLocation && (
+          <>
+            {view === 'list' && (
+              <div className="shrink-0 border-b border-border px-(--spacing-page-x) py-3">
+                <FilterBar values={filters} onChange={setFilters} />
+              </div>
+            )}
+
+            <div className="flex-1 overflow-auto">
+              {view === 'list' ? (
+                <div className="mx-auto max-w-2xl px-(--spacing-page-x) py-4 pb-8">
+                  <PlaceList places={places} isLoading={isLoading} error={error} />
+                </div>
+              ) : (
+                <DynamicPlaceMap
+                  places={places}
+                  userLat={geo.lat}
+                  userLng={geo.lng}
+                  height="100%"
+                  onPlaceClick={handlePlaceClick}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </main>
+    </div>
   );
 }
