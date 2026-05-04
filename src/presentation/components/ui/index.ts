@@ -11,3 +11,4 @@ export { PageHeader } from './PageHeader';
 export { ToggleGroup } from './ToggleGroup';
 export { ThumbToggle } from './ThumbToggle';
 export { ProgressSteps } from './ProgressSteps';
+export { FullScreenDrawer } from './FullScreenDrawer';
