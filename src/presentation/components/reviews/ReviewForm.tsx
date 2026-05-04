@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { mutate } from 'swr';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
 import { submitReviewInitialValues } from '@/presentation/lib/forms/review/initialValues';
@@ -43,6 +44,8 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
         const body = (await res.json()) as { error: string };
         throw new Error(body.error);
       }
+      // Revalidar stats do usuário
+      mutate('/api/me/stats');
       onSuccess?.();
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Erro ao enviar avaliação');

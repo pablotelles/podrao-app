@@ -65,4 +65,14 @@ export class SupabaseFavoriteRepository implements IFavoriteRepository {
 
     if (error) throw new Error(error.message);
   }
+
+  async countByUser(userId: string): Promise<number> {
+    const { count, error } = await this.db
+      .from('favorites')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  }
 }

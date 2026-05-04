@@ -32,6 +32,7 @@ import { AddPlaceToList } from '@/application/use-cases/lists/AddPlaceToList';
 import { RemovePlaceFromList } from '@/application/use-cases/lists/RemovePlaceFromList';
 import { UpdateList } from '@/application/use-cases/lists/UpdateList';
 import { GetListPlaces } from '@/application/use-cases/lists/GetListPlaces';
+import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
 
 // --- Infra ---
 const placeRepository = new SupabasePlaceRepository();
@@ -74,6 +75,9 @@ export const addPlaceToList = new AddPlaceToList(listRepository);
 export const removePlaceFromList = new RemovePlaceFromList(listRepository);
 export const updateList = new UpdateList(listRepository);
 export const getListPlaces = new GetListPlaces(listRepository);
+
+// User stats
+export const getUserStats = new GetUserStats(placeRepository, reviewRepository, favoriteRepository);
 
 // --- Providers exportados para uso direto em routes ---
 // Nota: UserRepository agora é instanciado com cliente autenticado em cada route

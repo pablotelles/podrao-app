@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import useSWR, { mutate as globalMutate } from 'swr';
 import type { Favorite } from '@/domain/entities/Favorite';
 
 async function fetcher(url: string): Promise<Favorite[]> {
@@ -38,6 +38,8 @@ export function useFavorites() {
 
       // Revalidar para garantir consistência
       mutate();
+      // Revalidar stats do usuário
+      globalMutate('/api/me/stats');
     } catch (err) {
       // Rollback em caso de erro
       mutate(currentFavorites, false);

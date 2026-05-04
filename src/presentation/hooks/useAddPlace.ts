@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { mutate } from 'swr';
 import type { CreatePlaceInput } from '@/presentation/lib/schemas/placeSchema';
 import type { Place } from '@/domain/entities/Place';
 
@@ -21,7 +22,10 @@ export function useAddPlace() {
         const body = (await res.json()) as { error: string };
         throw new Error(body.error);
       }
-      return (await res.json()) as Place;
+      const place = (await res.json()) as Place;
+      // Revalidar stats do usuário (quando o lugar for aprovado, a contagem aumenta)
+      mutate('/api/me/stats');
+      return place;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao cadastrar lugar');
       return null;

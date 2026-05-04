@@ -144,6 +144,17 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     return (data as PlaceRow[]).map(toDomain);
   }
 
+  async countByCreator(userId: string): Promise<number> {
+    const { count, error } = await this.db
+      .from('places')
+      .select('*', { count: 'exact', head: true })
+      .eq('created_by', userId)
+      .eq('status', 'approved');
+
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  }
+
   // ─── writes ───────────────────────────────────────────────────────────────
 
   async create(data: CreatePlaceData): Promise<Place> {

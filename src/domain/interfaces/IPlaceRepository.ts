@@ -6,6 +6,7 @@ import type { SearchPlacesParams } from './shared';
 export interface IPlaceReader {
   findById(id: string): Promise<Place | null>;
   searchNearby(params: SearchPlacesParams): Promise<Place[]>;
+  countByCreator(userId: string): Promise<number>;
 }
 
 export interface IPlaceWriter {

@@ -7,6 +7,7 @@ import { FullScreenDrawer, Button } from '@/presentation/components/ui';
 import { UserProfileHeader, EditProfileForm } from '@/presentation/components/profile';
 import { UserListsSection } from '@/presentation/components/lists/UserListsSection';
 import { UserFavoritesSection } from '@/presentation/components/favorites/UserFavoritesSection';
+import { useUserStats } from '@/presentation/hooks/useUserStats';
 import type { User } from '@/domain/entities/User';
 
 export default function ProfilePage() {
@@ -14,6 +15,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
+  const { stats } = useUserStats();
 
   useEffect(() => {
     fetch('/api/me')
@@ -66,9 +68,9 @@ export default function ProfilePage() {
               onEmptyHeadlineClick={() => setEditOpen(true)}
               stats={
                 <div className="flex gap-6">
-                  <ProfileStat icon={<MapPin size={14} />} value="0" />
-                  <ProfileStat icon={<Star size={14} />} value="0" />
-                  <ProfileStat icon={<Heart size={14} />} value="0" />
+                  <ProfileStat icon={<MapPin size={14} />} value={String(stats?.placesCount ?? 0)} />
+                  <ProfileStat icon={<Star size={14} />} value={String(stats?.reviewsCount ?? 0)} />
+                  <ProfileStat icon={<Heart size={14} />} value={String(stats?.favoritesCount ?? 0)} />
                 </div>
               }
               actions={

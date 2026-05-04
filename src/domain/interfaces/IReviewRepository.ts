@@ -15,4 +15,5 @@ export interface IReviewRepository {
   findByUser(userId: string): Promise<Review[]>;
   create(data: CreateReviewData): Promise<Review>;
   existsForUser(placeId: string, userId: string): Promise<boolean>;
+  countByUser(userId: string): Promise<number>;
 }

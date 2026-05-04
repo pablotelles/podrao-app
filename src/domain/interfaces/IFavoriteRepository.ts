@@ -5,4 +5,5 @@ export interface IFavoriteRepository {
   getFavoritesByUser(userId: string): Promise<Favorite[]>;
   add(userId: string, placeId: string): Promise<Favorite>;
   remove(userId: string, placeId: string): Promise<void>;
+  countByUser(userId: string): Promise<number>;
 }
