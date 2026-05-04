@@ -48,10 +48,6 @@ export function UserListsSection() {
             <ListCard
               key={list.id}
               list={list}
-              onClick={() => {
-                // TODO: navegar para página de detalhe da lista
-                console.log('Ver lista:', list.id);
-              }}
               onDelete={deletingListId === list.id ? undefined : () => handleDelete(list.id)}
             />
           ))}

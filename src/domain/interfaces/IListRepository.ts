@@ -1,4 +1,4 @@
-import type { UserList, ListPlace } from '../entities/List';
+import type { UserList, ListPlace, ListFavorite, ListSave } from '../entities/List';
 
 export interface CreateListData {
   ownerId: string;
@@ -25,4 +25,13 @@ export interface IListRepository {
   addPlace(listId: string, placeId: string, note?: string): Promise<ListPlace>;
   removePlace(listId: string, placeId: string): Promise<void>;
   isOwner(listId: string, userId: string): Promise<boolean>;
+
+  // Social interactions
+  incrementViewCount(listId: string): Promise<void>;
+  toggleFavorite(userId: string, listId: string): Promise<{ favorited: boolean }>;
+  toggleSave(userId: string, listId: string): Promise<{ saved: boolean }>;
+  isFavoritedByUser(userId: string, listId: string): Promise<boolean>;
+  isSavedByUser(userId: string, listId: string): Promise<boolean>;
+  getFavoritesByUser(userId: string): Promise<ListFavorite[]>;
+  getSavesByUser(userId: string): Promise<ListSave[]>;
 }

@@ -14,3 +14,4 @@ export { ThumbToggle } from './ThumbToggle';
 export { Toggle } from './Toggle';
 export { ProgressSteps } from './ProgressSteps';
 export { FullScreenDrawer } from './FullScreenDrawer';
+export { ExpandableText } from './ExpandableText';

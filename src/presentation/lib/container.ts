@@ -32,6 +32,9 @@ import { AddPlaceToList } from '@/application/use-cases/lists/AddPlaceToList';
 import { RemovePlaceFromList } from '@/application/use-cases/lists/RemovePlaceFromList';
 import { UpdateList } from '@/application/use-cases/lists/UpdateList';
 import { GetListPlaces } from '@/application/use-cases/lists/GetListPlaces';
+import { IncrementListView } from '@/application/use-cases/lists/IncrementListView';
+import { ToggleListFavorite } from '@/application/use-cases/lists/ToggleListFavorite';
+import { ToggleListSave } from '@/application/use-cases/lists/ToggleListSave';
 import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
 
 // --- Infra ---
@@ -75,6 +78,9 @@ export const addPlaceToList = new AddPlaceToList(listRepository);
 export const removePlaceFromList = new RemovePlaceFromList(listRepository);
 export const updateList = new UpdateList(listRepository);
 export const getListPlaces = new GetListPlaces(listRepository);
+export const incrementListView = new IncrementListView(listRepository);
+export const toggleListFavorite = new ToggleListFavorite(listRepository);
+export const toggleListSave = new ToggleListSave(listRepository);
 
 // User stats
 export const getUserStats = new GetUserStats(placeRepository, reviewRepository, favoriteRepository);

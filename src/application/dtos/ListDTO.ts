@@ -40,3 +40,17 @@ export interface RemovePlaceFromListDTO {
   listId: string;
   placeId: string;
 }
+
+export interface IncrementListViewDTO {
+  listId: string;
+}
+
+export interface ToggleListFavoriteDTO {
+  userId: string;
+  listId: string;
+}
+
+export interface ToggleListSaveDTO {
+  userId: string;
+  listId: string;
+}

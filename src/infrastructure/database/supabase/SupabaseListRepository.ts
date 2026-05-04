@@ -1,4 +1,4 @@
-import type { UserList, ListPlace } from '@/domain/entities/List';
+import type { UserList, ListPlace, ListFavorite, ListSave } from '@/domain/entities/List';
 import type {
   IListRepository,
   CreateListData,
@@ -14,6 +14,9 @@ interface ListRow {
   description: string | null;
   is_public: boolean;
   cover_url: string | null;
+  view_count: number;
+  favorites_count: number;
+  saves_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +42,9 @@ function listToDomain(row: ListRow, placesCount?: number): UserList {
     isPublic: row.is_public,
     coverUrl: row.cover_url ?? undefined,
     placesCount,
+    viewCount: row.view_count ?? 0,
+    favoritesCount: row.favorites_count ?? 0,
+    savesCount: row.saves_count ?? 0,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -191,5 +197,102 @@ export class SupabaseListRepository implements IListRepository {
 
     if (error) throw new Error(error.message);
     return (count ?? 0) > 0;
+  }
+
+  async incrementViewCount(listId: string): Promise<void> {
+    // Incremento atômico — ignora erro pois view count não é crítico
+    await this.db.rpc('increment_list_view', { p_list_id: listId });
+  }
+
+  async toggleFavorite(userId: string, listId: string): Promise<{ favorited: boolean }> {
+    const already = await this.isFavoritedByUser(userId, listId);
+
+    if (already) {
+      const { error } = await this.db
+        .from('list_favorites')
+        .delete()
+        .eq('user_id', userId)
+        .eq('list_id', listId);
+      if (error) throw new Error(error.message);
+      await this.db.rpc('decrement_list_favorites', { p_list_id: listId });
+      return { favorited: false };
+    } else {
+      const { error } = await this.db
+        .from('list_favorites')
+        .insert({ user_id: userId, list_id: listId });
+      if (error) throw new Error(error.message);
+      await this.db.rpc('increment_list_favorites', { p_list_id: listId });
+      return { favorited: true };
+    }
+  }
+
+  async toggleSave(userId: string, listId: string): Promise<{ saved: boolean }> {
+    const already = await this.isSavedByUser(userId, listId);
+
+    if (already) {
+      const { error } = await this.db
+        .from('list_saves')
+        .delete()
+        .eq('user_id', userId)
+        .eq('list_id', listId);
+      if (error) throw new Error(error.message);
+      await this.db.rpc('decrement_list_saves', { p_list_id: listId });
+      return { saved: false };
+    } else {
+      const { error } = await this.db
+        .from('list_saves')
+        .insert({ user_id: userId, list_id: listId });
+      if (error) throw new Error(error.message);
+      await this.db.rpc('increment_list_saves', { p_list_id: listId });
+      return { saved: true };
+    }
+  }
+
+  async isFavoritedByUser(userId: string, listId: string): Promise<boolean> {
+    const { count, error } = await this.db
+      .from('list_favorites')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('list_id', listId);
+    if (error) throw new Error(error.message);
+    return (count ?? 0) > 0;
+  }
+
+  async isSavedByUser(userId: string, listId: string): Promise<boolean> {
+    const { count, error } = await this.db
+      .from('list_saves')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('list_id', listId);
+    if (error) throw new Error(error.message);
+    return (count ?? 0) > 0;
+  }
+
+  async getFavoritesByUser(userId: string): Promise<ListFavorite[]> {
+    const { data, error } = await this.db
+      .from('list_favorites')
+      .select('user_id, list_id, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({
+      userId: r.user_id,
+      listId: r.list_id,
+      createdAt: new Date(r.created_at),
+    }));
+  }
+
+  async getSavesByUser(userId: string): Promise<ListSave[]> {
+    const { data, error } = await this.db
+      .from('list_saves')
+      .select('user_id, list_id, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({
+      userId: r.user_id,
+      listId: r.list_id,
+      createdAt: new Date(r.created_at),
+    }));
   }
 }
