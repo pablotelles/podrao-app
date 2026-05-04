@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Star, LogOut, Pencil, UserCircle } from 'lucide-react';
-import { FullScreenDrawer } from '@/presentation/components/ui';
-import { EditProfileForm } from '@/presentation/components/profile/EditProfileForm';
+import { LogOut, UserCircle, Pencil, MapPin, Star, Heart } from 'lucide-react';
+import { FullScreenDrawer, Button } from '@/presentation/components/ui';
+import { UserProfileHeader, EditProfileForm } from '@/presentation/components/profile';
 import { UserListsSection } from '@/presentation/components/lists/UserListsSection';
 import { UserFavoritesSection } from '@/presentation/components/favorites/UserFavoritesSection';
 import type { User } from '@/domain/entities/User';
@@ -47,15 +47,6 @@ export default function ProfilePage() {
       {/* Header */}
       <header className="flex shrink-0 items-center justify-between bg-bg border-b border-border px-(--spacing-page-x) py-4">
         <h1 className="text-lg font-bold text-text-primary">Minha Conta</h1>
-        {user && (
-          <button
-            onClick={() => setEditOpen(true)}
-            className="flex items-center gap-1.5 text-sm font-medium text-brand"
-          >
-            <Pencil size={15} />
-            Editar perfil
-          </button>
-        )}
       </header>
 
       {loading ? (
@@ -64,42 +55,28 @@ export default function ProfilePage() {
         </div>
       ) : (
         <div className="overflow-auto">
-          {/* Hero do perfil */}
-          <div className="bg-bg px-(--spacing-page-x) pb-6 pt-8 flex flex-col items-center text-center border-b border-border">
-            {/* Avatar */}
-            <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-brand text-text-inverse text-3xl font-bold shadow-(--shadow-card) overflow-hidden">
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="avatar" className="h-full w-full object-cover" />
-              ) : (
-                initials
-              )}
-            </div>
-
-            {/* Nome e nickname */}
-            <h2 className="text-xl font-bold text-text-primary leading-tight">
-              {user?.name || 'Sem nome'}
-            </h2>
-            <p className="mt-0.5 text-sm text-text-secondary">@{user?.nickname}</p>
-
-            {/* Headline */}
-            {user?.headline ? (
-              <p className="mt-3 text-sm text-text-secondary max-w-xs leading-relaxed">
-                {user.headline}
-              </p>
-            ) : (
-              <button
-                onClick={() => setEditOpen(true)}
-                className="mt-3 text-sm text-brand hover:underline"
-              >
-                + Adicionar uma bio
-              </button>
-            )}
-
-            {/* Stats */}
-            <div className="mt-5 flex gap-8">
-              <StatPill icon={<MapPin size={14} />} value="0" label="lugares" />
-              <StatPill icon={<Star size={14} />} value="0" label="avaliações" />
-            </div>
+          {/* Hero do perfil - Layout horizontal com componente reutilizável */}
+          <div className="bg-bg px-(--spacing-page-x) pb-6 pt-6 border-b border-border">
+            <UserProfileHeader
+              avatarSrc={user?.avatarUrl}
+              avatarFallback={initials}
+              name={user?.name || 'Sem nome'}
+              nickname={user?.nickname || ''}
+              headline={user?.headline}
+              onEmptyHeadlineClick={() => setEditOpen(true)}
+              stats={
+                <div className="flex gap-6">
+                  <ProfileStat icon={<MapPin size={14} />} value="0" />
+                  <ProfileStat icon={<Star size={14} />} value="0" />
+                  <ProfileStat icon={<Heart size={14} />} value="0" />
+                </div>
+              }
+              actions={
+                <Button onClick={() => setEditOpen(true)} variant="ghost" size="icon">
+                  <Pencil size={18} />
+                </Button>
+              }
+            />
           </div>
 
           {/* Seções */}
@@ -155,13 +132,11 @@ export default function ProfilePage() {
   );
 }
 
-function StatPill({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+function ProfileStat({ icon, value }: { icon: React.ReactNode; value: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className="text-lg font-bold text-text-primary">{value}</span>
-      <div className="flex items-center gap-1 text-xs text-text-secondary">
-        {icon} {label}
-      </div>
+    <div className="flex items-center gap-1 text-sm">
+      <span className="text-text-secondary">{icon}</span>
+      <span className="font-semibold text-text-primary">{value}</span>
     </div>
   );
 }
