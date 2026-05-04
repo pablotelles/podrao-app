@@ -18,6 +18,8 @@ export interface UpdateListData {
 export interface IListRepository {
   findById(id: string): Promise<UserList | null>;
   findByOwner(userId: string): Promise<UserList[]>;
+  findPublic(limit?: number, offset?: number): Promise<UserList[]>;
+  getSavedListsByUser(userId: string): Promise<UserList[]>;
   create(data: CreateListData): Promise<UserList>;
   update(id: string, data: UpdateListData): Promise<UserList>;
   delete(id: string): Promise<void>;

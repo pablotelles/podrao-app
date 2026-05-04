@@ -37,6 +37,8 @@ import { GetListPlaces } from '@/application/use-cases/lists/GetListPlaces';
 import { IncrementListView } from '@/application/use-cases/lists/IncrementListView';
 import { ToggleListFavorite } from '@/application/use-cases/lists/ToggleListFavorite';
 import { ToggleListSave } from '@/application/use-cases/lists/ToggleListSave';
+import { GetPublicLists } from '@/application/use-cases/lists/GetPublicLists';
+import { GetSavedLists } from '@/application/use-cases/lists/GetSavedLists';
 import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
 
 // --- Infra ---
@@ -85,6 +87,8 @@ export const getListPlaces = new GetListPlaces(listRepository);
 export const incrementListView = new IncrementListView(listRepository);
 export const toggleListFavorite = new ToggleListFavorite(listRepository);
 export const toggleListSave = new ToggleListSave(listRepository);
+export const getPublicLists = new GetPublicLists(listRepository);
+export const getSavedLists = new GetSavedLists(listRepository);
 
 // User stats
 export const getUserStats = new GetUserStats(placeRepository, reviewRepository, favoriteRepository);

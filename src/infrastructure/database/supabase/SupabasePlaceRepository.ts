@@ -387,8 +387,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
          place_cuisines(cuisine_type), place_meals(meal_type),
          place_photos(url, type, position)`,
       )
-      .in('id', ids)
-      .eq('status', 'approved');
+      .in('id', ids);
 
     if (error) throw new Error(error.message);
     // Preserve favorite ordering

@@ -295,4 +295,45 @@ export class SupabaseListRepository implements IListRepository {
       createdAt: new Date(r.created_at),
     }));
   }
+
+  async findPublic(limit = 20, offset = 0): Promise<UserList[]> {
+    const { data, error } = await this.db
+      .from('lists')
+      .select('*, list_places(count)')
+      .eq('is_public', true)
+      .order('favorites_count', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw new Error(error.message);
+    return (data as ListWithCountRow[]).map((row) => {
+      const placesCount = row.list_places?.[0]?.count ?? 0;
+      return listToDomain(row, placesCount);
+    });
+  }
+
+  async getSavedListsByUser(userId: string): Promise<UserList[]> {
+    const { data: saves, error: savesErr } = await this.db
+      .from('list_saves')
+      .select('list_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (savesErr) throw new Error(savesErr.message);
+    if (!saves?.length) return [];
+
+    const ids = saves.map((s: { list_id: string }) => s.list_id);
+    const { data, error } = await this.db
+      .from('lists')
+      .select('*, list_places(count)')
+      .in('id', ids);
+
+    if (error) throw new Error(error.message);
+    const map = new Map(
+      (data as ListWithCountRow[]).map((row) => [
+        row.id,
+        listToDomain(row, row.list_places?.[0]?.count ?? 0),
+      ]),
+    );
+    return ids.map((id) => map.get(id)).filter(Boolean) as UserList[];
+  }
 }

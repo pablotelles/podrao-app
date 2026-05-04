@@ -38,7 +38,8 @@ export function useFavorites() {
 
       // Revalidar para garantir consistência
       mutate();
-      // Revalidar stats do usuário
+      // Revalidar lista de places favoritos e stats
+      globalMutate('/api/me/favorites');
       globalMutate('/api/me/stats');
     } catch (err) {
       // Rollback em caso de erro
