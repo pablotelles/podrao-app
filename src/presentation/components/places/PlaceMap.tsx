@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Place } from '@/domain/entities/Place';
 import { Map, type MapMarker } from '@/presentation/components/maps/Map';
-import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
+import { PlaceMapPopup } from './PlaceMapPopup';
 
 interface PlaceMapProps {
   places: Place[];
@@ -13,34 +13,6 @@ interface PlaceMapProps {
   onPlaceClick?: (place: Place) => void;
 }
 
-function buildPopupHtml(place: Place): string {
-  const price = PRICE_BUCKET_LABELS[place.priceBucket];
-  const rating =
-    place.reviewsCount > 0
-      ? `<span style="color:#d97706;font-size:12px;">★ ${place.rating.toFixed(1)}</span>
-         <span style="color:#9ca3af;font-size:11px;">(${place.reviewsCount})</span>`
-      : '';
-  const bairro = place.bairro
-    ? `<p style="margin:2px 0 0;font-size:12px;color:#6b7280;">${place.bairro}</p>`
-    : '';
-
-  return `
-    <div style="padding:12px 14px;min-width:180px;font-family:ui-sans-serif,system-ui,sans-serif;">
-      <p style="margin:0;font-size:14px;font-weight:600;color:#111827;line-height:1.3;">${place.name}</p>
-      ${bairro}
-      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;">
-        <span style="
-          background:#fff7ed;color:#f97316;
-          font-size:11px;font-weight:500;
-          padding:2px 8px;border-radius:999px;
-          border:1px solid #fed7aa;
-        ">${price}</span>
-        ${rating}
-      </div>
-    </div>
-  `.trim();
-}
-
 export default function PlaceMap({
   places,
   userLat,
@@ -48,6 +20,8 @@ export default function PlaceMap({
   height = '100%',
   onPlaceClick,
 }: PlaceMapProps) {
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+
   const markers: MapMarker[] = useMemo(() => {
     const result: MapMarker[] = [];
 
@@ -62,8 +36,7 @@ export default function PlaceMap({
         lng: place.lng,
         id: place.id,
         icon: 'brand',
-        content: buildPopupHtml(place),
-        onClick: onPlaceClick ? () => onPlaceClick(place) : undefined,
+        onClick: () => setSelectedPlace(place),
       });
     });
 
@@ -77,10 +50,25 @@ export default function PlaceMap({
   }, [userLat, userLng, places]);
 
   return (
-    <Map
-      markers={markers}
-      config={{ center: markers.length > 1 ? undefined : center, zoom: 14 }}
-      height={height}
-    />
+    <div className="relative" style={{ height }}>
+      <Map
+        markers={markers}
+        config={{ center: markers.length > 1 ? undefined : center, zoom: 14 }}
+        height="100%"
+      />
+
+      {selectedPlace && (
+        <div className="absolute bottom-4 left-4 right-4 z-1000">
+          <PlaceMapPopup
+            place={selectedPlace}
+            onClose={() => setSelectedPlace(null)}
+            onViewMore={() => {
+              onPlaceClick?.(selectedPlace);
+              setSelectedPlace(null);
+            }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
