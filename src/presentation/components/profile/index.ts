@@ -6,3 +6,5 @@ export { UserHeadline } from './UserHeadline';
 export { UserProfileHeader } from './UserProfileHeader';
 export { EditableAvatar } from './EditableAvatar';
 export { EditProfileForm } from './EditProfileForm';
+export { ProfileTabs } from './ProfileTabs';
+export type { ProfileTab } from './ProfileTabs';

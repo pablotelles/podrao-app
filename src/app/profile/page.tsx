@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, UserCircle, Pencil, MapPin, Star, Heart } from 'lucide-react';
+import { LogOut, Pencil, MapPin, Star, Heart } from 'lucide-react';
 import { FullScreenDrawer, Button, PageHeader } from '@/presentation/components/ui';
 import {
   UserProfileHeader,
   EditProfileForm,
   EditableAvatar,
+  ProfileTabs,
 } from '@/presentation/components/profile';
-import { UserListsSection } from '@/presentation/components/lists/UserListsSection';
-import { UserFavoritesSection } from '@/presentation/components/favorites/UserFavoritesSection';
 import { useUserStats } from '@/presentation/hooks/useUserStats';
 import type { User } from '@/domain/entities/User';
 
@@ -102,27 +101,28 @@ export default function ProfilePage() {
             />
           </div>
 
-          {/* Seções */}
-          <div className="flex flex-col gap-4 px-(--spacing-page-x) py-4">
-            {/* Info */}
-            <div className="rounded-xl bg-bg border border-border shadow-(--shadow-card) overflow-hidden">
-              <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-text-disabled">
-                Conta
-              </p>
-              <InfoRow
-                icon={<UserCircle size={16} className="text-text-secondary" />}
-                label="Email"
-                value={user?.email ?? ''}
-              />
-            </div>
+          {/* Tabs de conteúdo */}
+          <ProfileTabs>
+            {(activeTab) => (
+              <div className="px-(--spacing-page-x) py-4">
+                {activeTab === 'lugares' && (
+                  <p className="text-sm text-text-secondary">Em breve: seus lugares aqui.</p>
+                )}
+                {activeTab === 'favoritos' && (
+                  <p className="text-sm text-text-secondary">Em breve: seus favoritos aqui.</p>
+                )}
+                {activeTab === 'listas' && (
+                  <p className="text-sm text-text-secondary">Em breve: suas listas aqui.</p>
+                )}
+                {activeTab === 'avaliacoes' && (
+                  <p className="text-sm text-text-secondary">Em breve: suas avaliações aqui.</p>
+                )}
+              </div>
+            )}
+          </ProfileTabs>
 
-            {/* Listas */}
-            <UserListsSection />
-
-            {/* Favoritos */}
-            <UserFavoritesSection />
-
-            {/* Ações */}
+          {/* Ações */}
+          <div className="px-(--spacing-page-x) pb-4">
             <div className="rounded-xl bg-bg border border-border shadow-(--shadow-card) overflow-hidden">
               <button
                 onClick={handleLogout}
@@ -133,7 +133,7 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <p className="text-center text-xs text-text-disabled pb-2">Onde Comer · MVP</p>
+            <p className="text-center text-xs text-text-disabled pb-2 pt-4">Onde Comer · MVP</p>
           </div>
         </div>
       )}
@@ -160,18 +160,6 @@ function ProfileStat({ icon, value }: { icon: React.ReactNode; value: string }) 
     <div className="flex items-center gap-1 text-sm">
       <span className="text-text-secondary">{icon}</span>
       <span className="font-semibold text-text-primary">{value}</span>
-    </div>
-  );
-}
-
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      {icon}
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-text-secondary">{label}</p>
-        <p className="text-sm text-text-primary truncate">{value}</p>
-      </div>
     </div>
   );
 }
