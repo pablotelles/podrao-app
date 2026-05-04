@@ -61,8 +61,7 @@ export class SupabaseUserRepository implements IUserRepository {
       const { data: authUser } = await admin.auth.admin.getUserById(id);
       if (!authUser.user) throw new Error('Usuário não encontrado no auth');
 
-      const defaultNickname =
-        authUser.user.email?.split('@')[0] ?? authUser.user.id.slice(0, 8);
+      const defaultNickname = authUser.user.email?.split('@')[0] ?? authUser.user.id.slice(0, 8);
 
       // Inserir perfil novo
       const { data: newProfile, error: insertError } = await admin

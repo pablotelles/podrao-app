@@ -101,7 +101,7 @@ Supabase (Postgres + PostGIS + pgvector). The `places` table has:
 - `lat` / `lng` as numeric columns — redundant for simple queries that don't need PostGIS
 - `embedding vector(1536)` — NULL during MVP, populated pós-MVP for semantic search
 
-#### Migrations vs Policies
+#### Migrations
 
 **Migrations** (`src/infrastructure/database/migrations/`):
 
@@ -110,60 +110,58 @@ Supabase (Postgres + PostGIS + pgvector). The `places` table has:
 - Run once via `npm run db:migrate` — tracked in `_migrations` table
 - Immutable — never edit a migration that was already applied
 
-**Policies** (`src/infrastructure/database/policies/`):
-
-- Idempotent SQL files: `places.sql`, `reviews.sql`, `storage.sql`
-- Define RLS (Row-Level Security) policies for each resource
-- Can be edited and re-applied anytime via `npm run db:policies`
-- Use `DROP POLICY IF EXISTS` before `CREATE POLICY` for idempotency
-- **Never create migrations for policy changes** — edit the policy file directly
-
-Example workflow:
+Example:
 
 ```bash
-# Add a new column (migration)
-# Create: src/infrastructure/database/migrations/20260503120000_add_verified_column.sql
+# Create new migration
+# src/infrastructure/database/migrations/20260503120000_add_verified_column.sql
 npm run db:migrate
-
-# Update who can read places (policy)
-# Edit: src/infrastructure/database/policies/places.sql
-npm run db:policies
 ```
 
-Why separate? Policies change frequently as features evolve. Migrations are append-only and track structural changes.
+#### Security Model: Code-Only Validation
 
-#### RLS Philosophy: Authentication Only, Business Logic in Code
+**RLS is DISABLED.** All authentication and authorization logic lives in the application layer.
 
-**Core Principle**: Database policies ONLY prevent anonymous access. ALL business logic (ownership, permissions, status filtering) lives in application code (Use Cases and API routes).
+**Why no RLS?**
 
-**Why?**
+- RLS adds complexity without practical benefits for this architecture
+- JWT context propagation is unreliable in Next.js SSR
+- RLS policies conflict with service_role admin client
+- Clean Architecture already validates everything in Use Cases
+- Testable, maintainable, and debuggable in TypeScript
 
-- RLS with `auth.uid()` is unreliable in SSR contexts — JWT context doesn't always propagate correctly from Next.js to Postgres
-- RLS with `auth.role() = 'authenticated'` blocks admin client (service_role), causing "Cannot coerce to single JSON object" errors
-- Business logic belongs in the application layer (Clean Architecture)
-- Makes code testable and maintainable without database coupling
+**Security Pattern** (3-step validation in API routes):
 
-**RLS Pattern** (applies to all tables):
+```typescript
+export async function POST(req: NextRequest) {
+  // 1. Validate authentication
+  const supabase = await createRouteSupabaseClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) throw new UnauthorizedError();
 
-```sql
--- ✅ CORRECT: Allow any authenticated operation (including service_role)
-CREATE POLICY "table_operation_allow"
-  ON table_name FOR OPERATION
-  USING (true)
-  WITH CHECK (true);
+  // 2. Use admin client for DB operations
+  const adminClient = createAdminClient();
+  const repository = new SupabaseRepository(adminClient);
 
--- ❌ WRONG: Blocks service_role admin client
-CREATE POLICY "table_update_auth"
-  ON table_name FOR UPDATE
-  USING (auth.role() = 'authenticated');  -- NO! Blocks admin client
+  // 3. Validate business logic in Use Case or route
+  const place = await repository.findById(id);
+  if (place.createdBy !== user.id) throw new UnauthorizedError();
 
--- ❌ WRONG: Unreliable JWT context in SSR
+  // Safe to proceed
+  const result = await useCase.execute({ userId: user.id, ...data });
+  return NextResponse.json(result);
+}
+```
 CREATE POLICY "table_update_own"
   ON table_name FOR UPDATE
   USING (auth.uid() = created_by);  -- NO! JWT doesn't propagate correctly
 ```
 
 **Why `USING (true)`?**
+
 - RLS is still enabled (blocks anonymous access at the table level)
 - Policies with `USING (true)` allow authenticated clients (anon key, service_role key)
 - Anonymous access is still blocked by middleware and API route auth checks
@@ -219,13 +217,6 @@ export class CreatePlace {
   }
 }
 ```
-
-**Security Model**:
-
-1. **RLS**: Prevents anonymous access (basic auth check only)
-2. **API Route**: Validates JWT, extracts `user.id`
-3. **Use Case**: Validates ownership, permissions, business rules
-4. **Admin Client**: Bypasses RLS after validation (safe because steps 2-3 validated everything)
 
 This pattern is **mandatory** for all authenticated write operations (POST/PATCH/DELETE).
 
