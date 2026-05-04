@@ -60,7 +60,11 @@ function SalvasTab() {
   if (!lists.length) {
     return (
       <div className="px-(--spacing-page-x) py-4">
-        <EmptyState icon="🔖" title="Nenhuma lista salva" description="Explore listas e salve as que gostar." />
+        <EmptyState
+          icon="🔖"
+          title="Nenhuma lista salva"
+          description="Explore listas e salve as que gostar."
+        />
       </div>
     );
   }

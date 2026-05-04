@@ -2,6 +2,7 @@ import type {
   IMapProvider,
   GeocodingResult,
   ReverseGeocodingResult,
+  AutocompleteResult,
   StaticMapOptions,
 } from '@/domain/interfaces/IMapProvider';
 
@@ -74,6 +75,44 @@ export class LocationIQMapProvider implements IMapProvider {
         state: data.address?.state,
       },
     };
+  }
+
+  async autocomplete(query: string): Promise<AutocompleteResult[]> {
+    const url = new URL(`${BASE_URL}/autocomplete`);
+    url.searchParams.set('key', this.apiKey);
+    url.searchParams.set('q', query);
+    url.searchParams.set('format', 'json');
+    url.searchParams.set('limit', '5');
+    url.searchParams.set('countrycodes', 'br');
+    url.searchParams.set('normalizecity', '1');
+    url.searchParams.set('addressdetails', '1');
+
+    const res = await fetch(url.toString());
+    if (!res.ok) return [];
+
+    const data = (await res.json()) as Array<{
+      lat: string;
+      lon: string;
+      display_name: string;
+      display_place?: string;
+      display_address?: string;
+      address?: Record<string, string>;
+    }>;
+
+    return data.map((item) => ({
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon),
+      displayName: item.display_name,
+      displayPlace: item.display_place ?? item.display_name,
+      displayAddress: item.display_address ?? '',
+      address: {
+        road: item.address?.road ?? item.address?.pedestrian ?? item.address?.street,
+        houseNumber: item.address?.house_number,
+        neighbourhood: item.address?.neighbourhood ?? item.address?.suburb,
+        city: item.address?.city ?? item.address?.town ?? item.address?.municipality,
+        state: item.address?.state,
+      },
+    }));
   }
 
   getStaticMapUrl({ lat, lng, zoom = 15, width = 600, height = 300 }: StaticMapOptions): string {

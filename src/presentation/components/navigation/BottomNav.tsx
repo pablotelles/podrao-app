@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation';
 import { Compass, PlusCircle, List, UserCircle } from 'lucide-react';
 
 const TABS = [
-  { href: '/',        label: 'Explorar',  Icon: Compass },
+  { href: '/', label: 'Explorar', Icon: Compass },
   { href: '/add-place', label: 'Adicionar', Icon: PlusCircle, exact: true },
-  { href: '/lists',   label: 'Listas',    Icon: List },
-  { href: '/profile', label: 'Conta',     Icon: UserCircle },
+  { href: '/lists', label: 'Listas', Icon: List },
+  { href: '/profile', label: 'Conta', Icon: UserCircle },
 ];
 
 /** Páginas onde a nav não deve aparecer */
@@ -22,7 +22,11 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-stretch border-t border-border bg-bg safe-area-bottom">
       {TABS.map(({ href, label, Icon, exact }) => {
-        const active = exact ? pathname === href : (href === '/' ? pathname === '/' : pathname.startsWith(href));
+        const active = exact
+          ? pathname === href
+          : href === '/'
+            ? pathname === '/'
+            : pathname.startsWith(href);
         return (
           <Link
             key={href}
