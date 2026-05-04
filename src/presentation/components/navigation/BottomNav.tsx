@@ -17,7 +17,10 @@ const HIDDEN_ON = ['/login', '/add-place'];
 export function BottomNav() {
   const pathname = usePathname();
 
-  if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
+  // Ocultar nav em rotas específicas ou em qualquer rota que contenha /review
+  if (HIDDEN_ON.some((p) => pathname.startsWith(p)) || pathname.includes('/review')) {
+    return null;
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-stretch border-t border-border bg-bg safe-area-bottom">

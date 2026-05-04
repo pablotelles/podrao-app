@@ -5,7 +5,7 @@ import { mutate } from 'swr';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
 import { submitReviewInitialValues } from '@/presentation/lib/forms/review/initialValues';
-import { Button, Input, Textarea, ThumbToggle, ToggleGroup } from '@/presentation/components/ui';
+import { Button, Input, Textarea, StarRating, ToggleGroup } from '@/presentation/components/ui';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 
 interface ReviewFormProps {
@@ -28,7 +28,7 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
     defaultValues: submitReviewInitialValues,
   });
 
-  const thumbsUp = watch('thumbsUp');
+  const rating = watch('rating');
   const mealType = watch('mealType');
 
   async function onSubmit(data: SubmitReviewInput) {
@@ -57,22 +57,24 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div>
-        <p className="mb-2 text-sm font-medium text-text-primary">Sua avaliação</p>
-        <ThumbToggle
-          value={thumbsUp}
-          onChange={(v) => setValue('thumbsUp', v)}
-          error={errors.thumbsUp ? 'Selecione uma avaliação' : undefined}
+        <p className="mb-2 text-sm font-medium text-text-primary">Como foi sua experiência?</p>
+        <StarRating
+          value={rating ?? 0}
+          onChange={(v) => setValue('rating', v)}
+          size="lg"
+          error={errors.rating ? 'Selecione uma nota de 1 a 5' : undefined}
         />
       </div>
 
       <Input
-        label="Quanto você pagou? (R$)"
+        label="Quanto você gastou por pessoa? (R$)"
         type="number"
         step="0.01"
-        min="0"
+        min="0.01"
+        max="1999"
         placeholder="Ex: 32.50"
-        error={errors.amountPaid?.message}
-        {...register('amountPaid', { valueAsNumber: true })}
+        error={errors.amountPaidPerPerson?.message}
+        {...register('amountPaidPerPerson', { valueAsNumber: true })}
       />
 
       <div>

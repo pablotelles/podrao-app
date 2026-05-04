@@ -1,12 +1,15 @@
 import type { MealType } from '../value-objects/MealType';
+import type { ReviewScore } from './ReviewScore';
 
 export interface Review {
   id: string;
   placeId: string;
   userId: string;
-  thumbsUp: boolean;
-  amountPaid?: number;
-  mealType?: MealType;
+  rating: number; // 1-5
+  scores?: ReviewScore[];
+  photos?: string[]; // URLs
   comment?: string;
+  mealType?: MealType;
+  amountPaidPerPerson?: number;
   createdAt: Date;
 }

@@ -10,7 +10,7 @@ export { EmptyState } from './EmptyState';
 export { PageHeader } from './PageHeader';
 export { PageContent } from './PageContent';
 export { ToggleGroup } from './ToggleGroup';
-export { ThumbToggle } from './ThumbToggle';
+export { StarRating } from './StarRating';
 export { Toggle } from './Toggle';
 export { ProgressSteps } from './ProgressSteps';
 export { FullScreenDrawer } from './FullScreenDrawer';

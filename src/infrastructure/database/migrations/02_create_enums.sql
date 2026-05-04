@@ -1,6 +1,4 @@
--- Phase 1: create PostgreSQL ENUMs for constrained value sets.
--- Columns are NOT yet converted (that happens in Phase 5 / migration 008).
--- These ENUMs are used now by the new pivot tables (place_cuisines, place_meals).
+-- Migration 02: Create PostgreSQL ENUMs for type-safe value constraints
 
 CREATE TYPE establishment_type_enum AS ENUM (
   'restaurante',
@@ -15,8 +13,8 @@ CREATE TYPE establishment_type_enum AS ENUM (
   'outro'
 );
 
--- Values without accents to avoid driver/ORM encoding issues.
--- Display labels live in the TypeScript layer (PriceBucket.ts).
+-- Values without accents to avoid encoding issues
+-- Enum values are in ascending price order for comparison operators
 CREATE TYPE price_bucket_enum AS ENUM (
   'up_to_15',
   '15_25',
@@ -24,9 +22,6 @@ CREATE TYPE price_bucket_enum AS ENUM (
   '40_70',
   '70_plus'
 );
-
--- Declared in ascending price order so enum comparison operators work correctly:
--- 'up_to_15' < '15_25' < '25_40' < '40_70' < '70_plus'
 
 CREATE TYPE cuisine_type_enum AS ENUM (
   'brasileira',
@@ -52,8 +47,7 @@ CREATE TYPE cuisine_type_enum AS ENUM (
   'outras'
 );
 
--- Without accents for the same reason as above.
--- 'cafe' maps to 'café', 'almoco' to 'almoço' in the UI.
+-- Without accents: 'cafe' maps to 'café', 'almoco' to 'almoço' in UI
 CREATE TYPE meal_type_enum AS ENUM (
   'cafe',
   'almoco',

@@ -248,10 +248,10 @@ Route handlers do exactly three things: validate auth, call a use case, return J
 ```typescript
 // ✅ Correct — thin shell
 export async function POST(req: NextRequest) {
-  const user = await requireAuth();           // 1. auth
-  const dto = parseBody(req, schema);         // 1. validate input
-  const result = await useCase.execute(dto);  // 2. use case
-  return NextResponse.json(result);           // 3. return
+  const user = await requireAuth(); // 1. auth
+  const dto = parseBody(req, schema); // 1. validate input
+  const result = await useCase.execute(dto); // 2. use case
+  return NextResponse.json(result); // 3. return
 }
 
 // ❌ Wrong — business logic in route handler
@@ -294,10 +294,16 @@ Use cases receive the authenticated user's ID as a plain string in the DTO. They
 
 ```typescript
 // ✅ Correct — auth-agnostic DTO
-await submitReview.execute({ placeId, userId: user.id, thumbsUp, comment });
+await submitReview.execute({
+  placeId,
+  userId: user.id,
+  rating: 5,
+  comment,
+  amountPaidPerPerson: 45.0,
+});
 
 // ❌ Wrong — leaking auth context into use case
-await submitReview.execute({ placeId, session, thumbsUp, comment });
+await submitReview.execute({ placeId, session, rating, comment });
 ```
 
 **5. Client hooks fetch from `/api/*` paths only**

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { Badge, PageContent } from '@/presentation/components/ui';
@@ -41,6 +42,10 @@ export default async function PlaceDetailPage({ params }: Props) {
     ]);
 
     const isOwner = user?.id === place.createdBy;
+
+    // Verificar se o usuário já avaliou este lugar
+    const userReview = user ? reviews.find((r) => r.userId === user.id) : null;
+    const canReview = user && !userReview;
 
     return (
       <div>
@@ -119,7 +124,20 @@ export default async function PlaceDetailPage({ params }: Props) {
           )}
 
           <hr className="my-6 border-border" />
-          <h2 className="mb-4 text-base font-semibold text-text-primary">Avaliações</h2>
+
+          {/* Seção de Avaliações */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-text-primary">Avaliações</h2>
+            {canReview && (
+              <Link
+                href={`/places/${place.id}/review`}
+                className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition-transform hover:scale-105"
+              >
+                Escrever avaliação
+              </Link>
+            )}
+          </div>
+
           <ReviewList reviews={reviews} />
         </PageContent>
       </div>

@@ -318,18 +318,35 @@ CREATE INDEX idx_places_meal_types    ON places USING GIN(meal_types);
 
 ```sql
 CREATE TABLE reviews (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  place_id     UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
-  user_id      UUID NOT NULL REFERENCES auth.users(id),
-  thumbs_up    BOOLEAN NOT NULL,           -- true = 👍, false = 👎
-  amount_paid  NUMERIC(8, 2),              -- quanto pagou de verdade
-  meal_type    TEXT,                       -- o que comeu (almoço, lanche…)
-  comment      TEXT,
-  created_at   TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(place_id, user_id)                -- um review por usuário por lugar
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  place_id              UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  user_id               UUID NOT NULL REFERENCES auth.users(id),
+  rating                SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  amount_paid           NUMERIC(8, 2) CHECK (amount_paid IS NULL OR (amount_paid > 0 AND amount_paid < 2000)),
+  meal_type             TEXT,
+  comment               TEXT CHECK (comment IS NULL OR LENGTH(comment) <= 500),
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(place_id, user_id)
 );
 
 CREATE INDEX idx_reviews_place_id ON reviews(place_id);
+CREATE INDEX idx_reviews_rating ON reviews(rating);
+
+-- Scores por categoria (food, service, ambience, value, cleanliness)
+CREATE TABLE review_scores (
+  review_id UUID NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  category  TEXT NOT NULL CHECK (category IN ('food', 'service', 'ambience', 'value', 'cleanliness')),
+  score     SMALLINT NOT NULL CHECK (score BETWEEN 1 AND 5),
+  PRIMARY KEY (review_id, category)
+);
+
+-- Fotos enviadas pelo usuário na avaliação
+CREATE TABLE review_photos (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  review_id  UUID NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  url        TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 ```
 
 ### Trigger para atualizar rating e median_price
@@ -341,7 +358,7 @@ BEGIN
   UPDATE places
   SET
     rating        = (
-      SELECT ROUND(AVG(CASE WHEN thumbs_up THEN 1.0 ELSE 0.0 END) * 5, 2)
+      SELECT ROUND(AVG(rating::NUMERIC), 2)
       FROM reviews WHERE place_id = NEW.place_id
     ),
     reviews_count = (
