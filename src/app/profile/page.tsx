@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Star, LogOut, Pencil, UserCircle } from 'lucide-react';
 import { FullScreenDrawer } from '@/presentation/components/ui';
 import { EditProfileForm } from '@/presentation/components/profile/EditProfileForm';
+import { UserListsSection } from '@/presentation/components/lists/UserListsSection';
+import { UserFavoritesSection } from '@/presentation/components/favorites/UserFavoritesSection';
 import type { User } from '@/domain/entities/User';
 
 export default function ProfilePage() {
-  const router  = useRouter();
-  const [user, setUser]       = useState<User | null>(null);
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
 
@@ -17,7 +19,10 @@ export default function ProfilePage() {
     fetch('/api/me')
       .then((r) => (r.ok ? r.json() : null))
       .then((data: User | null) => {
-        if (!data) { router.replace('/login'); return; }
+        if (!data) {
+          router.replace('/login');
+          return;
+        }
         setUser(data);
       })
       .finally(() => setLoading(false));
@@ -29,8 +34,13 @@ export default function ProfilePage() {
   }
 
   const initials = user?.name
-    ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-    : user?.nickname?.slice(0, 2).toUpperCase() ?? '??';
+    ? user.name
+        .split(' ')
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : (user?.nickname?.slice(0, 2).toUpperCase() ?? '??');
 
   return (
     <main className="flex h-dvh flex-col bg-bg-subtle pb-16">
@@ -58,9 +68,11 @@ export default function ProfilePage() {
           <div className="bg-bg px-(--spacing-page-x) pb-6 pt-8 flex flex-col items-center text-center border-b border-border">
             {/* Avatar */}
             <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-brand text-text-inverse text-3xl font-bold shadow-(--shadow-card) overflow-hidden">
-              {user?.avatarUrl
-                ? <img src={user.avatarUrl} alt="avatar" className="h-full w-full object-cover" />
-                : initials}
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="avatar" className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
 
             {/* Nome e nickname */}
@@ -86,7 +98,7 @@ export default function ProfilePage() {
             {/* Stats */}
             <div className="mt-5 flex gap-8">
               <StatPill icon={<MapPin size={14} />} value="0" label="lugares" />
-              <StatPill icon={<Star size={14} />}   value="0" label="avaliações" />
+              <StatPill icon={<Star size={14} />} value="0" label="avaliações" />
             </div>
           </div>
 
@@ -97,8 +109,18 @@ export default function ProfilePage() {
               <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-text-disabled">
                 Conta
               </p>
-              <InfoRow icon={<UserCircle size={16} className="text-text-secondary" />} label="Email" value={user?.email ?? ''} />
+              <InfoRow
+                icon={<UserCircle size={16} className="text-text-secondary" />}
+                label="Email"
+                value={user?.email ?? ''}
+              />
             </div>
+
+            {/* Listas */}
+            <UserListsSection />
+
+            {/* Favoritos */}
+            <UserFavoritesSection />
 
             {/* Ações */}
             <div className="rounded-xl bg-bg border border-border shadow-(--shadow-card) overflow-hidden">
@@ -117,15 +139,14 @@ export default function ProfilePage() {
       )}
 
       {/* Drawer de edição */}
-      <FullScreenDrawer
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        title="Editar perfil"
-      >
+      <FullScreenDrawer open={editOpen} onClose={() => setEditOpen(false)} title="Editar perfil">
         {user && (
           <EditProfileForm
             user={user}
-            onSaved={(updated) => { setUser(updated); setEditOpen(false); }}
+            onSaved={(updated) => {
+              setUser(updated);
+              setEditOpen(false);
+            }}
             onCancel={() => setEditOpen(false)}
           />
         )}
