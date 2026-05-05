@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, MoreHorizontal, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, Share2, MoreHorizontal, Pencil, Trash2, ArrowUpDown, Map } from 'lucide-react';
 import { OverlayIconButton } from '@/presentation/components/ui/OverlayIconButton';
 import { ActionSheet } from '@/presentation/components/ui/ActionSheet';
+import { PlacesMapDrawer } from '@/presentation/components/ui/PlacesMapDrawer';
 import { ReorderPlacesDrawer } from './ReorderPlacesDrawer';
 import { useLists } from '@/presentation/hooks/useLists';
 import type { Place } from '@/domain/entities/Place';
@@ -23,6 +24,7 @@ export function ListDetailHeader({ coverUrl, name, listId, isOwner, places }: Li
   const { deleteList } = useLists();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [reorderOpen, setReorderOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -65,6 +67,11 @@ export function ListDetailHeader({ coverUrl, name, listId, isOwner, places }: Li
       label: 'Compartilhar lista',
       onClick: handleShare,
     },
+    {
+      icon: <Map className="h-5 w-5" />,
+      label: 'Ver no mapa',
+      onClick: () => setMapOpen(true),
+    },
     ...ownerActions,
   ];
 
@@ -104,6 +111,13 @@ export function ListDetailHeader({ coverUrl, name, listId, isOwner, places }: Li
         onClose={() => setReorderOpen(false)}
         listId={listId}
         initialPlaces={places}
+      />
+
+      <PlacesMapDrawer
+        open={mapOpen}
+        onClose={() => setMapOpen(false)}
+        places={places}
+        title={name}
       />
     </>
   );
