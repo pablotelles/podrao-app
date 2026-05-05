@@ -36,6 +36,43 @@ interface PlaceRow {
   distance_m?: number;
 }
 
+// Shape returned by .from('places').select(`*, place_stats(...), ...`) with joined relations.
+interface PlaceRowWithRelations {
+  id: string;
+  name: string;
+  address: string;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string;
+  estado: string;
+  lat: number | string;
+  lng: number | string;
+  establishment_type: string;
+  price_bucket: string;
+  status: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  place_stats:
+    | { rating: number; reviews_count: number; median_price: number | null }[]
+    | { rating: number; reviews_count: number; median_price: number | null }
+    | null;
+  place_cuisines: { cuisine_type: string }[] | null;
+  place_meals: { meal_type: string }[] | null;
+  place_photos: { url: string; type: string; position: number }[] | null;
+}
+
+interface PlacePhotoRow {
+  id: string;
+  place_id: string;
+  url: string;
+  type: string;
+  position: number;
+  uploaded_by: string | null;
+  uploaded_at: string;
+}
+
 function toDomain(row: PlaceRow): Place {
   return {
     id: row.id,
@@ -84,7 +121,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     if (error || !data) return null;
 
-    const row = data as any;
+    const row = data as PlaceRowWithRelations;
 
     // Supabase may return a 1:1 relation as an object or single-element array.
     const stats: { rating: number; reviews_count: number; median_price: number | null } | null =
@@ -293,7 +330,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     if (error) throw new Error(error.message);
 
-    return (data ?? []).map((row: any) => ({
+    return (data ?? []).map((row: PlacePhotoRow) => ({
       id: row.id,
       placeId: row.place_id,
       url: row.url,
@@ -331,7 +368,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
   // ─── helpers ──────────────────────────────────────────────────────────────
 
-  private rowWithRelationsToDomain(row: any): Place {
+  private rowWithRelationsToDomain(row: PlaceRowWithRelations): Place {
     const stats: { rating: number; reviews_count: number; median_price: number | null } | null =
       Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
     const cuisineTypes =
@@ -407,10 +444,10 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     if (error) throw new Error(error.message);
     // Preserve favorite ordering
-    const map = new Map((data ?? []).map((r: any) => [r.id, r]));
+    const map = new Map(((data ?? []) as PlaceRowWithRelations[]).map((r) => [r.id, r]));
     return ids
       .map((id) => map.get(id))
-      .filter(Boolean)
+      .filter((r): r is PlaceRowWithRelations => r !== undefined)
       .map((r) => this.rowWithRelationsToDomain(r));
   }
 }

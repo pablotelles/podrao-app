@@ -3,11 +3,8 @@
 import { useRef, useState } from 'react';
 import { Camera } from 'lucide-react';
 import { UserAvatar } from './UserAvatar';
-import type { VariantProps } from 'class-variance-authority';
 
-const avatarVariants = {} as any; // Apenas para tipagem
-
-interface EditableAvatarProps extends VariantProps<typeof avatarVariants> {
+interface EditableAvatarProps {
   src?: string;
   alt: string;
   fallback: string;
