@@ -7,11 +7,24 @@ import { ValidationError } from '@/application/errors/ValidationError';
 import { ConflictError } from '@/application/errors/ConflictError';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_KEY = (
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-)!;
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+
+  return value;
+}
+
+function getRouteSupabaseConfig() {
+  return {
+    url: requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
+    key:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+  };
+}
 
 export function errorResponse(err: unknown): NextResponse {
   if (err instanceof ValidationError)
@@ -29,7 +42,9 @@ export function errorResponse(err: unknown): NextResponse {
 
 export async function createRouteSupabaseClient() {
   const cookieStore = await cookies();
-  return createServerClient(SUPABASE_URL, SUPABASE_KEY, {
+  const { url, key } = getRouteSupabaseConfig();
+
+  return createServerClient(url, key, {
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (list) => {

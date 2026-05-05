@@ -42,58 +42,92 @@ import { GetSavedLists } from '@/application/use-cases/lists/GetSavedLists';
 import { ReorderListPlaces } from '@/application/use-cases/lists/ReorderListPlaces';
 import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
 
+function lazySingleton<T extends object>(factory: () => T): T {
+  let instance: T | undefined;
+
+  return new Proxy({} as T, {
+    get(_target, prop) {
+      if (!instance) {
+        instance = factory();
+      }
+
+      const value = Reflect.get(instance, prop);
+      return typeof value === 'function' ? value.bind(instance) : value;
+    },
+  });
+}
+
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+
+  return value;
+}
+
 // --- Infra ---
-const placeRepository = new SupabasePlaceRepository();
-const reviewRepository = new SupabaseReviewRepository();
-const favoriteRepository = new SupabaseFavoriteRepository();
-const listRepository = new SupabaseListRepository();
-export const cacheProvider: ICacheProvider =
+const placeRepository = lazySingleton(() => new SupabasePlaceRepository());
+const reviewRepository = lazySingleton(() => new SupabaseReviewRepository());
+const favoriteRepository = lazySingleton(() => new SupabaseFavoriteRepository());
+const listRepository = lazySingleton(() => new SupabaseListRepository());
+export const cacheProvider: ICacheProvider = lazySingleton(() =>
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
     ? new UpstashCacheProvider()
-    : new NullCacheProvider();
-const storageProvider = new SupabaseStorageProvider();
-const mapProvider = new LocationIQMapProvider(process.env.LOCATIONIQ_API_KEY!);
+    : new NullCacheProvider(),
+);
+const storageProvider = lazySingleton(() => new SupabaseStorageProvider());
+const mapProvider = lazySingleton(() => new LocationIQMapProvider(requireEnv('LOCATIONIQ_API_KEY')));
 // Embedding desativado no MVP — ativa quando OPENAI_API_KEY estiver configurada
-const embeddingProvider: IEmbeddingProvider = process.env.OPENAI_API_KEY
-  ? new OpenAIEmbeddingProvider(process.env.OPENAI_API_KEY)
-  : new NullEmbeddingProvider();
+const embeddingProvider: IEmbeddingProvider = lazySingleton(() =>
+  process.env.OPENAI_API_KEY
+    ? new OpenAIEmbeddingProvider(process.env.OPENAI_API_KEY)
+    : new NullEmbeddingProvider(),
+);
 
 // --- Use Cases ---
-export const searchNearbyPlaces = new SearchNearbyPlaces(placeRepository, cacheProvider);
-export const createPlace = new CreatePlace(placeRepository, cacheProvider);
-export const getPlaceById = new GetPlaceById(placeRepository);
-export const approvePlace = new ApprovePlace(placeRepository, cacheProvider);
-export const getMyPlaces = new GetMyPlaces(placeRepository);
-export const getFavoritePlaces = new GetFavoritePlaces(placeRepository);
-export const generatePlaceEmbedding = new GeneratePlaceEmbedding(
-  placeRepository,
-  embeddingProvider,
+export const searchNearbyPlaces = lazySingleton(
+  () => new SearchNearbyPlaces(placeRepository, cacheProvider),
 );
-export const submitReview = new SubmitReview(reviewRepository, placeRepository);
-export const getPlaceReviews = new GetPlaceReviews(reviewRepository, placeRepository);
+export const createPlace = lazySingleton(() => new CreatePlace(placeRepository, cacheProvider));
+export const getPlaceById = lazySingleton(() => new GetPlaceById(placeRepository));
+export const approvePlace = lazySingleton(() => new ApprovePlace(placeRepository, cacheProvider));
+export const getMyPlaces = lazySingleton(() => new GetMyPlaces(placeRepository));
+export const getFavoritePlaces = lazySingleton(() => new GetFavoritePlaces(placeRepository));
+export const generatePlaceEmbedding = lazySingleton(
+  () => new GeneratePlaceEmbedding(placeRepository, embeddingProvider),
+);
+export const submitReview = lazySingleton(
+  () => new SubmitReview(reviewRepository, placeRepository),
+);
+export const getPlaceReviews = lazySingleton(
+  () => new GetPlaceReviews(reviewRepository, placeRepository),
+);
 
 // Favorites
-export const toggleFavorite = new ToggleFavorite(favoriteRepository);
-export const getUserFavorites = new GetUserFavorites(favoriteRepository);
+export const toggleFavorite = lazySingleton(() => new ToggleFavorite(favoriteRepository));
+export const getUserFavorites = lazySingleton(() => new GetUserFavorites(favoriteRepository));
 
 // Lists
-export const createList = new CreateList(listRepository);
-export const deleteList = new DeleteList(listRepository);
-export const getUserLists = new GetUserLists(listRepository);
-export const getListById = new GetListById(listRepository);
-export const addPlaceToList = new AddPlaceToList(listRepository);
-export const removePlaceFromList = new RemovePlaceFromList(listRepository);
-export const updateList = new UpdateList(listRepository);
-export const getListPlaces = new GetListPlaces(listRepository);
-export const incrementListView = new IncrementListView(listRepository);
-export const toggleListFavorite = new ToggleListFavorite(listRepository);
-export const toggleListSave = new ToggleListSave(listRepository);
-export const getPublicLists = new GetPublicLists(listRepository);
-export const getSavedLists = new GetSavedLists(listRepository);
-export const reorderListPlaces = new ReorderListPlaces(listRepository);
+export const createList = lazySingleton(() => new CreateList(listRepository));
+export const deleteList = lazySingleton(() => new DeleteList(listRepository));
+export const getUserLists = lazySingleton(() => new GetUserLists(listRepository));
+export const getListById = lazySingleton(() => new GetListById(listRepository));
+export const addPlaceToList = lazySingleton(() => new AddPlaceToList(listRepository));
+export const removePlaceFromList = lazySingleton(() => new RemovePlaceFromList(listRepository));
+export const updateList = lazySingleton(() => new UpdateList(listRepository));
+export const getListPlaces = lazySingleton(() => new GetListPlaces(listRepository));
+export const incrementListView = lazySingleton(() => new IncrementListView(listRepository));
+export const toggleListFavorite = lazySingleton(() => new ToggleListFavorite(listRepository));
+export const toggleListSave = lazySingleton(() => new ToggleListSave(listRepository));
+export const getPublicLists = lazySingleton(() => new GetPublicLists(listRepository));
+export const getSavedLists = lazySingleton(() => new GetSavedLists(listRepository));
+export const reorderListPlaces = lazySingleton(() => new ReorderListPlaces(listRepository));
 
 // User stats
-export const getUserStats = new GetUserStats(placeRepository, reviewRepository, favoriteRepository);
+export const getUserStats = lazySingleton(
+  () => new GetUserStats(placeRepository, reviewRepository, favoriteRepository),
+);
 
 // --- Providers exportados para uso direto em routes ---
 // Nota: UserRepository agora é instanciado com cliente autenticado em cada route
