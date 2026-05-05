@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, Lock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Share2, BookmarkPlus, Heart, Globe, Lock } from 'lucide-react';
 import { useDistance } from '@/presentation/hooks/useDistance';
 import { useFavorites } from '@/presentation/hooks/useFavorites';
 import { useLists } from '@/presentation/hooks/useLists';
 import { DynamicPlaceDetailMap } from '@/presentation/components/maps/dynamic';
 import { Sheet } from '@/presentation/components/ui/Sheet';
+import { OverlayIconButton } from '@/presentation/components/ui/OverlayIconButton';
 
 interface PlaceDetailHeaderProps {
   lat: number;
@@ -16,6 +18,7 @@ interface PlaceDetailHeaderProps {
 }
 
 export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeaderProps) {
+  const router = useRouter();
   const { distanceText, hasUserLocation } = useDistance(lat, lng);
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   const { isFavorited, toggle: toggleFavorite, isLoading: isFavLoading } = useFavorites();
@@ -94,6 +97,11 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
       <div className="relative h-[150px] w-full overflow-hidden">
         <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
 
+        {/* Botão voltar */}
+        <div className="absolute left-3 top-3 z-900">
+          <OverlayIconButton icon={ArrowLeft} onClick={() => router.back()} aria-label="Voltar" />
+        </div>
+
         {/* Distância - canto inferior esquerdo */}
         {hasUserLocation && (
           <div className="absolute bottom-4 left-3 z-900 rounded-lg bg-white px-3 py-2 shadow-md">
@@ -117,74 +125,28 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
           </div>
         )}
 
-        {/* Ícones de ações - topo direito */}
+        {/* Ações - topo direito */}
         <div className="absolute right-3 top-3 z-900 flex gap-2">
-          {/* Compartilhar */}
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-transform hover:scale-105"
-            aria-label="Compartilhar"
-          >
-            <svg
-              className="h-5 w-5 text-text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-              />
-            </svg>
-          </button>
+          <OverlayIconButton icon={Share2} variant="dark" aria-label="Compartilhar" />
 
-          {/* Adicionar a lista */}
-          <button
-            type="button"
+          <OverlayIconButton
+            icon={BookmarkPlus}
+            variant="dark"
             onClick={handleOpenListSheet}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-transform hover:scale-105"
             aria-label="Adicionar a lista"
-          >
-            <svg
-              className="h-5 w-5 text-text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </button>
+          />
 
-          {/* Favoritar */}
-          <button
-            type="button"
+          <OverlayIconButton
+            icon={Heart}
+            iconProps={{
+              fill: favorited ? '#ef4444' : 'none',
+              stroke: favorited ? '#ef4444' : 'currentColor',
+            }}
+            variant="dark"
             onClick={handleToggleFavorite}
             disabled={isFavLoading || isToggling}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-transform hover:scale-105 disabled:opacity-50"
             aria-label={favorited ? 'Desfavoritar' : 'Favoritar'}
-          >
-            <svg
-              className="h-5 w-5"
-              fill={favorited ? 'currentColor' : 'none'}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              style={{ color: favorited ? '#ef4444' : 'currentColor' }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
+          />
         </div>
 
         {/* Botão "Como chegar" - parte inferior direita */}

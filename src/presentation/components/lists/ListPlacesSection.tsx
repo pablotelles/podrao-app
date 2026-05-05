@@ -56,7 +56,13 @@ export function ListPlacesSection({ places, isOwner, listId }: ListPlacesSection
         ) : (
           <div className="divide-y divide-border px-3">
             {places.map((place, i) => (
-              <ListPlaceCard key={place.id} place={place} position={i + 1} />
+              <ListPlaceCard
+                key={place.id}
+                place={place}
+                position={i + 1}
+                listId={listId}
+                isOwner={isOwner}
+              />
             ))}
           </div>
         )}

@@ -1,12 +1,19 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MoreVertical, MapPin, ThumbsUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { MoreVertical, MapPin, ThumbsUp, ExternalLink, Map, Trash2 } from 'lucide-react';
 import type { Place } from '@/domain/entities/Place';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
+import { ActionSheet } from '@/presentation/components/ui/ActionSheet';
 
 interface ListPlaceCardProps {
   place: Place;
   position?: number;
+  listId: string;
+  isOwner: boolean;
 }
 
 function formatDistance(m?: number): string | null {
@@ -15,57 +22,135 @@ function formatDistance(m?: number): string | null {
   return `${(m / 1000).toFixed(1)} km`;
 }
 
-export function ListPlaceCard({ place, position }: ListPlaceCardProps) {
+function PlaceSheetHeader({ place }: { place: Place }) {
+  const distance = formatDistance(place.distanceM);
+  const meta = [PRICE_BUCKET_LABELS[place.priceBucket], distance].filter(Boolean).join(' · ');
+  const subtitle = [place.establishmentType, place.bairro].filter(Boolean).join(' · ');
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-bg-subtle">
+        {place.logoUrl ? (
+          <Image src={place.logoUrl} alt={place.name} fill className="object-cover" sizes="56px" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <MapPin className="h-5 w-5 text-text-secondary" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate font-semibold text-text-primary leading-tight">{place.name}</p>
+        {subtitle && <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>}
+        {meta && <p className="mt-0.5 truncate text-xs text-text-secondary">{meta}</p>}
+      </div>
+    </div>
+  );
+}
+
+export function ListPlaceCard({ place, position, listId, isOwner }: ListPlaceCardProps) {
+  const router = useRouter();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
   const distance = formatDistance(place.distanceM);
   const meta = [PRICE_BUCKET_LABELS[place.priceBucket], place.mealTypes[0], distance]
     .filter(Boolean)
     .join(' · ');
-
   const subtitle = [place.establishmentType, place.bairro].filter(Boolean).join(' · ');
-
   const recommendPct = place.reviewsCount > 0 ? Math.round(place.rating * 20) : null;
 
+  const handleRemove = async () => {
+    setRemoving(true);
+    try {
+      const res = await fetch(`/api/lists/${listId}/places/${place.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Erro ao remover lugar');
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  const actions = [
+    {
+      icon: <ExternalLink className="h-5 w-5" />,
+      label: 'Ver detalhes do lugar',
+      onClick: () => router.push(`/places/${place.id}`),
+    },
+    {
+      icon: <Map className="h-5 w-5" />,
+      label: 'Ver no mapa',
+      onClick: () => {
+        window.open(
+          `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`,
+          '_blank',
+        );
+      },
+    },
+    ...(isOwner
+      ? [
+          {
+            icon: <Trash2 className="h-5 w-5" />,
+            label: removing ? 'Removendo...' : 'Remover da lista',
+            onClick: handleRemove,
+            variant: 'danger' as const,
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="flex items-center gap-3 py-3">
-      {/* Thumbnail com badge numerado */}
-      <Link href={`/places/${place.id}`} className="relative h-16 w-16 shrink-0">
-        <div className="h-full w-full overflow-hidden rounded-xl bg-bg-subtle">
-          {place.logoUrl ? (
-            <Image
-              src={place.logoUrl}
-              alt={place.name}
-              fill
-              className="object-cover"
-              sizes="64px"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <MapPin className="h-6 w-6 text-text-secondary" />
+    <>
+      <div className="flex items-center gap-3 py-3">
+        {/* Thumbnail */}
+        <Link href={`/places/${place.id}`} className="relative h-16 w-16 shrink-0">
+          <div className="h-full w-full overflow-hidden rounded-xl bg-bg-subtle">
+            {place.logoUrl ? (
+              <Image
+                src={place.logoUrl}
+                alt={place.name}
+                fill
+                className="object-cover"
+                sizes="64px"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <MapPin className="h-6 w-6 text-text-secondary" />
+              </div>
+            )}
+          </div>
+        </Link>
+
+        {/* Info */}
+        <Link href={`/places/${place.id}`} className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-text-primary leading-tight">{place.name}</p>
+          {subtitle && <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>}
+          {meta && <p className="mt-0.5 truncate text-xs text-text-secondary">{meta}</p>}
+          {recommendPct != null && (
+            <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
+              <ThumbsUp className="h-3 w-3" />
+              <span>{recommendPct}% recomendam</span>
             </div>
           )}
-        </div>
-      </Link>
+        </Link>
 
-      {/* Info */}
-      <Link href={`/places/${place.id}`} className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-text-primary leading-tight">{place.name}</p>
-        {subtitle && <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>}
-        {meta && <p className="mt-0.5 truncate text-xs text-text-secondary">{meta}</p>}
-        {recommendPct != null && (
-          <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
-            <ThumbsUp className="h-3 w-3" />
-            <span>{recommendPct}% recomendam</span>
-          </div>
-        )}
-      </Link>
+        {/* Mais opções */}
+        <button
+          onClick={() => setSheetOpen(true)}
+          className="shrink-0 rounded-lg p-1 text-text-secondary transition-colors hover:bg-bg-subtle"
+          aria-label="Mais opções"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </button>
+      </div>
 
-      {/* Mais opções */}
-      <button
-        className="shrink-0 rounded-lg p-1 text-text-secondary transition-colors hover:bg-bg-subtle"
-        aria-label="Mais opções"
-      >
-        <MoreVertical className="h-4 w-4" />
-      </button>
-    </div>
+      <ActionSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        header={<PlaceSheetHeader place={place} />}
+        actions={actions}
+      />
+    </>
   );
 }
