@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { LocationProvider } from '@/presentation/contexts/LocationContext';
 import { BottomNav } from '@/presentation/components/navigation/BottomNav';
+import { InstallPWA } from '@/presentation/components/navigation/InstallPWA';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh antialiased" suppressHydrationWarning>
         <LocationProvider>
           {children}
+          <InstallPWA />
           <BottomNav />
         </LocationProvider>
       </body>
