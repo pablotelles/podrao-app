@@ -145,6 +145,22 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     return (data as PlaceRow[]).map(toDomain);
   }
 
+  async searchByName(query: string, limit = 20): Promise<Place[]> {
+    const { data, error } = await this.db
+      .from('places')
+      .select(
+        `*, place_stats(rating, reviews_count, median_price),
+         place_cuisines(cuisine_type), place_meals(meal_type),
+         place_photos(url, type, position)`,
+      )
+      .ilike('name', `%${query}%`)
+      .eq('status', 'approved')
+      .limit(limit);
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => this.rowWithRelationsToDomain(row));
+  }
+
   async countByCreator(userId: string): Promise<number> {
     const { count, error } = await this.db
       .from('places')

@@ -38,9 +38,8 @@ export default async function ListDetailPage({ params }: Props) {
   // Busca lugares e estados do usuário em paralelo
   const listPlaces = await listRepo.getPlaces(id);
 
-  const [places, isFavorited, isSaved] = await Promise.all([
+  const [places, isSaved] = await Promise.all([
     Promise.all(listPlaces.map((lp) => placeRepo.findById(lp.placeId))),
-    user ? listRepo.isFavoritedByUser(user.id, id) : Promise.resolve(false),
     user ? listRepo.isSavedByUser(user.id, id) : Promise.resolve(false),
   ]);
 
@@ -101,15 +100,13 @@ export default async function ListDetailPage({ params }: Props) {
           listId={id}
           placesCount={validPlaces.length}
           viewCount={list.viewCount}
-          initialFavoritesCount={list.favoritesCount}
           initialSavesCount={list.savesCount}
-          initialFavorited={isFavorited}
           initialSaved={isSaved}
           isLoggedIn={!!user}
         />
 
         {/* Lista de lugares */}
-        <ListPlacesSection places={validPlaces} isOwner={isOwner} />
+        <ListPlacesSection places={validPlaces} isOwner={isOwner} listId={id} />
       </PageContent>
     </div>
   );

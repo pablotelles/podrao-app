@@ -1,14 +1,31 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SlidersHorizontal, Map, Plus, ChevronDown } from 'lucide-react';
 import type { Place } from '@/domain/entities/Place';
 import { Button } from '@/presentation/components/ui/Button';
 import { ListPlaceCard } from './ListPlaceCard';
+import { AddPlaceToListDrawer } from './AddPlaceToListDrawer';
 
 interface ListPlacesSectionProps {
   places: Place[];
   isOwner: boolean;
+  listId: string;
 }
 
-export function ListPlacesSection({ places, isOwner }: ListPlacesSectionProps) {
+export function ListPlacesSection({ places, isOwner, listId }: ListPlacesSectionProps) {
+  const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [addedIds, setAddedIds] = useState<Set<string>>(
+    () => new Set(places.map((p) => p.id)),
+  );
+
+  const handlePlaceAdded = (placeId: string) => {
+    setAddedIds((prev) => new Set(prev).add(placeId));
+    router.refresh();
+  };
+
   return (
     <div className="mt-6 flex flex-col gap-3">
       {/* Header: Ordenar + Ver no mapa */}
@@ -45,12 +62,28 @@ export function ListPlacesSection({ places, isOwner }: ListPlacesSectionProps) {
         )}
       </div>
 
-      {/* Botão separado da lista */}
+      {/* Botão Adicionar lugar (só dono) */}
       {isOwner && (
-        <Button variant="dashed" size="md" className="w-full">
+        <Button
+          variant="dashed"
+          size="md"
+          className="w-full"
+          onClick={() => setDrawerOpen(true)}
+        >
           <Plus className="h-4 w-4" />
           Adicionar lugar
         </Button>
+      )}
+
+      {/* Drawer de busca */}
+      {isOwner && (
+        <AddPlaceToListDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          listId={listId}
+          existingPlaceIds={addedIds}
+          onPlaceAdded={handlePlaceAdded}
+        />
       )}
     </div>
   );
