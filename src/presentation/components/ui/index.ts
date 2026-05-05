@@ -18,6 +18,7 @@ export { ProgressSteps } from './ProgressSteps';
 export { FullScreenDrawer } from './FullScreenDrawer';
 export { OverlayIconButton } from './OverlayIconButton';
 export { PlacesMapDrawer } from './PlacesMapDrawer';
+export { PlaceRating } from './PlaceRating';
 export { ExpandableText } from './ExpandableText';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';

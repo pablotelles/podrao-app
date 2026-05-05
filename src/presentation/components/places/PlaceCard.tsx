@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Place } from '@/domain/entities/Place';
-import { Card, Badge } from '@/presentation/components/ui';
+import { Card, Badge, PlaceRating } from '@/presentation/components/ui';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 import { useDistance } from '@/presentation/hooks/useDistance';
 
@@ -44,13 +44,7 @@ export function PlaceCard({ place }: PlaceCardProps) {
             ))}
           </div>
 
-          {place.reviewsCount > 0 && (
-            <div className="flex items-center gap-1 text-xs text-text-secondary">
-              <span className="text-warning">★</span>
-              <span>{place.rating.toFixed(1)}</span>
-              <span>({place.reviewsCount})</span>
-            </div>
-          )}
+          <PlaceRating rating={place.rating} reviewsCount={place.reviewsCount} />
         </div>
       </Card>
     </Link>

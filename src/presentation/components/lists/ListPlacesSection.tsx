@@ -80,11 +80,10 @@ export function ListPlacesSection({ places, isOwner, listId }: ListPlacesSection
           </p>
         ) : (
           <div className="divide-y divide-border px-3">
-            {sortedPlaces.map((place, i) => (
+            {sortedPlaces.map((place) => (
               <ListPlaceCard
                 key={place.id}
                 place={place}
-                position={i + 1}
                 listId={listId}
                 isOwner={isOwner}
               />

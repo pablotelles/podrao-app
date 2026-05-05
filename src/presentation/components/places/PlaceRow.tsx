@@ -11,6 +11,7 @@ import {
 } from '@/domain/value-objects/EstablishmentType';
 import { useDistance } from '@/presentation/hooks/useDistance';
 import { useFavorites } from '@/presentation/hooks/useFavorites';
+import { PlaceRating } from '@/presentation/components/ui';
 
 interface PlaceRowProps {
   place: Place;
@@ -23,7 +24,6 @@ export function PlaceRow({ place, rank, onMenuClick }: PlaceRowProps) {
   const { isFavorited, toggle } = useFavorites();
 
   const favorited = isFavorited(place.id);
-  const recommendPct = place.reviewsCount > 0 ? Math.round(place.rating * 20) : null;
 
   return (
     <div className="flex items-stretch gap-0 bg-bg rounded-xl border border-border overflow-hidden shadow-(--shadow-card)">
@@ -65,13 +65,7 @@ export function PlaceRow({ place, rank, onMenuClick }: PlaceRowProps) {
             .join('')}
           {hasUserLocation ? ` · ${distanceText}` : ''}
         </p>
-        {recommendPct !== null && (
-          <p className="mt-1 flex items-center gap-1 text-xs text-text-secondary">
-            <span>👍</span>
-            <span className="font-medium text-success">{recommendPct}%</span>
-            <span>recomendam</span>
-          </p>
-        )}
+        <PlaceRating rating={place.rating} reviewsCount={place.reviewsCount} />
       </Link>
 
       {/* Ações */}

@@ -1,6 +1,6 @@
 import type { Place } from '@/domain/entities/Place';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
-import { Button } from '@/presentation/components/ui';
+import { Button, PlaceRating } from '@/presentation/components/ui';
 
 interface PlaceMapPopupProps {
   place: Place;
@@ -21,12 +21,7 @@ export function PlaceMapPopup({ place, onViewMore, onClose }: PlaceMapPopupProps
             <span className="rounded-full border border-border px-2 py-0.5 text-xs font-medium text-brand">
               {PRICE_BUCKET_LABELS[place.priceBucket]}
             </span>
-            {place.reviewsCount > 0 && (
-              <span className="text-xs text-text-secondary">
-                <span className="text-warning">★</span> {place.rating.toFixed(1)}{' '}
-                <span className="text-text-disabled">({place.reviewsCount})</span>
-              </span>
-            )}
+            <PlaceRating rating={place.rating} reviewsCount={place.reviewsCount} />
           </div>
         </div>
         <button

@@ -4,14 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { MoreVertical, MapPin, ThumbsUp, ExternalLink, Map, Trash2 } from 'lucide-react';
+import { MoreVertical, MapPin, ExternalLink, Map, Trash2 } from 'lucide-react';
 import type { Place } from '@/domain/entities/Place';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 import { ActionSheet } from '@/presentation/components/ui/ActionSheet';
+import { PlaceRating } from '@/presentation/components/ui/PlaceRating';
 
 interface ListPlaceCardProps {
   place: Place;
-  position?: number;
   listId: string;
   isOwner: boolean;
 }
@@ -47,7 +47,7 @@ function PlaceSheetHeader({ place }: { place: Place }) {
   );
 }
 
-export function ListPlaceCard({ place, position, listId, isOwner }: ListPlaceCardProps) {
+export function ListPlaceCard({ place, listId, isOwner }: ListPlaceCardProps) {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -57,7 +57,6 @@ export function ListPlaceCard({ place, position, listId, isOwner }: ListPlaceCar
     .filter(Boolean)
     .join(' · ');
   const subtitle = [place.establishmentType, place.bairro].filter(Boolean).join(' · ');
-  const recommendPct = place.reviewsCount > 0 ? Math.round(place.rating * 20) : null;
 
   const handleRemove = async () => {
     setRemoving(true);
@@ -126,13 +125,10 @@ export function ListPlaceCard({ place, position, listId, isOwner }: ListPlaceCar
         <Link href={`/places/${place.id}`} className="min-w-0 flex-1">
           <p className="truncate font-semibold text-text-primary leading-tight">{place.name}</p>
           {subtitle && <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>}
-          {meta && <p className="mt-0.5 truncate text-xs text-text-secondary">{meta}</p>}
-          {recommendPct != null && (
-            <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
-              <ThumbsUp className="h-3 w-3" />
-              <span>{recommendPct}% recomendam</span>
-            </div>
-          )}
+          <div className="mt-0.5 flex items-center gap-1">
+            <PlaceRating rating={place.rating} reviewsCount={place.reviewsCount} showCount={false} />
+            {meta && <span className="truncate text-xs text-text-secondary">{place.reviewsCount > 0 ? `· ${meta}` : meta}</span>}
+          </div>
         </Link>
 
         {/* Mais opções */}

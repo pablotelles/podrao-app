@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { Badge, PageContent } from '@/presentation/components/ui';
+import { Star } from 'lucide-react';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
@@ -99,9 +100,9 @@ export default async function PlaceDetailPage({ params }: Props) {
                   place.establishmentType}
               </p>
               {place.reviewsCount > 0 && (
-                <p className="mt-1 text-xs text-text-secondary">
-                  <span className="text-warning">★</span> {place.rating.toFixed(1)} ·{' '}
-                  {place.reviewsCount} avaliações
+                <p className="mt-1 flex items-center gap-1 text-xs text-text-secondary">
+                  <Star className="h-3 w-3 fill-warning text-warning" />
+                  {place.rating.toFixed(1)} · {place.reviewsCount} avaliações
                   {place.medianPrice && ` · Mediana R$${place.medianPrice.toFixed(2)}`}
                 </p>
               )}
