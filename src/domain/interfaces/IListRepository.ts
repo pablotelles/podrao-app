@@ -26,6 +26,7 @@ export interface IListRepository {
   getPlaces(listId: string): Promise<ListPlace[]>;
   addPlace(listId: string, placeId: string, note?: string): Promise<ListPlace>;
   removePlace(listId: string, placeId: string): Promise<void>;
+  reorderPlaces(listId: string, orderedPlaceIds: string[]): Promise<void>;
   isOwner(listId: string, userId: string): Promise<boolean>;
 
   // Social interactions

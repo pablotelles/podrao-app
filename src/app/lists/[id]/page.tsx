@@ -63,7 +63,7 @@ export default async function ListDetailPage({ params }: Props) {
 
   return (
     <div>
-      <ListDetailHeader coverUrl={list.coverUrl} name={list.name} />
+      <ListDetailHeader coverUrl={list.coverUrl} name={list.name} listId={id} isOwner={isOwner} places={validPlaces} />
 
       <PageContent>
         {/* Título + botão editar (só dono) */}

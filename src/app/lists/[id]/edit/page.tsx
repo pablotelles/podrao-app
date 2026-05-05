@@ -47,7 +47,7 @@ export default function EditListPage() {
     }
   }, [list]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -64,7 +64,7 @@ export default function EditListPage() {
         isPublic,
         coverUrl,
       });
-      router.push('/profile');
+      router.replace(`/lists/${listId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao atualizar lista');
     } finally {
@@ -104,11 +104,11 @@ export default function EditListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg pb-24">
+    <div className="min-h-screen bg-bg pb-28">
       <PageHeader title="Editar lista" showBackButton sticky centered />
 
       <PageContent centered>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form id="edit-list-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Informações da lista */}
           <section className="space-y-4">
             <h2 className="text-base font-semibold text-text-primary">Informações da lista</h2>
@@ -185,6 +185,18 @@ export default function EditListPage() {
           </section>
         </form>
       </PageContent>
+
+      {/* Footer fixo com botão salvar */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg px-(--spacing-page-x) py-4 pb-safe" style={{ zIndex: 'var(--z-sticky)' }}>
+        <Button
+          type="submit"
+          form="edit-list-form"
+          className="w-full"
+          disabled={isSubmitting || !name.trim()}
+        >
+          {isSubmitting ? 'Salvando...' : 'Salvar'}
+        </Button>
+      </div>
     </div>
   );
 }

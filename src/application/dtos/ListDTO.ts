@@ -54,3 +54,9 @@ export interface ToggleListSaveDTO {
   userId: string;
   listId: string;
 }
+
+export interface ReorderListPlacesDTO {
+  userId: string;
+  listId: string;
+  orderedPlaceIds: string[];
+}

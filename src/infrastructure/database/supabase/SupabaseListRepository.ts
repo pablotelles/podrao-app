@@ -178,6 +178,18 @@ export class SupabaseListRepository implements IListRepository {
     return listPlaceToDomain(row as ListPlaceRow);
   }
 
+  async reorderPlaces(listId: string, orderedPlaceIds: string[]): Promise<void> {
+    await Promise.all(
+      orderedPlaceIds.map((placeId, index) =>
+        this.db
+          .from('list_places')
+          .update({ position: index })
+          .eq('list_id', listId)
+          .eq('place_id', placeId),
+      ),
+    );
+  }
+
   async removePlace(listId: string, placeId: string): Promise<void> {
     const { error } = await this.db
       .from('list_places')

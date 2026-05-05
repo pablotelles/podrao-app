@@ -12,15 +12,17 @@ const TABS = [
 ];
 
 /** Páginas onde a nav não deve aparecer */
-const HIDDEN_ON = ['/login', '/add-place', '/lists/new', '/lists/edit'];
+const HIDDEN_ON = ['/login', '/add-place', '/lists/new'];
 
 export function BottomNav() {
   const pathname = usePathname();
 
-  // Ocultar nav em rotas específicas ou em qualquer rota que contenha /review
-  if (HIDDEN_ON.some((p) => pathname.startsWith(p)) || pathname.includes('/review')) {
-    return null;
-  }
+  const isHidden =
+    HIDDEN_ON.some((p) => pathname.startsWith(p)) ||
+    pathname.includes('/review') ||
+    pathname.endsWith('/edit');
+
+  if (isHidden) return null;
 
   return (
     <nav

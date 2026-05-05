@@ -1,17 +1,28 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, Share2, MoreHorizontal, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
 import { OverlayIconButton } from '@/presentation/components/ui/OverlayIconButton';
+import { ActionSheet } from '@/presentation/components/ui/ActionSheet';
+import { ReorderPlacesDrawer } from './ReorderPlacesDrawer';
+import { useLists } from '@/presentation/hooks/useLists';
+import type { Place } from '@/domain/entities/Place';
 
 interface ListDetailHeaderProps {
   coverUrl?: string;
   name: string;
+  listId: string;
+  isOwner: boolean;
+  places: Place[];
 }
 
-export function ListDetailHeader({ coverUrl, name }: ListDetailHeaderProps) {
+export function ListDetailHeader({ coverUrl, name, listId, isOwner, places }: ListDetailHeaderProps) {
   const router = useRouter();
+  const { deleteList } = useLists();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [reorderOpen, setReorderOpen] = useState(false);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -21,24 +32,79 @@ export function ListDetailHeader({ coverUrl, name }: ListDetailHeaderProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm(`Excluir a lista "${name}"? Esta ação não pode ser desfeita.`)) return;
+    await deleteList(listId);
+    router.replace('/lists');
+  };
+
+  const ownerActions = isOwner
+    ? [
+        {
+          icon: <Pencil className="h-5 w-5" />,
+          label: 'Editar lista',
+          onClick: () => router.push(`/lists/${listId}/edit`),
+        },
+        {
+          icon: <ArrowUpDown className="h-5 w-5" />,
+          label: 'Reordenar lugares',
+          onClick: () => setReorderOpen(true),
+        },
+        {
+          icon: <Trash2 className="h-5 w-5" />,
+          label: 'Excluir lista',
+          onClick: handleDelete,
+          variant: 'danger' as const,
+        },
+      ]
+    : [];
+
+  const actions = [
+    {
+      icon: <Share2 className="h-5 w-5" />,
+      label: 'Compartilhar lista',
+      onClick: handleShare,
+    },
+    ...ownerActions,
+  ];
+
   return (
-    <div className="relative h-40 w-full bg-bg-subtle">
-      {coverUrl ? (
-        <Image src={coverUrl} alt={name} fill className="object-cover" priority sizes="100vw" />
-      ) : (
-        <div className="h-full w-full bg-linear-to-br from-brand-subtle to-bg-subtle" />
-      )}
+    <>
+      <div className="relative h-40 w-full bg-bg-subtle">
+        {coverUrl ? (
+          <Image src={coverUrl} alt={name} fill className="object-cover" priority sizes="100vw" />
+        ) : (
+          <div className="h-full w-full bg-linear-to-br from-brand-subtle to-bg-subtle" />
+        )}
 
-      <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-transparent" />
 
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-safe pt-3">
-        <OverlayIconButton icon={ArrowLeft} onClick={() => router.back()} aria-label="Voltar" />
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-safe pt-3">
+          <OverlayIconButton icon={ArrowLeft} onClick={() => router.back()} aria-label="Voltar" />
 
-        <div className="flex gap-2">
-          <OverlayIconButton icon={Share2} onClick={handleShare} aria-label="Compartilhar" />
-          <OverlayIconButton icon={MoreHorizontal} aria-label="Mais opções" />
+          <div className="flex gap-2">
+            <OverlayIconButton icon={Share2} onClick={handleShare} aria-label="Compartilhar" />
+            <OverlayIconButton
+              icon={MoreHorizontal}
+              onClick={() => setSheetOpen(true)}
+              aria-label="Mais opções"
+            />
+          </div>
         </div>
       </div>
-    </div>
+
+      <ActionSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        actions={actions}
+      />
+
+      <ReorderPlacesDrawer
+        open={reorderOpen}
+        onClose={() => setReorderOpen(false)}
+        listId={listId}
+        initialPlaces={places}
+      />
+    </>
   );
 }
