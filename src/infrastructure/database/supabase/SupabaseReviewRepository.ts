@@ -146,6 +146,22 @@ export class SupabaseReviewRepository implements IReviewRepository {
     return toDomain(reviewRow, this.db);
   }
 
+  async findById(reviewId: string): Promise<Review | null> {
+    const { data, error } = await this.db
+      .from('reviews')
+      .select('*')
+      .eq('id', reviewId)
+      .single();
+
+    if (error || !data) return null;
+    return toDomain(data as ReviewRow, this.db);
+  }
+
+  async delete(reviewId: string): Promise<void> {
+    const { error } = await this.db.from('reviews').delete().eq('id', reviewId);
+    if (error) throw new Error(error.message);
+  }
+
   async existsForUser(placeId: string, userId: string): Promise<boolean> {
     const { count, error } = await this.db
       .from('reviews')

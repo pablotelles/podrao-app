@@ -43,8 +43,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = await req.json();
 
-    // Moderação: aprovar/rejeitar (apenas service role ou admin)
+    // Moderação: aprovar/rejeitar — exclusivo para admins
     if (body.status && (body.status === 'approved' || body.status === 'rejected')) {
+      const isAdmin = user.app_metadata?.role === 'admin';
+      if (!isAdmin) throw new UnauthorizedError('Apenas administradores podem moderar lugares');
       await approvePlace.execute(id, body.status as Extract<PlaceStatus, 'approved' | 'rejected'>);
       return NextResponse.json({ success: true });
     }

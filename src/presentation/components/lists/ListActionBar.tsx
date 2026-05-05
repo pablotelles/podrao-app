@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin, Heart, Eye, Share2 } from 'lucide-react';
+import { MapPin, Bookmark, Eye, Share2 } from 'lucide-react';
 
 interface ListActionBarProps {
   placesCount: number;
@@ -55,7 +55,7 @@ export function ListActionBar({
         disabled={!isLoggedIn}
         aria-label="Salvar lista"
       >
-        <Heart className={`h-5 w-5 text-red-500 ${isSaved ? 'fill-red-500' : ''}`} />
+        <Bookmark className={`h-5 w-5 text-brand ${isSaved ? 'fill-brand' : ''}`} />
         <CountLabel count={savesCount} label="salvos" />
       </button>
 
