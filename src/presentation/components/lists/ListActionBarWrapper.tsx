@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useListActions } from '@/presentation/hooks/useListActions';
 import { ListActionBar } from './ListActionBar';
 
@@ -7,9 +8,7 @@ interface ListActionBarWrapperProps {
   listId: string;
   placesCount: number;
   viewCount: number;
-  initialFavoritesCount: number;
   initialSavesCount: number;
-  initialFavorited: boolean;
   initialSaved: boolean;
   isLoggedIn: boolean;
 }
@@ -18,31 +17,39 @@ export function ListActionBarWrapper({
   listId,
   placesCount,
   viewCount,
-  initialFavoritesCount,
   initialSavesCount,
-  initialFavorited,
   initialSaved,
   isLoggedIn,
 }: ListActionBarWrapperProps) {
-  const { isFavorited, isSaved, favoritesCount, savesCount, toggleFavorite, toggleSave } =
-    useListActions({
-      listId,
-      initialFavorited,
-      initialSaved,
-      initialFavoritesCount,
-      initialSavesCount,
-    });
+  const { isSaved, savesCount, toggleSave } = useListActions({
+    listId,
+    initialFavorited: false,
+    initialSaved,
+    initialFavoritesCount: 0,
+    initialSavesCount,
+  });
+
+  const handleShare = useCallback(async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ url });
+      } catch {
+        // usuário cancelou ou API não suportada
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+    }
+  }, []);
 
   return (
     <ListActionBar
       placesCount={placesCount}
-      favoritesCount={favoritesCount}
       viewCount={viewCount}
       savesCount={savesCount}
-      isFavorited={isFavorited}
       isSaved={isSaved}
-      onToggleFavorite={toggleFavorite}
       onToggleSave={toggleSave}
+      onShare={handleShare}
       isLoggedIn={isLoggedIn}
     />
   );

@@ -21,7 +21,7 @@ export function ListDetailHeader({ coverUrl, name }: ListDetailHeaderProps) {
   };
 
   return (
-    <div className="relative h-56 w-full bg-bg-subtle">
+    <div className="relative h-40 w-full bg-bg-subtle">
       {coverUrl ? (
         <Image src={coverUrl} alt={name} fill className="object-cover" priority sizes="100vw" />
       ) : (

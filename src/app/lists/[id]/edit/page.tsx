@@ -104,22 +104,8 @@ export default function EditListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-primary">
-      <PageHeader
-        title="Editar lista"
-        showBackButton
-        sticky
-        centered
-        actions={[
-          {
-            label: 'Salvar',
-            onClick: () => handleSubmit({} as React.FormEvent),
-            disabled: !name.trim(),
-            loading: isSubmitting,
-            variant: 'primary',
-          },
-        ]}
-      />
+    <div className="min-h-screen bg-bg pb-24">
+      <PageHeader title="Editar lista" showBackButton sticky centered />
 
       <PageContent centered>
         <form onSubmit={handleSubmit} className="space-y-6">

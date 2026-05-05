@@ -26,31 +26,31 @@ export function PlaceRow({ place, rank, onMenuClick }: PlaceRowProps) {
   const recommendPct = place.reviewsCount > 0 ? Math.round(place.rating * 20) : null;
 
   return (
-    <div className="flex items-center gap-3 bg-bg rounded-xl border border-border px-4 py-3 shadow-(--shadow-card)">
+    <div className="flex items-stretch gap-0 bg-bg rounded-xl border border-border overflow-hidden shadow-(--shadow-card)">
       {/* Thumbnail com rank opcional */}
       <Link href={`/places/${place.id}`} className="relative shrink-0">
-        <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-bg-subtle">
+        <div className="relative h-full w-24 bg-bg-subtle">
           {place.logoUrl ? (
             <Image
               src={place.logoUrl}
               alt={place.name}
               fill
               className="object-cover"
-              sizes="64px"
+              sizes="96px"
             />
           ) : (
             <div className="h-full w-full bg-bg-subtle" />
           )}
         </div>
         {rank !== undefined && (
-          <span className="absolute -top-1.5 -left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white leading-none">
+          <span className="absolute top-2 left-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white leading-none shadow-sm">
             {rank}
           </span>
         )}
       </Link>
 
       {/* Info */}
-      <Link href={`/places/${place.id}`} className="flex-1 min-w-0">
+      <Link href={`/places/${place.id}`} className="flex-1 min-w-0 px-4 py-3">
         <p className="font-semibold text-text-primary leading-tight truncate">{place.name}</p>
         <p className="mt-0.5 text-xs text-text-secondary">
           {ESTABLISHMENT_TYPE_META[place.establishmentType as EstablishmentType]?.label ||
@@ -75,7 +75,7 @@ export function PlaceRow({ place, rank, onMenuClick }: PlaceRowProps) {
       </Link>
 
       {/* Ações */}
-      <div className="flex shrink-0 flex-col items-center justify-between self-stretch py-0.5">
+      <div className="flex shrink-0 flex-col items-center justify-between self-stretch py-3 pr-4">
         <button
           onClick={() => onMenuClick?.(place)}
           className="text-text-disabled hover:text-text-secondary"

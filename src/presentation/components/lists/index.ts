@@ -10,5 +10,6 @@ export { ListMetadata } from './ListMetadata';
 export { ListActionBar } from './ListActionBar';
 export { ListActionBarWrapper } from './ListActionBarWrapper';
 export { ListPlaceCard } from './ListPlaceCard';
+export { ListPlacesSection } from './ListPlacesSection';
 export { ListRow } from './ListRow';
 export { ListList } from './ListList';

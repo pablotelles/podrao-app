@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Globe, Lock } from 'lucide-react';
 import { useDistance } from '@/presentation/hooks/useDistance';
 import { useFavorites } from '@/presentation/hooks/useFavorites';
 import { useLists } from '@/presentation/hooks/useLists';
@@ -22,6 +23,8 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
   const [isToggling, setIsToggling] = useState(false);
   const [listSheetOpen, setListSheetOpen] = useState(false);
   const [addingToListId, setAddingToListId] = useState<string | null>(null);
+  const [listsWithPlace, setListsWithPlace] = useState<Set<string>>(new Set());
+  const [loadingListsWithPlace, setLoadingListsWithPlace] = useState(false);
 
   const favorited = isFavorited(placeId);
 
@@ -34,6 +37,32 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
     } finally {
       setIsToggling(false);
     }
+  };
+
+  const fetchListsWithPlace = async () => {
+    if (!lists) return;
+    setLoadingListsWithPlace(true);
+    try {
+      const checks = await Promise.all(
+        lists.map(async (list) => {
+          const res = await fetch(`/api/lists/${list.id}/places`);
+          if (!res.ok) return { listId: list.id, hasPlace: false };
+          const places = (await res.json()) as { placeId: string }[];
+          return { listId: list.id, hasPlace: places.some((p) => p.placeId === placeId) };
+        }),
+      );
+      const listIds = new Set(checks.filter((c) => c.hasPlace).map((c) => c.listId));
+      setListsWithPlace(listIds);
+    } catch (err) {
+      console.error('Erro ao verificar listas:', err);
+    } finally {
+      setLoadingListsWithPlace(false);
+    }
+  };
+
+  const handleOpenListSheet = () => {
+    setListSheetOpen(true);
+    void fetchListsWithPlace();
   };
 
   const handleAddToList = async (listId: string) => {
@@ -51,7 +80,8 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
         throw new Error(error.error ?? 'Erro ao adicionar à lista');
       }
 
-      setListSheetOpen(false);
+      // Atualiza o estado para marcar que o lugar foi adicionado
+      setListsWithPlace((prev) => new Set(prev).add(listId));
     } catch (err) {
       console.error('Erro ao adicionar à lista:', err);
     } finally {
@@ -113,7 +143,7 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
           {/* Adicionar a lista */}
           <button
             type="button"
-            onClick={() => setListSheetOpen(true)}
+            onClick={handleOpenListSheet}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-transform hover:scale-105"
             aria-label="Adicionar a lista"
           >
@@ -182,23 +212,51 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
         onClose={() => setListSheetOpen(false)}
         title="Adicionar a uma lista"
       >
-        <div className="space-y-3">
-          {isLoadingLists ? (
+        <div className="space-y-2">
+          {isLoadingLists || loadingListsWithPlace ? (
             <p className="text-sm text-text-secondary">Carregando...</p>
           ) : lists && lists.length > 0 ? (
-            lists.map((list) => (
-              <button
-                key={list.id}
-                onClick={() => handleAddToList(list.id)}
-                disabled={addingToListId === list.id}
-                className="w-full rounded-lg border border-border bg-background p-3 text-left transition-colors hover:bg-background-secondary disabled:opacity-50"
-              >
-                <p className="font-medium text-text-primary">{list.name}</p>
-                {list.description && (
-                  <p className="mt-1 text-xs text-text-secondary">{list.description}</p>
-                )}
-              </button>
-            ))
+            lists.map((list) => {
+              const alreadyAdded = listsWithPlace.has(list.id);
+              return (
+                <button
+                  key={list.id}
+                  onClick={() => handleAddToList(list.id)}
+                  disabled={addingToListId === list.id || alreadyAdded}
+                  className="w-full rounded-lg border border-border bg-bg p-3 text-left transition-colors hover:bg-bg-subtle disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <p className="font-medium text-text-primary">
+                    {list.name}
+                    {alreadyAdded && (
+                      <span className="ml-2 text-xs font-normal text-success">✓ Adicionado</span>
+                    )}
+                  </p>
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-text-secondary">
+                    <span>
+                      {list.placesCount === 0
+                        ? '0 lugares'
+                        : list.placesCount === 1
+                          ? '1 lugar'
+                          : `${list.placesCount} lugares`}
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      {list.isPublic ? (
+                        <>
+                          <Globe size={12} />
+                          <span>Pública</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock size={12} />
+                          <span>Privada</span>
+                        </>
+                      )}
+                    </span>
+                  </p>
+                </button>
+              );
+            })
           ) : (
             <p className="text-sm text-text-secondary">Você ainda não tem listas.</p>
           )}

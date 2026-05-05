@@ -12,6 +12,7 @@ const buttonVariants = cva(
         secondary: 'bg-bg-subtle text-text-primary border border-border hover:bg-border',
         ghost: 'text-text-secondary hover:bg-bg-subtle hover:text-text-primary',
         danger: 'bg-error text-text-inverse hover:opacity-90',
+        dashed: '!rounded-xl border border-dashed border-brand text-brand hover:bg-brand/5',
       },
       size: {
         xs: 'h-6 px-2 text-xs',

@@ -5,7 +5,7 @@ import { SupabaseListRepository } from '@/infrastructure/database/supabase/Supab
 import { createAdminClient } from '@/infrastructure/database/supabase/client';
 import { ListDetailHeader } from '@/presentation/components/lists/ListDetailHeader';
 import { ListMetadata } from '@/presentation/components/lists/ListMetadata';
-import { ListPlaceCard } from '@/presentation/components/lists/ListPlaceCard';
+import { ListPlacesSection } from '@/presentation/components/lists/ListPlacesSection';
 import { ListActionBarWrapper } from '@/presentation/components/lists/ListActionBarWrapper';
 import { ExpandableText } from '@/presentation/components/ui/ExpandableText';
 import { PageContent } from '@/presentation/components/ui/PageContent';
@@ -109,27 +109,7 @@ export default async function ListDetailPage({ params }: Props) {
         />
 
         {/* Lista de lugares */}
-        <div className="mt-6">
-          {validPlaces.length === 0 ? (
-            <p className="py-8 text-center text-sm text-text-secondary">
-              Nenhum lugar nesta lista ainda.
-              {isOwner && (
-                <>
-                  {' '}
-                  <Link href="/" className="text-brand underline">
-                    Explore e adicione lugares!
-                  </Link>
-                </>
-              )}
-            </p>
-          ) : (
-            <div className="divide-y divide-border">
-              {validPlaces.map((place) => (
-                <ListPlaceCard key={place.id} place={place} />
-              ))}
-            </div>
-          )}
-        </div>
+        <ListPlacesSection places={validPlaces} isOwner={isOwner} />
       </PageContent>
     </div>
   );
