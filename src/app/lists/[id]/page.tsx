@@ -6,7 +6,7 @@ import { createAdminClient } from '@/infrastructure/database/supabase/client';
 import { ListDetailHeader } from '@/presentation/components/lists/ListDetailHeader';
 import { ListMetadata } from '@/presentation/components/lists/ListMetadata';
 import { ListPlacesSection } from '@/presentation/components/lists/ListPlacesSection';
-import { ListActionBarWrapper } from '@/presentation/components/lists/ListActionBarWrapper';
+import { ListStatsBarWrapper } from '@/presentation/components/lists/ListStatsBarWrapper';
 import { ExpandableText } from '@/presentation/components/ui/ExpandableText';
 import { PageContent } from '@/presentation/components/ui/PageContent';
 import Link from 'next/link';
@@ -74,6 +74,16 @@ export default async function ListDetailPage({ params }: Props) {
         places={validPlaces}
       />
 
+      <div className="relative -mt-5 rounded-t-2xl bg-bg-card shadow-(--shadow-card) z-[1]">
+        <ListStatsBarWrapper
+          listId={id}
+          placesCount={validPlaces.length}
+          viewCount={list.viewCount}
+          initialSavesCount={list.savesCount}
+          initialSaved={isSaved}
+        />
+      </div>
+
       <PageContent>
         {/* Título + botão editar (só dono) */}
         <div className="flex items-start justify-between gap-2">
@@ -103,16 +113,6 @@ export default async function ListDetailPage({ params }: Props) {
             <ExpandableText text={list.description} maxLines={2} />
           </div>
         )}
-
-        {/* Barra de ações com contadores */}
-        <ListActionBarWrapper
-          listId={id}
-          placesCount={validPlaces.length}
-          viewCount={list.viewCount}
-          initialSavesCount={list.savesCount}
-          initialSaved={isSaved}
-          isLoggedIn={!!user}
-        />
 
         {/* Lista de lugares */}
         <ListPlacesSection places={validPlaces} isOwner={isOwner} listId={id} />

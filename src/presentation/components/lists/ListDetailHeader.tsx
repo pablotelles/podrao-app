@@ -3,7 +3,16 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, MoreHorizontal, Pencil, Trash2, ArrowUpDown, Map, Bookmark } from 'lucide-react';
+import {
+  ArrowLeft,
+  Share2,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  ArrowUpDown,
+  Map,
+  Bookmark,
+} from 'lucide-react';
 import { OverlayIconButton } from '@/presentation/components/ui/OverlayIconButton';
 import { ActionSheet } from '@/presentation/components/ui/ActionSheet';
 import { PlacesMapDrawer } from '@/presentation/components/ui/PlacesMapDrawer';
@@ -39,7 +48,7 @@ export function ListDetailHeader({
   const [reorderOpen, setReorderOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
 
-  const { isSaved, toggleSave } = useListActions({
+  const { isSaved, savesCount, toggleSave } = useListActions({
     listId,
     initialFavorited: false,
     initialSaved,
@@ -98,7 +107,7 @@ export function ListDetailHeader({
 
   return (
     <>
-      <div className="relative h-40 w-full bg-bg-subtle">
+      <div className="relative h-52 w-full bg-bg-subtle">
         {coverUrl ? (
           <Image src={coverUrl} alt={name} fill className="object-cover" priority sizes="100vw" />
         ) : (
@@ -127,11 +136,7 @@ export function ListDetailHeader({
         </div>
       </div>
 
-      <ActionSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        actions={actions}
-      />
+      <ActionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} actions={actions} />
 
       <ReorderPlacesDrawer
         open={reorderOpen}

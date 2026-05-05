@@ -14,9 +14,9 @@ interface PinConfig {
 }
 
 const PIN_CONFIGS: Record<PinSize, PinConfig> = {
-  sm: { w: 28, h: 38, stroke: 2,   iconSize: 11 },
+  sm: { w: 28, h: 38, stroke: 2, iconSize: 11 },
   md: { w: 36, h: 48, stroke: 2.5, iconSize: 14 },
-  lg: { w: 46, h: 61, stroke: 3,   iconSize: 18 },
+  lg: { w: 46, h: 61, stroke: 3, iconSize: 18 },
 };
 
 /**
@@ -32,11 +32,17 @@ const UTENSILS_PATHS = [
 export function createPlacePinHtml(size: PinSize = 'md'): string {
   const { w, h, stroke, iconSize } = PIN_CONFIGS[size];
 
+  // Lê a cor brand do design system em runtime (CSS custom property)
+  const brandColor =
+    (typeof document !== 'undefined'
+      ? getComputedStyle(document.documentElement).getPropertyValue('--color-brand').trim()
+      : '') || '#5856d6';
+
   const cx = w / 2;
-  const r  = (w - stroke) / 2;   // raio do círculo
-  const cy = r + stroke / 2;     // centro Y do círculo
-  const lx = stroke / 2;         // x esquerdo do círculo
-  const rx = w - stroke / 2;     // x direito do círculo
+  const r = (w - stroke) / 2; // raio do círculo
+  const cy = r + stroke / 2; // centro Y do círculo
+  const lx = stroke / 2; // x esquerdo do círculo
+  const rx = w - stroke / 2; // x direito do círculo
 
   // Teardrop: ponto inferior → bezier para borda esquerda →
   //           arco clockwise (topo) até borda direita →
@@ -50,7 +56,7 @@ export function createPlacePinHtml(size: PinSize = 'md'): string {
   ].join(' ');
 
   // Ícone: escala de 24 → iconSize, centralizado no círculo
-  const s  = iconSize / 24;
+  const s = iconSize / 24;
   const tx = (cx - iconSize / 2).toFixed(2);
   const ty = (cy - iconSize / 2).toFixed(2);
   const sw = (2 / s).toFixed(2); // stroke-width no espaço original do ícone
@@ -61,7 +67,7 @@ export function createPlacePinHtml(size: PinSize = 'md'): string {
     `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"`,
     `xmlns="http://www.w3.org/2000/svg"`,
     `style="overflow:visible;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.28))">`,
-    `<path d="${path}" fill="#f97316" stroke="white" stroke-width="${stroke}"`,
+    `<path d="${path}" fill="${brandColor}" stroke="white" stroke-width="${stroke}"`,
     `stroke-linejoin="round"/>`,
     `<g transform="translate(${tx},${ty}) scale(${s.toFixed(5)})"`,
     `stroke="white" stroke-width="${sw}"`,
@@ -76,8 +82,8 @@ export function createPlacePinHtml(size: PinSize = 'md'): string {
 export function getPinLeafletConfig(size: PinSize = 'md') {
   const { w, h } = PIN_CONFIGS[size];
   return {
-    iconSize:    [w, h] as [number, number],
-    iconAnchor:  [w / 2, h] as [number, number],
+    iconSize: [w, h] as [number, number],
+    iconAnchor: [w / 2, h] as [number, number],
     popupAnchor: [0, -h + 6] as [number, number],
   };
 }

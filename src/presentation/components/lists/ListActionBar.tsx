@@ -44,7 +44,7 @@ export function ListActionBar({
     <div className="mt-4 flex gap-2 rounded-sm border border-border p-1">
       {/* Lugares */}
       <div className={itemBase}>
-        <MapPin className="h-5 w-5 text-purple-500" />
+        <MapPin className="h-5 w-5 text-brand" />
         <CountLabel count={placesCount} label="lugares" />
       </div>
 
