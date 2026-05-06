@@ -31,6 +31,7 @@ export default function HomePage() {
           radiusMeters: filters.radiusMeters,
           mealType: filters.mealType,
           cuisine: filters.cuisine,
+          foodType: filters.foodType,
           maxPrice: filters.priceBucket
             ? { up_to_15: 15, '15_25': 25, '25_40': 40, '40_70': 70, '70_plus': undefined }[
                 filters.priceBucket

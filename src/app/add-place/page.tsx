@@ -13,10 +13,12 @@ import { StepLocation } from '@/presentation/components/add-place/StepLocation';
 import { StepMealTypes } from '@/presentation/components/add-place/StepMealTypes';
 import { StepEstablishment } from '@/presentation/components/add-place/StepEstablishment';
 import { StepCuisine } from '@/presentation/components/add-place/StepCuisine';
+import { StepFoodType } from '@/presentation/components/add-place/StepFoodType';
 import { StepPrice } from '@/presentation/components/add-place/StepPrice';
 import { StepPhoto } from '@/presentation/components/add-place/StepPhoto';
 import type { MealType } from '@/domain/value-objects/MealType';
 import type { CuisineType } from '@/domain/value-objects/CuisineType';
+import type { FoodType } from '@/domain/value-objects/FoodType';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 import type { AutocompleteResult } from '@/domain/interfaces/IMapProvider';
 
@@ -60,11 +62,12 @@ const STEP_FIELDS: (keyof CreatePlaceInput)[][] = [
   ['mealTypes'],
   ['establishmentType'],
   ['cuisineTypes'],
+  ['foodTypes'],
   ['priceBucket'],
   [],
 ];
 
-const STEPS = ['Local', 'Refeições', 'Tipo', 'Cozinha', 'Preço', 'Foto'] as const;
+const STEPS = ['Local', 'Refeições', 'Tipo', 'Cozinha', 'Comida', 'Preço', 'Foto'] as const;
 
 export default function AddPlacePage() {
   const router = useRouter();
@@ -92,6 +95,7 @@ export default function AddPlacePage() {
 
   const mealTypes = watch('mealTypes') ?? [];
   const cuisineTypes = watch('cuisineTypes') ?? [];
+  const foodTypes = watch('foodTypes') ?? [];
   const formLat = watch('lat');
   const formLng = watch('lng');
   const formAddress = watch('address');
@@ -303,13 +307,21 @@ export default function AddPlacePage() {
           )}
 
           {step === 4 && (
+            <StepFoodType
+              value={foodTypes}
+              onChange={(v) => setValue('foodTypes', v as FoodType[])}
+              error={(errors.foodTypes as { message?: string } | undefined)?.message}
+            />
+          )}
+
+          {step === 5 && (
             <StepPrice
               value={watch('priceBucket')}
               onChange={(v) => setValue('priceBucket', v as PriceBucket)}
             />
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <StepPhoto
               photoFile={photoFile}
               onPhotoChange={setPhotoFile}

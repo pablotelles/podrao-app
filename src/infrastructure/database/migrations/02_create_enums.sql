@@ -1,16 +1,18 @@
 -- Migration 02: Create PostgreSQL ENUMs for type-safe value constraints
 
+DROP TYPE IF EXISTS establishment_type_enum CASCADE;
+DROP TYPE IF EXISTS cuisine_type_enum CASCADE;
+DROP TYPE IF EXISTS meal_type_enum CASCADE;
+DROP TYPE IF EXISTS food_type_enum CASCADE;
+DROP TYPE IF EXISTS price_bucket_enum CASCADE;
+
 CREATE TYPE establishment_type_enum AS ENUM (
   'restaurante',
-  'lanchonete',
-  'cafeteria',
   'bar',
+  'cafeteria',
   'padaria',
-  'sorveteria',
-  'food_truck',
-  'mercado',
-  'confeitaria',
-  'outro'
+  'lanchonete',
+  'food_truck'
 );
 
 -- Values without accents to avoid encoding issues
@@ -30,21 +32,23 @@ CREATE TYPE cuisine_type_enum AS ENUM (
   'arabe',
   'chinesa',
   'mexicana',
-  'americana',
-  'portuguesa',
-  'francesa',
-  'indiana',
-  'peruana',
-  'vegana',
-  'vegetariana',
-  'frutos_do_mar',
-  'churrasco',
+  'outro'
+);
+
+CREATE TYPE food_type_enum AS ENUM (
   'pizza',
+  'hamburguer',
   'sushi',
-  'fast_food',
-  'padaria',
+  'comida_caseira',
   'doces',
-  'outras'
+  'cafe',
+  'sorvete',
+  'churrasco',
+  'salgados',
+  'cerveja',
+  'drinks',
+  'vinho',
+  'porcoes'
 );
 
 -- Without accents: 'cafe' maps to 'café', 'almoco' to 'almoço' in UI
@@ -52,6 +56,5 @@ CREATE TYPE meal_type_enum AS ENUM (
   'cafe',
   'almoco',
   'lanche',
-  'jantar',
-  'rodizio'
+  'jantar'
 );

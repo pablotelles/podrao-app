@@ -3,13 +3,14 @@ import type { PlacePhoto, PhotoType } from '@/domain/entities/PlacePhoto';
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
 import type { CreatePlaceData, SearchPlacesParams } from '@/domain/interfaces/shared';
 import type { CuisineType } from '@/domain/value-objects/CuisineType';
+import type { FoodType } from '@/domain/value-objects/FoodType';
 import type { MealType } from '@/domain/value-objects/MealType';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
 
 // Shape returned by search_nearby_places RPC.
-// cuisine_types and meal_types are TEXT[] reconstructed by array_agg in the SQL function.
+// cuisine_types, meal_types, food_types are TEXT[] reconstructed by subqueries in the SQL function.
 interface PlaceRow {
   id: string;
   name: string;
@@ -24,6 +25,7 @@ interface PlaceRow {
   establishment_type: string;
   cuisine_types: string[];
   meal_types: string[];
+  food_types: string[];
   price_bucket: string;
   median_price: number | null;
   logo_url: string | null;
@@ -60,6 +62,7 @@ interface PlaceRowWithRelations {
     | null;
   place_cuisines: { cuisine_type: string }[] | null;
   place_meals: { meal_type: string }[] | null;
+  place_food_types: { food_type: string }[] | null;
   place_photos: { url: string; type: string; position: number }[] | null;
 }
 
@@ -88,6 +91,7 @@ function toDomain(row: PlaceRow): Place {
     establishmentType: row.establishment_type,
     cuisineTypes: (row.cuisine_types ?? []) as CuisineType[],
     mealTypes: (row.meal_types ?? []) as MealType[],
+    foodTypes: (row.food_types ?? []) as FoodType[],
     priceBucket: row.price_bucket as PriceBucket,
     medianPrice: row.median_price ?? undefined,
     logoUrl: row.logo_url ?? undefined,
@@ -114,6 +118,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
          place_stats ( rating, reviews_count, median_price ),
          place_cuisines ( cuisine_type ),
          place_meals ( meal_type ),
+         place_food_types ( food_type ),
          place_photos ( url, type, position )`,
       )
       .eq('id', id)
@@ -136,6 +141,11 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       (row.place_meals as { meal_type: string }[] | null)?.map((m) => m.meal_type as MealType) ??
       [];
 
+    const foodTypes =
+      (row.place_food_types as { food_type: string }[] | null)?.map(
+        (f) => f.food_type as FoodType,
+      ) ?? [];
+
     const logo = (
       row.place_photos as { url: string; type: string; position: number }[] | null
     )?.find((p) => p.type === 'logo');
@@ -154,6 +164,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       establishmentType: row.establishment_type,
       cuisineTypes,
       mealTypes,
+      foodTypes,
       priceBucket: row.price_bucket as PriceBucket,
       medianPrice: stats?.median_price ?? undefined,
       logoUrl: logo?.url ?? undefined,
@@ -173,6 +184,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       p_radius_m: params.radiusMeters ?? 3000,
       p_meal_type: params.mealType ?? null,
       p_cuisine: params.cuisine ?? null,
+      p_food_type: params.foodType ?? null,
       p_max_price: params.maxPrice ?? null,
       p_limit: params.limit ?? 20,
       p_offset: params.offset ?? 0,
@@ -188,7 +200,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       .select(
         `*, place_stats(rating, reviews_count, median_price),
          place_cuisines(cuisine_type), place_meals(meal_type),
-         place_photos(url, type, position)`,
+         place_food_types(food_type), place_photos(url, type, position)`,
       )
       .ilike('name', `%${query}%`)
       .eq('status', 'approved')
@@ -249,11 +261,19 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       if (e) throw new Error(`place_meals insert: ${e.message}`);
     }
 
+    if (data.foodTypes.length > 0) {
+      const { error: e } = await this.db
+        .from('place_food_types')
+        .insert(data.foodTypes.map((ft) => ({ place_id: row.id, food_type: ft })));
+      if (e) throw new Error(`place_food_types insert: ${e.message}`);
+    }
+
     return toDomain({
       ...row,
       logo_url: null,
       cuisine_types: data.cuisineTypes,
       meal_types: data.mealTypes,
+      food_types: data.foodTypes,
     } as PlaceRow);
   }
 
@@ -300,11 +320,22 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       }
     }
 
+    if (data.foodTypes !== undefined) {
+      await this.db.from('place_food_types').delete().eq('place_id', id);
+      if (data.foodTypes.length > 0) {
+        const { error: e } = await this.db
+          .from('place_food_types')
+          .insert(data.foodTypes.map((ft) => ({ place_id: id, food_type: ft })));
+        if (e) throw new Error(`place_food_types update: ${e.message}`);
+      }
+    }
+
     return toDomain({
       ...row,
       logo_url: null,
       cuisine_types: data.cuisineTypes ?? [],
       meal_types: data.mealTypes ?? [],
+      food_types: data.foodTypes ?? [],
     } as PlaceRow);
   }
 
@@ -378,6 +409,10 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     const mealTypes =
       (row.place_meals as { meal_type: string }[] | null)?.map((m) => m.meal_type as MealType) ??
       [];
+    const foodTypes =
+      (row.place_food_types as { food_type: string }[] | null)?.map(
+        (f) => f.food_type as FoodType,
+      ) ?? [];
     const logo = (
       row.place_photos as { url: string; type: string; position: number }[] | null
     )?.find((p) => p.type === 'logo');
@@ -395,6 +430,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       establishmentType: row.establishment_type,
       cuisineTypes,
       mealTypes,
+      foodTypes,
       priceBucket: row.price_bucket as PriceBucket,
       medianPrice: stats?.median_price ?? undefined,
       logoUrl: logo?.url ?? undefined,
@@ -413,7 +449,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       .select(
         `*, place_stats(rating, reviews_count, median_price),
          place_cuisines(cuisine_type), place_meals(meal_type),
-         place_photos(url, type, position)`,
+         place_food_types(food_type), place_photos(url, type, position)`,
       )
       .eq('created_by', userId)
       .order('created_at', { ascending: false });
@@ -438,7 +474,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       .select(
         `*, place_stats(rating, reviews_count, median_price),
          place_cuisines(cuisine_type), place_meals(meal_type),
-         place_photos(url, type, position)`,
+         place_food_types(food_type), place_photos(url, type, position)`,
       )
       .in('id', ids);
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
+import { FOOD_TYPES } from '@/domain/value-objects/FoodType';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { PRICE_BUCKETS } from '@/domain/value-objects/PriceBucket';
 
@@ -16,6 +17,7 @@ export const createPlaceSchema = z.object({
   establishmentType: z.string().min(2),
   cuisineTypes: z.array(z.enum(CUISINE_TYPES)).min(1, 'Selecione ao menos um tipo de cozinha'),
   mealTypes: z.array(z.enum(MEAL_TYPES)).min(1, 'Selecione ao menos um tipo de refeição'),
+  foodTypes: z.array(z.enum(FOOD_TYPES)).min(1, 'Selecione ao menos um tipo de comida'),
   priceBucket: z.enum(PRICE_BUCKETS),
   photoUrl: z.string().url().optional(),
 });
@@ -28,6 +30,7 @@ export const searchPlacesSchema = z.object({
   radius: z.coerce.number().min(100).max(50000).optional(),
   meal: z.enum(MEAL_TYPES).optional(),
   cuisine: z.enum(CUISINE_TYPES).optional(),
+  food: z.enum(FOOD_TYPES).optional(),
   maxPrice: z.coerce.number().positive().optional(),
   limit: z.coerce.number().min(1).max(50).optional(),
   offset: z.coerce.number().min(0).optional(),

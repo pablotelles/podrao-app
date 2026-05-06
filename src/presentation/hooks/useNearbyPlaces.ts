@@ -12,6 +12,7 @@ function buildUrl(params: SearchPlacesDTO | null): string | null {
     ...(params.radiusMeters && { radius: String(params.radiusMeters) }),
     ...(params.mealType && { meal: params.mealType }),
     ...(params.cuisine && { cuisine: params.cuisine }),
+    ...(params.foodType && { food: params.foodType }),
     ...(params.maxPrice && { maxPrice: String(params.maxPrice) }),
     ...(params.limit && { limit: String(params.limit) }),
     ...(params.offset && { offset: String(params.offset) }),

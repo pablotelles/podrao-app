@@ -1,4 +1,5 @@
 import type { CuisineType } from '../value-objects/CuisineType';
+import type { FoodType } from '../value-objects/FoodType';
 import type { MealType } from '../value-objects/MealType';
 import type { PriceBucket } from '../value-objects/PriceBucket';
 
@@ -18,6 +19,7 @@ export interface Place {
   establishmentType: string;
   cuisineTypes: CuisineType[];
   mealTypes: MealType[];
+  foodTypes: FoodType[];
   priceBucket: PriceBucket;
   medianPrice?: number;
   /** URL do logo (extraída da relação place_photos where type='logo') */

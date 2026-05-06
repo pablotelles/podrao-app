@@ -39,7 +39,7 @@ export function ListStatsBar({
   priceBucket,
 }: ListStatsBarProps) {
   return (
-    <div className="flex items-stretch border-b border-border bg-bg-card rounded-t-md overflow-hidden">
+    <div className="flex items-stretch rounded-t-sm overflow-hidden">
       <StatItem
         icon={<MapPin className="h-6 w-6 text-brand" />}
         value={formatCount(placesCount)}

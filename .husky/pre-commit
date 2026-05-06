@@ -1,2 +1,2 @@
 #!/bin/sh
-npm run format && git add -u && npm run typecheck && npm run lint
+git add -u && npm run format:check && npm run typecheck && npm run lint

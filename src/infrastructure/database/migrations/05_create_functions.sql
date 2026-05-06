@@ -2,12 +2,19 @@
 
 -- ─── search_nearby_places ────────────────────────────────────────────────────
 -- Main geo search function using PostGIS + place_stats + pivot tables
+-- Uses correlated subqueries for pivot aggregations to avoid cartesian products
+
+-- Drop all overloads of this function before recreating with new signature
+DROP FUNCTION IF EXISTS search_nearby_places(NUMERIC, NUMERIC, INTEGER, TEXT, TEXT, NUMERIC, INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS search_nearby_places(NUMERIC, NUMERIC, INTEGER, TEXT, TEXT, TEXT, NUMERIC, INTEGER, INTEGER);
+
 CREATE OR REPLACE FUNCTION search_nearby_places(
   p_lat        NUMERIC,
   p_lng        NUMERIC,
   p_radius_m   INTEGER DEFAULT 3000,
   p_meal_type  TEXT    DEFAULT NULL,
   p_cuisine    TEXT    DEFAULT NULL,
+  p_food_type  TEXT    DEFAULT NULL,
   p_max_price  NUMERIC DEFAULT NULL,
   p_limit      INTEGER DEFAULT 20,
   p_offset     INTEGER DEFAULT 0
@@ -26,6 +33,7 @@ RETURNS TABLE (
   establishment_type TEXT,
   cuisine_types      TEXT[],
   meal_types         TEXT[],
+  food_types         TEXT[],
   price_bucket       TEXT,
   median_price       NUMERIC,
   logo_url           TEXT,
@@ -53,16 +61,12 @@ BEGIN
     p.lat,
     p.lng,
     p.establishment_type::TEXT,
-    COALESCE(
-      array_agg(DISTINCT pc.cuisine_type::TEXT ORDER BY pc.cuisine_type::TEXT)
-        FILTER (WHERE pc.cuisine_type IS NOT NULL),
-      ARRAY[]::TEXT[]
-    ) AS cuisine_types,
-    COALESCE(
-      array_agg(DISTINCT pm.meal_type::TEXT ORDER BY pm.meal_type::TEXT)
-        FILTER (WHERE pm.meal_type IS NOT NULL),
-      ARRAY[]::TEXT[]
-    ) AS meal_types,
+    (SELECT COALESCE(array_agg(pc.cuisine_type::TEXT ORDER BY pc.cuisine_type::TEXT), ARRAY[]::TEXT[])
+     FROM place_cuisines pc WHERE pc.place_id = p.id) AS cuisine_types,
+    (SELECT COALESCE(array_agg(pm.meal_type::TEXT ORDER BY pm.meal_type::TEXT), ARRAY[]::TEXT[])
+     FROM place_meals pm WHERE pm.place_id = p.id) AS meal_types,
+    (SELECT COALESCE(array_agg(pf.food_type::TEXT ORDER BY pf.food_type::TEXT), ARRAY[]::TEXT[])
+     FROM place_food_types pf WHERE pf.place_id = p.id) AS food_types,
     p.price_bucket::TEXT,
     s.median_price,
     ph.url AS logo_url,
@@ -75,8 +79,6 @@ BEGIN
     ST_Distance(p.location, v_point)::NUMERIC AS distance_m
   FROM places p
   LEFT JOIN place_stats s ON s.place_id = p.id
-  LEFT JOIN place_cuisines pc ON pc.place_id = p.id
-  LEFT JOIN place_meals pm ON pm.place_id = p.id
   LEFT JOIN LATERAL (
     SELECT url FROM place_photos
     WHERE place_id = p.id AND type = 'logo'
@@ -99,8 +101,14 @@ BEGIN
         WHERE pc2.place_id = p.id AND pc2.cuisine_type::TEXT = p_cuisine
       )
     )
+    AND (
+      p_food_type IS NULL
+      OR EXISTS (
+        SELECT 1 FROM place_food_types pf2
+        WHERE pf2.place_id = p.id AND pf2.food_type::TEXT = p_food_type
+      )
+    )
     AND (p_max_price IS NULL OR COALESCE(s.median_price, 9999) <= p_max_price)
-  GROUP BY p.id, s.rating, s.reviews_count, s.median_price, ph.url
   ORDER BY
     (
       (1.0 - LEAST(ST_Distance(p.location, v_point) / p_radius_m, 1.0)) * 0.4
@@ -113,7 +121,8 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 COMMENT ON FUNCTION search_nearby_places IS
-  'Reads from place_stats, place_cuisines, place_meals. '
+  'Reads from place_stats, place_cuisines, place_meals, place_food_types. '
+  'Correlated subqueries for pivot aggregations avoid cartesian products. '
   'ST_DWithin in WHERE uses GIST index; ST_Distance only in SELECT/ORDER.';
 
 -- ─── update_place_stats ──────────────────────────────────────────────────────

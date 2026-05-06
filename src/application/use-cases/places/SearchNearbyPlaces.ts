@@ -13,6 +13,7 @@ function buildGeoKey(dto: SearchPlacesDTO): string {
     dto.radiusMeters ?? 3000,
     dto.mealType ?? 'all',
     dto.cuisine ?? 'all',
+    dto.foodType ?? 'all',
     dto.maxPrice ?? 'all',
   ].join(':');
 }
@@ -42,6 +43,7 @@ export class SearchNearbyPlaces {
       radiusMeters: dto.radiusMeters,
       mealType: dto.mealType,
       cuisine: dto.cuisine,
+      foodType: dto.foodType,
       maxPrice: dto.maxPrice,
       limit: dto.limit,
       offset: dto.offset,

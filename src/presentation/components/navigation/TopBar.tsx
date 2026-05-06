@@ -23,7 +23,7 @@ function Avatar({ user }: { user: User | null }) {
   return (
     <button
       onClick={() => router.push('/profile')}
-      className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand text-xs font-bold text-white"
+      className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-xs font-bold text-brand"
       aria-label="Ir para perfil"
     >
       {user?.avatarUrl ? (
@@ -52,27 +52,27 @@ export function TopBar() {
 
   return (
     <header
-      className="fixed left-0 right-0 top-0 flex items-center justify-between border-b border-border bg-bg px-(--spacing-page-x) pt-safe"
+      className="fixed left-0 right-0 top-0 flex items-center justify-between bg-brand px-(--spacing-page-x) pt-safe"
       style={{ height: 'var(--topbar-height)', zIndex: 'var(--z-sticky)' }}
     >
       {/* Avatar */}
       <Avatar user={user} />
 
       {/* Título */}
-      <h1 className="absolute left-1/2 -translate-x-1/2 text-base font-bold text-text-primary">
+      <h1 className="absolute left-1/2 -translate-x-1/2 text-base font-bold text-text-inverse">
         {title}
       </h1>
 
       {/* Ações */}
       <div className="flex items-center gap-1">
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-full text-text-secondary hover:bg-bg-subtle transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-text-inverse transition-colors hover:bg-brand-hover"
           aria-label="Buscar"
         >
           <Search className="h-5 w-5" />
         </button>
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-full text-text-secondary hover:bg-bg-subtle transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-text-inverse transition-colors hover:bg-brand-hover"
           aria-label="Notificações"
         >
           <Bell className="h-5 w-5" />

@@ -4,14 +4,17 @@ import { useState } from 'react';
 import { Button, Sheet, Badge } from '@/presentation/components/ui';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
+import { FOOD_TYPES, FOOD_TYPE_META } from '@/domain/value-objects/FoodType';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 import type { MealType } from '@/domain/value-objects/MealType';
 import type { CuisineType } from '@/domain/value-objects/CuisineType';
+import type { FoodType } from '@/domain/value-objects/FoodType';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 
 export interface FilterValues {
   mealType?: MealType;
   cuisine?: CuisineType;
+  foodType?: FoodType;
   priceBucket?: PriceBucket;
   radiusMeters?: number;
 }
@@ -52,6 +55,15 @@ export function FilterBar({ values, onChange }: FilterBarProps) {
             {values.cuisine} ✕
           </Badge>
         )}
+        {values.foodType && (
+          <Badge
+            variant="brand"
+            className="cursor-pointer"
+            onClick={() => onChange({ ...values, foodType: undefined })}
+          >
+            {FOOD_TYPE_META[values.foodType].label} ✕
+          </Badge>
+        )}
         {values.priceBucket && (
           <Badge
             variant="brand"
@@ -76,6 +88,15 @@ export function FilterBar({ values, onChange }: FilterBarProps) {
             options={CUISINE_TYPES as unknown as string[]}
             selected={values.cuisine}
             onSelect={(v) => onChange({ ...values, cuisine: v as CuisineType | undefined })}
+          />
+          <FilterSection
+            label="Tipo de comida"
+            options={FOOD_TYPES as unknown as string[]}
+            selected={values.foodType}
+            labels={Object.fromEntries(
+              FOOD_TYPES.map((f) => [f, `${FOOD_TYPE_META[f].emoji} ${FOOD_TYPE_META[f].label}`]),
+            )}
+            onSelect={(v) => onChange({ ...values, foodType: v as FoodType | undefined })}
           />
           <FilterSection
             label="Faixa de preço"

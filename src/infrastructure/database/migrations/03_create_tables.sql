@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS review_scores CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS place_stats CASCADE;
 DROP TABLE IF EXISTS place_photos CASCADE;
+DROP TABLE IF EXISTS place_food_types CASCADE;
 DROP TABLE IF EXISTS place_meals CASCADE;
 DROP TABLE IF EXISTS place_cuisines CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
@@ -62,7 +63,12 @@ CREATE TABLE place_meals (
   meal_type meal_type_enum NOT NULL,
   PRIMARY KEY (place_id, meal_type)
 );
-
+-- ─── place_food_types ──────────────────────────────────────────────────────────────
+CREATE TABLE place_food_types (
+  place_id  UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  food_type food_type_enum NOT NULL,
+  PRIMARY KEY (place_id, food_type)
+);
 -- ─── place_photos ────────────────────────────────────────────────────────────
 -- Supports logo, cover image, and gallery photos
 CREATE TABLE place_photos (
@@ -183,3 +189,12 @@ CREATE TABLE list_saves (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id, list_id)
 );
+
+-- Grant permissions to Supabase roles
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;

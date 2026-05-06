@@ -4,13 +4,14 @@ import type { CreatePlaceDTO } from '@/application/dtos/CreatePlaceDTO';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 
 /** Constrói o texto descritivo enviado ao modelo de embedding.
- *  Formato: "{name} | {type} | {cuisines} | {meals} | {bairro} | {cidade} | {price}"
+ *  Formato: "{name} | {type} | {cuisines} | {foods} | {meals} | {bairro} | {cidade} | {price}"
  *  Campos ausentes são omitidos. Ver docs/ai/prompts/place-embedding-text.md */
 function buildEmbeddingText(dto: CreatePlaceDTO): string {
   return [
     dto.name,
     dto.establishmentType,
     dto.cuisineTypes.join(', '),
+    dto.foodTypes.join(', '),
     dto.mealTypes.join(', '),
     dto.bairro,
     dto.cidade,

@@ -15,6 +15,7 @@ export class CreatePlace {
     if (!dto.cuisineTypes.length)
       throw new ValidationError('Selecione ao menos um tipo de cozinha');
     if (!dto.mealTypes.length) throw new ValidationError('Selecione ao menos um tipo de refeição');
+    if (!dto.foodTypes.length) throw new ValidationError('Selecione ao menos um tipo de comida');
 
     const place = await this.placeRepo.create({
       name: dto.name.trim(),
@@ -29,6 +30,7 @@ export class CreatePlace {
       establishmentType: dto.establishmentType,
       cuisineTypes: dto.cuisineTypes,
       mealTypes: dto.mealTypes,
+      foodTypes: dto.foodTypes,
       priceBucket: dto.priceBucket,
       photoUrl: dto.photoUrl,
       createdBy: dto.userId, // Use Case define created_by a partir do userId autenticado

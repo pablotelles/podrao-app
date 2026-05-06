@@ -1,4 +1,5 @@
 import type { CuisineType } from '@/domain/value-objects/CuisineType';
+import type { FoodType } from '@/domain/value-objects/FoodType';
 import type { MealType } from '@/domain/value-objects/MealType';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 
@@ -15,6 +16,7 @@ export interface CreatePlaceDTO {
   establishmentType: string;
   cuisineTypes: CuisineType[];
   mealTypes: MealType[];
+  foodTypes: FoodType[];
   priceBucket: PriceBucket;
   photoUrl?: string;
   /** ID do usuário autenticado criando o lugar */
