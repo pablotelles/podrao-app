@@ -9,6 +9,7 @@ import { ListPlacesSection } from '@/presentation/components/lists/ListPlacesSec
 import { ListStatsBarWrapper } from '@/presentation/components/lists/ListStatsBarWrapper';
 import { ExpandableText } from '@/presentation/components/ui/ExpandableText';
 import { PageContent } from '@/presentation/components/ui/PageContent';
+import { PageTitle } from '@/presentation/contexts/TopBarContext';
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
 
@@ -63,6 +64,7 @@ export default async function ListDetailPage({ params }: Props) {
 
   return (
     <div>
+      <PageTitle title={list.name} />
       <ListDetailHeader
         coverUrl={list.coverUrl}
         name={list.name}

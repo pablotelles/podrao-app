@@ -52,6 +52,8 @@
     /* Z-index hierarchy — evita conflitos de sobreposição */
     --z-base: 0;
     --z-dropdown: 10;
+    --topbar-height: 56px;
+
     --z-sticky: 20;
     --z-nav: 30;
     --z-overlay: 40;

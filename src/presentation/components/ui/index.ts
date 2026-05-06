@@ -9,7 +9,6 @@ export { ActionSheet } from './ActionSheet';
 export type { ActionItem } from './ActionSheet';
 export { Skeleton, PlaceCardSkeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
-export { PageHeader } from './PageHeader';
 export { PageContent } from './PageContent';
 export { ToggleGroup } from './ToggleGroup';
 export { StarRating } from './StarRating';

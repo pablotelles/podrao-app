@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { Badge, PageContent } from '@/presentation/components/ui';
+import { PageTitle } from '@/presentation/contexts/TopBarContext';
 import { Star } from 'lucide-react';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
@@ -58,6 +59,7 @@ export default async function PlaceDetailPage({ params }: Props) {
 
     return (
       <div>
+        <PageTitle title={place.name} />
         {/* Cover: Mapa da localização */}
         <PlaceDetailHeader lat={place.lat} lng={place.lng} name={place.name} placeId={place.id} />
 

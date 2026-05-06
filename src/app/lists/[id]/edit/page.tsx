@@ -8,7 +8,8 @@ import { useLists } from '@/presentation/hooks/useLists';
 import { Input } from '@/presentation/components/ui/Input';
 import { Textarea } from '@/presentation/components/ui/Textarea';
 import { Button } from '@/presentation/components/ui/Button';
-import { PageHeader, PageContent } from '@/presentation/components/ui';
+import { PageContent } from '@/presentation/components/ui';
+import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { CoverSelector } from '@/presentation/components/lists/CoverSelector';
 import { PrivacyToggle } from '@/presentation/components/lists/PrivacyToggle';
 import { ConfigurationToggles } from '@/presentation/components/lists/ConfigurationToggles';
@@ -20,6 +21,7 @@ async function fetcher(url: string): Promise<UserList> {
 }
 
 export default function EditListPage() {
+  usePageTitle('Editar lista');
   const router = useRouter();
   const params = useParams();
   const listId = params.id as string;
@@ -105,8 +107,6 @@ export default function EditListPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      <PageHeader title="Editar lista" showBackButton sticky centered />
-
       <PageContent centered>
         <form id="edit-list-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Informações da lista */}

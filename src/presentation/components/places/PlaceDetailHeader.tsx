@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, BookmarkPlus, Heart, Globe, Lock } from 'lucide-react';
+
+import { Share2, BookmarkPlus, Heart, Globe, Lock } from 'lucide-react';
 import { useDistance } from '@/presentation/hooks/useDistance';
 import { useFavorites } from '@/presentation/hooks/useFavorites';
 import { useLists } from '@/presentation/hooks/useLists';
@@ -18,7 +18,6 @@ interface PlaceDetailHeaderProps {
 }
 
 export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeaderProps) {
-  const router = useRouter();
   const { distanceText, hasUserLocation } = useDistance(lat, lng);
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   const { isFavorited, toggle: toggleFavorite, isLoading: isFavLoading } = useFavorites();
@@ -96,11 +95,6 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
     <>
       <div className="relative h-[150px] w-full overflow-hidden">
         <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
-
-        {/* Botão voltar */}
-        <div className="absolute left-3 top-3 z-900">
-          <OverlayIconButton icon={ArrowLeft} onClick={() => router.back()} aria-label="Voltar" />
-        </div>
 
         {/* Distância - canto inferior esquerdo */}
         {hasUserLocation && (

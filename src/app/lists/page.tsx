@@ -1,6 +1,7 @@
 'use client';
 
-import { PageHeader, Tabs } from '@/presentation/components/ui';
+import { Tabs } from '@/presentation/components/ui';
+import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { ListList, UserListsSection } from '@/presentation/components/lists';
 import { usePublicLists, useSavedLists } from '@/presentation/hooks/useListsExplore';
 import type { TabItem } from '@/presentation/components/ui/Tabs';
@@ -34,10 +35,9 @@ function SalvasTab() {
 }
 
 export default function ListsPage() {
+  usePageTitle('Listas');
   return (
     <main className="flex h-dvh flex-col bg-bg-subtle pb-16">
-      <PageHeader title="Listas" />
-
       <div className="flex-1 overflow-auto">
         <Tabs tabs={TABS} defaultTab="explorar">
           {(tab) => (

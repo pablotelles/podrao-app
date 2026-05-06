@@ -11,11 +11,13 @@ import { LocationSearch } from '@/presentation/components/location/LocationSearc
 import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
 import { DynamicPlaceMap } from '@/presentation/components/maps/dynamic';
 import { Button } from '@/presentation/components/ui';
+import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import type { Place } from '@/domain/entities/Place';
 
 type ViewMode = 'list' | 'map';
 
 export default function HomePage() {
+  usePageTitle('Explorar');
   const geo = useGeolocation();
   const router = useRouter();
   const [filters, setFilters] = useState<FilterValues>({});
@@ -46,44 +48,39 @@ export default function HomePage() {
 
   return (
     <div className="flex h-dvh flex-col">
-      {/* Header — mesmas classes do PageHeader */}
-      <header className="shrink-0 flex items-center justify-between border-b border-border bg-bg px-(--spacing-page-x) py-4 sticky top-0 z-10">
-        <h1 className="text-base font-bold text-text-primary">Onde Comer</h1>
-
-        <div className="flex items-center gap-2">
-          {hasLocation && (
-            <div className="flex overflow-hidden rounded-full border border-border text-sm">
-              <button
-                onClick={() => setView('map')}
-                className={
-                  'px-3 py-1 transition-colors ' +
-                  (view === 'map'
-                    ? 'bg-brand text-text-inverse'
-                    : 'text-text-secondary hover:bg-bg-subtle')
-                }
-              >
-                Mapa
-              </button>
-              <button
-                onClick={() => setView('list')}
-                className={
-                  'px-3 py-1 transition-colors ' +
-                  (view === 'list'
-                    ? 'bg-brand text-text-inverse'
-                    : 'text-text-secondary hover:bg-bg-subtle')
-                }
-              >
-                Lista
-              </button>
-            </div>
-          )}
+      {/* Controles de view — ficam abaixo da TopBar */}
+      {hasLocation && (
+        <div className="shrink-0 flex items-center justify-between border-b border-border bg-bg px-(--spacing-page-x) py-2">
+          <div className="flex overflow-hidden rounded-full border border-border text-sm">
+            <button
+              onClick={() => setView('map')}
+              className={
+                'px-3 py-1 transition-colors ' +
+                (view === 'map'
+                  ? 'bg-brand text-text-inverse'
+                  : 'text-text-secondary hover:bg-bg-subtle')
+              }
+            >
+              Mapa
+            </button>
+            <button
+              onClick={() => setView('list')}
+              className={
+                'px-3 py-1 transition-colors ' +
+                (view === 'list'
+                  ? 'bg-brand text-text-inverse'
+                  : 'text-text-secondary hover:bg-bg-subtle')
+              }
+            >
+              Lista
+            </button>
+          </div>
           <Link href="/add-place">
             <Button size="sm">+ Lugar</Button>
           </Link>
         </div>
-      </header>
+      )}
 
-      {/* Conteúdo — pb-16 reserva espaço para o BottomNav fixo (h-16) */}
       <main className="flex flex-1 flex-col overflow-hidden pb-16">
         {geo.initializing && (
           <div className="flex-1">

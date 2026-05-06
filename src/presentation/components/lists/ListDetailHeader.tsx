@@ -3,16 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import {
-  ArrowLeft,
-  Share2,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  ArrowUpDown,
-  Map,
-  Bookmark,
-} from 'lucide-react';
+import { Share2, MoreHorizontal, Pencil, Trash2, ArrowUpDown, Map, Bookmark } from 'lucide-react';
 import { OverlayIconButton } from '@/presentation/components/ui/OverlayIconButton';
 import { ActionSheet } from '@/presentation/components/ui/ActionSheet';
 import { PlacesMapDrawer } from '@/presentation/components/ui/PlacesMapDrawer';
@@ -116,9 +107,7 @@ export function ListDetailHeader({
 
         <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-transparent" />
 
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-safe pt-3">
-          <OverlayIconButton icon={ArrowLeft} onClick={() => router.back()} aria-label="Voltar" />
-
+        <div className="absolute top-0 right-0 flex items-center px-4 pt-safe pt-3">
           <div className="flex gap-2">
             <OverlayIconButton icon={Share2} onClick={handleShare} aria-label="Compartilhar" />
             <OverlayIconButton

@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useLists } from '@/presentation/hooks/useLists';
 import { Input } from '@/presentation/components/ui/Input';
 import { Textarea } from '@/presentation/components/ui/Textarea';
-import { PageHeader, PageContent, Button } from '@/presentation/components/ui';
+import { PageContent, Button } from '@/presentation/components/ui';
+import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { CoverSelector } from '@/presentation/components/lists/CoverSelector';
 import { PrivacyToggle } from '@/presentation/components/lists/PrivacyToggle';
 import { ConfigurationToggles } from '@/presentation/components/lists/ConfigurationToggles';
 
 export default function NewListPage() {
+  usePageTitle('Nova lista');
   const router = useRouter();
   const { createList } = useLists();
 
@@ -45,8 +47,6 @@ export default function NewListPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      <PageHeader title="Criar lista" showBackButton sticky centered />
-
       <PageContent centered>
         <form id="create-list-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Informações da lista */}

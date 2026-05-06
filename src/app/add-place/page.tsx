@@ -7,13 +7,8 @@ import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/for
 import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
-import {
-  Button,
-  Input,
-  PageHeader,
-  PageContent,
-  ProgressSteps,
-} from '@/presentation/components/ui';
+import { Button, Input, PageContent, ProgressSteps } from '@/presentation/components/ui';
+import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { StepLocation } from '@/presentation/components/add-place/StepLocation';
 import { StepMealTypes } from '@/presentation/components/add-place/StepMealTypes';
 import { StepEstablishment } from '@/presentation/components/add-place/StepEstablishment';
@@ -76,6 +71,7 @@ export default function AddPlacePage() {
   const geo = useGeolocation();
   const { submit, uploadPhoto, loading, error: submitError } = useAddPlace();
   const [step, setStep] = useState(0);
+  usePageTitle(STEPS[step]);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -239,15 +235,8 @@ export default function AddPlacePage() {
     }
   }
 
-  const handleBack = () => {
-    if (step > 0) setStep(step - 1);
-    else router.back();
-  };
-
   return (
     <div className="flex min-h-dvh flex-col">
-      <PageHeader title={STEPS[step]} showBackButton onBack={handleBack} sticky />
-
       <PageContent className="mx-auto w-full max-w-lg flex-1 pb-28">
         <div className="mb-6">
           <ProgressSteps currentStep={step} totalSteps={STEPS.length} labels={STEPS} />

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { mutate } from 'swr';
 import useSWR from 'swr';
-import { PageHeader, PageContent, ProgressSteps, Button } from '@/presentation/components/ui';
+import { PageContent, ProgressSteps, Button } from '@/presentation/components/ui';
+import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { StepRating } from '@/presentation/components/review-flow/StepRating';
 import { StepCategories } from '@/presentation/components/review-flow/StepCategories';
 import { StepComment } from '@/presentation/components/review-flow/StepComment';
@@ -29,6 +30,7 @@ export default function ReviewPage() {
   const { data: place } = useSWR<Place>(`/api/places/${placeId}`, fetcher);
 
   const [step, setStep] = useState(0);
+  usePageTitle(STEPS[step] ?? 'Avaliação');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +121,6 @@ export default function ReviewPage() {
   if (submitted) {
     return (
       <div>
-        <PageHeader title="Avaliação" />
         <PageContent centered>
           <StepSuccess points={10} onContinue={handleSuccess} />
         </PageContent>
@@ -138,8 +139,6 @@ export default function ReviewPage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <PageHeader title={STEPS[step]} showBackButton onBack={handleBack} sticky />
-
       <PageContent className="mx-auto w-full max-w-lg flex-1 pb-28">
         <div className="mb-6">
           <ProgressSteps currentStep={step} totalSteps={STEPS.length} labels={STEPS} />

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, Pencil, MapPin, Star, Heart } from 'lucide-react';
-import { FullScreenDrawer, Button, PageHeader } from '@/presentation/components/ui';
+import { FullScreenDrawer, Button } from '@/presentation/components/ui';
+import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import {
   UserProfileHeader,
   EditProfileForm,
@@ -16,6 +17,7 @@ import { useUserStats } from '@/presentation/hooks/useUserStats';
 import type { User } from '@/domain/entities/User';
 
 export default function ProfilePage() {
+  usePageTitle('Minha conta');
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,9 +57,6 @@ export default function ProfilePage() {
 
   return (
     <main className="flex h-dvh flex-col bg-bg-subtle pb-16">
-      {/* Header */}
-      <PageHeader title="Minha Conta" showBackButton />
-
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="h-8 w-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
