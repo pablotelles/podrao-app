@@ -9,9 +9,9 @@ export class GetPlaceReviews {
     private readonly placeRepo: IPlaceRepository,
   ) {}
 
-  async execute(placeId: string): Promise<Review[]> {
+  async execute(placeId: string, viewerUserId?: string): Promise<Review[]> {
     const place = await this.placeRepo.findById(placeId);
     if (!place) throw new PlaceNotFoundError(placeId);
-    return this.reviewRepo.findByPlace(placeId);
+    return this.reviewRepo.findByPlace(placeId, viewerUserId);
   }
 }

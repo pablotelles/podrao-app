@@ -12,4 +12,12 @@ export interface Review {
   mealType?: MealType;
   amountPaidPerPerson?: number;
   createdAt: Date;
+  // Populated via JOIN with profiles when fetching for display
+  authorNickname?: string;
+  authorAvatarUrl?: string;
+  // Populated via batch reaction queries when fetching for display
+  // { useful: 5, partial: 1, not_useful: 2 }
+  reactionCounts?: Record<string, number>;
+  // Qual tipo o viewer reagiu ('useful' | 'partial' | 'not_useful' | null)
+  viewerReactionType?: string | null;
 }

@@ -4,6 +4,7 @@
  */
 import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
+import { SupabaseReactionRepository } from '@/infrastructure/database/supabase/SupabaseReactionRepository';
 import { SupabaseFavoriteRepository } from '@/infrastructure/database/supabase/SupabaseFavoriteRepository';
 import { SupabaseListRepository } from '@/infrastructure/database/supabase/SupabaseListRepository';
 import { UpstashCacheProvider } from '@/infrastructure/cache/UpstashCacheProvider';
@@ -24,6 +25,7 @@ import { GetMyPlaces } from '@/application/use-cases/places/GetMyPlaces';
 import { GetFavoritePlaces } from '@/application/use-cases/places/GetFavoritePlaces';
 import { SubmitReview } from '@/application/use-cases/reviews/SubmitReview';
 import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
+import { ToggleReaction } from '@/application/use-cases/reactions/ToggleReaction';
 import { ToggleFavorite } from '@/application/use-cases/favorites/ToggleFavorite';
 import { GetUserFavorites } from '@/application/use-cases/favorites/GetUserFavorites';
 import { CreateList } from '@/application/use-cases/lists/CreateList';
@@ -68,6 +70,7 @@ function requireEnv(name: string): string {
 
 // --- Infra ---
 const placeRepository = lazySingleton(() => new SupabasePlaceRepository());
+const reactionRepository = lazySingleton(() => new SupabaseReactionRepository());
 const reviewRepository = lazySingleton(() => new SupabaseReviewRepository());
 const favoriteRepository = lazySingleton(() => new SupabaseFavoriteRepository());
 const listRepository = lazySingleton(() => new SupabaseListRepository());
@@ -105,6 +108,7 @@ export const submitReview = lazySingleton(
 export const getPlaceReviews = lazySingleton(
   () => new GetPlaceReviews(reviewRepository, placeRepository),
 );
+export const toggleReaction = lazySingleton(() => new ToggleReaction(reactionRepository));
 
 // Favorites
 export const toggleFavorite = lazySingleton(() => new ToggleFavorite(favoriteRepository));

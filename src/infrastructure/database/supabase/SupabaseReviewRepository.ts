@@ -5,6 +5,7 @@ import type { MealType } from '@/domain/value-objects/MealType';
 import type { ReviewCategory } from '@/domain/value-objects/ReviewCategory';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
+import { SupabaseReactionRepository } from './SupabaseReactionRepository';
 
 interface ReviewRow {
   id: string;
@@ -68,7 +69,7 @@ async function toDomain(row: ReviewRow, db: SupabaseClient): Promise<Review> {
 export class SupabaseReviewRepository implements IReviewRepository {
   constructor(private readonly db: SupabaseClient = supabase) {}
 
-  async findByPlace(placeId: string): Promise<Review[]> {
+  async findByPlace(placeId: string, viewerUserId?: string): Promise<Review[]> {
     const { data, error } = await this.db
       .from('reviews')
       .select('*')
@@ -76,11 +77,75 @@ export class SupabaseReviewRepository implements IReviewRepository {
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
+    if (!data || data.length === 0) return [];
 
-    // Convert all rows to domain entities with their scores and photos
-    const reviews = await Promise.all((data as ReviewRow[]).map((row) => toDomain(row, this.db)));
+    const rows = data as ReviewRow[];
+    const reviewIds = rows.map((r) => r.id);
+    const userIds = [...new Set(rows.map((r) => r.user_id))];
 
-    return reviews;
+    // Batch fetch: scores, photos, profiles + reactions (4-6 queries fixas para qualquer N)
+    const reactionRepo = new SupabaseReactionRepository();
+    const [scoresRes, photosRes, profilesRes, reactionCounts, viewerActiveTypes] =
+      await Promise.all([
+        this.db
+          .from('review_scores')
+          .select('review_id, category, score')
+          .in('review_id', reviewIds),
+        this.db
+          .from('review_photos')
+          .select('review_id, url')
+          .in('review_id', reviewIds)
+          .order('created_at', { ascending: true }),
+        this.db.from('profiles').select('id, nickname, avatar_url').in('id', userIds),
+        reactionRepo.getCountsBatch('review', reviewIds),
+        viewerUserId
+          ? reactionRepo.getUserActiveTypesBatch(viewerUserId, 'review', reviewIds)
+          : Promise.resolve(new Map<string, string>()),
+      ]);
+
+    // Indexar por ID para lookup O(1)
+    const scoresByReview = new Map<string, ReviewScore[]>();
+    for (const s of (scoresRes.data ?? []) as (ReviewScoreRow & { review_id: string })[]) {
+      const arr = scoresByReview.get(s.review_id) ?? [];
+      arr.push({ category: s.category as ReviewCategory, score: s.score });
+      scoresByReview.set(s.review_id, arr);
+    }
+
+    const photosByReview = new Map<string, string[]>();
+    for (const p of (photosRes.data ?? []) as { review_id: string; url: string }[]) {
+      const arr = photosByReview.get(p.review_id) ?? [];
+      arr.push(p.url);
+      photosByReview.set(p.review_id, arr);
+    }
+
+    const profileById = new Map<string, { nickname: string; avatar_url: string | null }>();
+    for (const p of (profilesRes.data ?? []) as {
+      id: string;
+      nickname: string;
+      avatar_url: string | null;
+    }[]) {
+      profileById.set(p.id, p);
+    }
+
+    return rows.map((row) => {
+      const profile = profileById.get(row.user_id);
+      return {
+        id: row.id,
+        placeId: row.place_id,
+        userId: row.user_id,
+        rating: row.rating,
+        scores: scoresByReview.get(row.id),
+        photos: photosByReview.get(row.id),
+        comment: row.comment ?? undefined,
+        mealType: (row.meal_type as MealType) ?? undefined,
+        amountPaidPerPerson: row.amount_paid ?? undefined,
+        createdAt: new Date(row.created_at),
+        reactionCounts: reactionCounts.get(row.id) ?? {},
+        viewerReactionType: viewerActiveTypes.get(row.id) ?? null,
+        authorNickname: profile?.nickname,
+        authorAvatarUrl: profile?.avatar_url ?? undefined,
+      };
+    });
   }
 
   async findByUser(userId: string): Promise<Review[]> {

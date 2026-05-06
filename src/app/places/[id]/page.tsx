@@ -1,18 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { Badge, PageContent } from '@/presentation/components/ui';
 import { PageTitle } from '@/presentation/contexts/TopBarContext';
-import { Star } from 'lucide-react';
 import { ReviewList } from '@/presentation/components/reviews/ReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
+import { PlaceInfo } from '@/presentation/components/places/PlaceInfo';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
-import {
-  ESTABLISHMENT_TYPE_META,
-  type EstablishmentType,
-} from '@/domain/value-objects/EstablishmentType';
 import { createServerSupabaseClient } from '@/presentation/lib/api-helpers';
 import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
@@ -42,7 +37,7 @@ export default async function PlaceDetailPage({ params }: Props) {
 
     const [place, reviews] = await Promise.all([
       getPlaceById.execute(id),
-      getPlaceReviews.execute(id),
+      getPlaceReviews.execute(id, user?.id),
     ]);
 
     // Serialize reviews for Client Component (convert Date to string)
@@ -52,10 +47,13 @@ export default async function PlaceDetailPage({ params }: Props) {
     }));
 
     const isOwner = user?.id === place.createdBy;
-
-    // Verificar se o usuário já avaliou este lugar
     const userReview = user ? reviews.find((r) => r.userId === user.id) : null;
     const canReview = user && !userReview;
+
+    const recommendPct =
+      reviews.length > 0
+        ? Math.round((reviews.filter((r) => r.rating >= 3.8).length / reviews.length) * 100)
+        : undefined;
 
     return (
       <div>
@@ -64,52 +62,22 @@ export default async function PlaceDetailPage({ params }: Props) {
         <PlaceDetailHeader lat={place.lat} lng={place.lng} name={place.name} placeId={place.id} />
 
         <PageContent centered>
-          {/* Header: Logo + Info */}
-          <div className="flex gap-4">
-            {/* Logo menor */}
-            {place.logoUrl && (
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border">
-                <Image src={place.logoUrl} alt={place.name} fill className="object-cover" />
-              </div>
-            )}
-
-            {/* Info ao lado do logo */}
-            <div className="flex-1">
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-xl font-bold text-text-primary leading-tight">{place.name}</h1>
-                {place.status === 'approved' && (
-                  <svg
-                    className="h-5 w-5 text-brand"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    aria-label="Verificado"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
-              <p className="mt-0.5 text-sm text-text-secondary leading-snug">
-                {place.address}, {place.numero}
-                {place.complemento && ` - ${place.complemento}`}
-                {place.bairro && ` · ${place.bairro}`} · {place.cidade}, {place.estado}
-              </p>
-              <p className="mt-1 text-xs text-text-secondary">
-                {ESTABLISHMENT_TYPE_META[place.establishmentType as EstablishmentType]?.label ||
-                  place.establishmentType}
-              </p>
-              {place.reviewsCount > 0 && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-text-secondary">
-                  <Star className="h-3 w-3 fill-warning text-warning" />
-                  {place.rating.toFixed(1)} · {place.reviewsCount} avaliações
-                  {place.medianPrice && ` · Mediana R$${place.medianPrice.toFixed(2)}`}
-                </p>
-              )}
-            </div>
-          </div>
+          <PlaceInfo
+            name={place.name}
+            status={place.status}
+            address={place.address}
+            numero={place.numero}
+            complemento={place.complemento}
+            bairro={place.bairro}
+            cidade={place.cidade}
+            estado={place.estado}
+            establishmentType={place.establishmentType}
+            reviewsCount={place.reviewsCount}
+            rating={place.rating}
+            medianPrice={place.medianPrice}
+            recommendPct={recommendPct}
+            logoUrl={place.logoUrl}
+          />
 
           {/* Badges */}
           <div className="mt-3 flex flex-wrap gap-2">
@@ -144,7 +112,7 @@ export default async function PlaceDetailPage({ params }: Props) {
             )}
           </div>
 
-          <ReviewList reviews={serializedReviews} />
+          <ReviewList reviews={serializedReviews} placeId={place.id} currentUserId={user?.id} />
         </PageContent>
       </div>
     );

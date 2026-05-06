@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/presentation/contexts/UserContext';
 
 interface UseListActionsOptions {
   listId: string;
@@ -17,12 +19,18 @@ export function useListActions({
   initialFavoritesCount,
   initialSavesCount,
 }: UseListActionsOptions) {
+  const { user } = useUser();
+  const router = useRouter();
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
   const [isSaved, setIsSaved] = useState(initialSaved);
   const [favoritesCount, setFavoritesCount] = useState(initialFavoritesCount);
   const [savesCount, setSavesCount] = useState(initialSavesCount);
 
   const toggleFavorite = useCallback(async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     // Optimistic update
     const next = !isFavorited;
     setIsFavorited(next);
@@ -41,7 +49,10 @@ export function useListActions({
   }, [listId, isFavorited]);
 
   const toggleSave = useCallback(async () => {
-    // Optimistic update
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     const next = !isSaved;
     setIsSaved(next);
     setSavesCount((c) => c + (next ? 1 : -1));

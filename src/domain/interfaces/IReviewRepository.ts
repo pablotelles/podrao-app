@@ -14,7 +14,7 @@ export interface CreateReviewData {
 }
 
 export interface IReviewRepository {
-  findByPlace(placeId: string): Promise<Review[]>;
+  findByPlace(placeId: string, viewerUserId?: string): Promise<Review[]>;
   findByUser(userId: string): Promise<Review[]>;
   findById(reviewId: string): Promise<Review | null>;
   create(data: CreateReviewData): Promise<Review>;

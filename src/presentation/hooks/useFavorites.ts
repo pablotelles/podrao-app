@@ -1,7 +1,9 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import useSWR, { mutate as globalMutate } from 'swr';
 import type { Favorite } from '@/domain/entities/Favorite';
+import { useUser } from '@/presentation/contexts/UserContext';
 
 async function fetcher(url: string): Promise<Favorite[]> {
   const res = await fetch(url);
@@ -10,11 +12,17 @@ async function fetcher(url: string): Promise<Favorite[]> {
 }
 
 export function useFavorites() {
+  const { user } = useUser();
+  const router = useRouter();
   const { data, error, isLoading, mutate } = useSWR<Favorite[]>('/api/favorites', fetcher, {
     revalidateOnFocus: false,
   });
 
   const toggle = async (placeId: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     // Optimistic update
     const currentFavorites = data ?? [];
     const isFavorited = currentFavorites.some((f) => f.placeId === placeId);
