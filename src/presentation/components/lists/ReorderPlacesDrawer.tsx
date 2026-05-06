@@ -11,11 +11,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import type { Place } from '@/domain/entities/Place';
 import { FullScreenDrawer } from '@/presentation/components/ui/FullScreenDrawer';
 import { Button } from '@/presentation/components/ui/Button';

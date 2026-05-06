@@ -147,11 +147,7 @@ export class SupabaseReviewRepository implements IReviewRepository {
   }
 
   async findById(reviewId: string): Promise<Review | null> {
-    const { data, error } = await this.db
-      .from('reviews')
-      .select('*')
-      .eq('id', reviewId)
-      .single();
+    const { data, error } = await this.db.from('reviews').select('*').eq('id', reviewId).single();
 
     if (error || !data) return null;
     return toDomain(data as ReviewRow, this.db);

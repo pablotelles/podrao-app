@@ -8,10 +8,10 @@ import { MapSkeleton } from './MapSkeleton';
 
 const loading = () => <MapSkeleton />;
 
-export const DynamicPlaceMap = dynamic(
-  () => import('@/presentation/components/places/PlaceMap'),
-  { ssr: false, loading },
-);
+export const DynamicPlaceMap = dynamic(() => import('@/presentation/components/places/PlaceMap'), {
+  ssr: false,
+  loading,
+});
 
 export const DynamicLocationPickerMap = dynamic(
   () => import('@/presentation/components/maps/LocationPickerMap'),
@@ -19,7 +19,6 @@ export const DynamicLocationPickerMap = dynamic(
 );
 
 export const DynamicPlaceDetailMap = dynamic(
-  () =>
-    import('@/presentation/components/places/PlaceDetailMap').then((m) => m.PlaceDetailMap),
+  () => import('@/presentation/components/places/PlaceDetailMap').then((m) => m.PlaceDetailMap),
   { ssr: false, loading },
 );

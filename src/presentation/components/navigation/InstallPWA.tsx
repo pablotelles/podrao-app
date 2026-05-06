@@ -65,7 +65,10 @@ export function InstallPWA() {
   return (
     <div
       className="fixed left-0 right-0 mx-3 rounded-xl border border-border bg-bg shadow-lg p-4 flex items-start gap-3"
-      style={{ bottom: 'calc(4rem + 12px + env(safe-area-inset-bottom))', zIndex: 'var(--z-sticky)' }}
+      style={{
+        bottom: 'calc(4rem + 12px + env(safe-area-inset-bottom))',
+        zIndex: 'var(--z-sticky)',
+      }}
     >
       {/* Ícone */}
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white">

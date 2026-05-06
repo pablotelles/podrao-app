@@ -11,11 +11,7 @@ interface AddPlaceResultRowProps {
 }
 
 export function AddPlaceResultRow({ place, added, loading, onAdd }: AddPlaceResultRowProps) {
-  const meta = [
-    PRICE_BUCKET_LABELS[place.priceBucket],
-    place.mealTypes[0],
-    place.bairro,
-  ]
+  const meta = [PRICE_BUCKET_LABELS[place.priceBucket], place.mealTypes[0], place.bairro]
     .filter(Boolean)
     .join(' · ');
 

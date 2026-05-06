@@ -1,7 +1,7 @@
 /**
  * scripts/reapply-migration.mjs
  * Remove uma migration do tracking e reaplicar em uma única operação
- * 
+ *
  * Uso: node scripts/reapply-migration.mjs <nome_da_migration>
  * Exemplo: node scripts/reapply-migration.mjs 03_create_tables.sql
  */
@@ -59,9 +59,9 @@ Isso vai:
 const MIGRATIONS_DIR = path.resolve(__dirname, '../src/infrastructure/database/migrations');
 
 async function run() {
-  const client = new Client({ 
-    connectionString: DATABASE_URL, 
-    ssl: { rejectUnauthorized: false } 
+  const client = new Client({
+    connectionString: DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
   });
 
   try {
@@ -76,10 +76,9 @@ async function run() {
     }
 
     // Remove do tracking (se existir)
-    const { rowCount } = await client.query(
-      'DELETE FROM _migrations WHERE filename = $1',
-      [migrationName]
-    );
+    const { rowCount } = await client.query('DELETE FROM _migrations WHERE filename = $1', [
+      migrationName,
+    ]);
 
     if (rowCount > 0) {
       console.log(`🔄  Migration "${migrationName}" removida do tracking.`);
@@ -94,10 +93,7 @@ async function run() {
     try {
       await client.query('BEGIN');
       await client.query(sql);
-      await client.query(
-        'INSERT INTO _migrations (filename) VALUES ($1)',
-        [migrationName]
-      );
+      await client.query('INSERT INTO _migrations (filename) VALUES ($1)', [migrationName]);
       await client.query('COMMIT');
       console.log(`✅  ${migrationName} aplicada com sucesso.`);
     } catch (err) {
@@ -110,7 +106,6 @@ async function run() {
     console.log('🔄  Recarregando schema do PostgREST...');
     await client.query("SELECT pg_notify('pgrst', 'reload schema')");
     console.log('✅  Schema recarregado!');
-    
   } catch (err) {
     console.error('❌  Erro:', err.message);
     process.exit(1);

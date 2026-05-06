@@ -126,8 +126,16 @@ export function ListPlaceCard({ place, listId, isOwner }: ListPlaceCardProps) {
           <p className="truncate font-semibold text-text-primary leading-tight">{place.name}</p>
           {subtitle && <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>}
           <div className="mt-0.5 flex items-center gap-1">
-            <PlaceRating rating={place.rating} reviewsCount={place.reviewsCount} showCount={false} />
-            {meta && <span className="truncate text-xs text-text-secondary">{place.reviewsCount > 0 ? `· ${meta}` : meta}</span>}
+            <PlaceRating
+              rating={place.rating}
+              reviewsCount={place.reviewsCount}
+              showCount={false}
+            />
+            {meta && (
+              <span className="truncate text-xs text-text-secondary">
+                {place.reviewsCount > 0 ? `· ${meta}` : meta}
+              </span>
+            )}
           </div>
         </Link>
 

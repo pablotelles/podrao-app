@@ -13,12 +13,12 @@ interface EditProfileFormProps {
 
 export function EditProfileForm({ user, onSaved, onCancel }: EditProfileFormProps) {
   const [form, setForm] = useState({
-    name:     user.name     ?? '',
+    name: user.name ?? '',
     nickname: user.nickname ?? '',
     headline: user.headline ?? '',
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function set(key: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -33,7 +33,7 @@ export function EditProfileForm({ user, onSaved, onCancel }: EditProfileFormProp
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name:     form.name.trim()     || undefined,
+          name: form.name.trim() || undefined,
           nickname: form.nickname.trim() || undefined,
           headline: form.headline.trim() || undefined,
         }),
@@ -54,7 +54,12 @@ export function EditProfileForm({ user, onSaved, onCancel }: EditProfileFormProp
       <div className="flex flex-col items-center gap-2">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand text-text-inverse text-2xl font-bold">
           {form.name
-            ? form.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+            ? form.name
+                .split(' ')
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase()
             : form.nickname.slice(0, 2).toUpperCase()}
         </div>
         <button className="text-sm text-brand font-medium">Alterar foto</button>
@@ -73,7 +78,12 @@ export function EditProfileForm({ user, onSaved, onCancel }: EditProfileFormProp
           <Input
             label="Nickname"
             value={form.nickname}
-            onChange={(e) => setForm((f) => ({ ...f, nickname: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                nickname: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+              }))
+            }
             placeholder="seunickname"
             maxLength={30}
           />

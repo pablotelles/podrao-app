@@ -77,7 +77,9 @@ export const cacheProvider: ICacheProvider = lazySingleton(() =>
     : new NullCacheProvider(),
 );
 const storageProvider = lazySingleton(() => new SupabaseStorageProvider());
-const mapProvider = lazySingleton(() => new LocationIQMapProvider(requireEnv('LOCATIONIQ_API_KEY')));
+const mapProvider = lazySingleton(
+  () => new LocationIQMapProvider(requireEnv('LOCATIONIQ_API_KEY')),
+);
 // Embedding desativado no MVP — ativa quando OPENAI_API_KEY estiver configurada
 const embeddingProvider: IEmbeddingProvider = lazySingleton(() =>
   process.env.OPENAI_API_KEY

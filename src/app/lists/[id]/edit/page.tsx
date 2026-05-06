@@ -187,7 +187,10 @@ export default function EditListPage() {
       </PageContent>
 
       {/* Footer fixo com botão salvar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg px-(--spacing-page-x) py-4 pb-safe" style={{ zIndex: 'var(--z-sticky)' }}>
+      <div
+        className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg px-(--spacing-page-x) py-4 pb-safe"
+        style={{ zIndex: 'var(--z-sticky)' }}
+      >
         <Button
           type="submit"
           form="edit-list-form"

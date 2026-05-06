@@ -4,11 +4,7 @@ import { useEffect, useRef } from 'react';
 import type { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet';
 import { createUserPinHtml, USER_PIN_SIZE, USER_PIN_ANCHOR } from './pins/userPin';
 import { ACTIVE_TILE_PROVIDER } from './tileProviders';
-import {
-  createPlacePinHtml,
-  getPinLeafletConfig,
-  type PinSize,
-} from './pins/placePin';
+import { createPlacePinHtml, getPinLeafletConfig, type PinSize } from './pins/placePin';
 
 export interface MapMarker {
   lat: number;
@@ -122,16 +118,11 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
         const bounds = L.latLngBounds(coords);
 
         // Diagonal do bounding box em km — decide o quão próximo ficar
-        const diagonalKm =
-          map.distance(bounds.getNorthWest(), bounds.getSouthEast()) / 1000;
+        const diagonalKm = map.distance(bounds.getNorthWest(), bounds.getSouthEast()) / 1000;
 
         // Quanto menor a diagonal, mais podemos aproximar
         // < 0.5 km → zoom 17 | < 2 km → 16 | < 8 km → 15 | maior → 13
-        const maxZoom =
-          diagonalKm < 0.5 ? 17
-          : diagonalKm < 2  ? 16
-          : diagonalKm < 8  ? 15
-          : 13;
+        const maxZoom = diagonalKm < 0.5 ? 17 : diagonalKm < 2 ? 16 : diagonalKm < 8 ? 15 : 13;
 
         map.fitBounds(bounds, { padding: [52, 52], maxZoom });
       };
@@ -148,9 +139,7 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
       // --- Criar mapa pela primeira vez ---
       const initialCenter =
         center ??
-        (markers[0]
-          ? { lat: markers[0].lat, lng: markers[0].lng }
-          : { lat: -23.55, lng: -46.63 });
+        (markers[0] ? { lat: markers[0].lat, lng: markers[0].lng } : { lat: -23.55, lng: -46.63 });
 
       const map = L.map(containerRef.current!, {
         center: [initialCenter.lat, initialCenter.lng],
@@ -186,7 +175,11 @@ export function Map({ markers = [], config = {}, height = '100%', className = ''
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossOrigin=""
+      />
       <div ref={containerRef} style={{ height, width: '100%' }} className={className} />
     </>
   );

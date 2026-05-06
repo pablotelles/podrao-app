@@ -42,13 +42,9 @@ export function ActionSheet({ open, onClose, header, actions }: ActionSheetProps
               action.variant === 'danger' ? 'text-error' : 'text-text-primary',
             ].join(' ')}
           >
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-              {action.icon}
-            </span>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center">{action.icon}</span>
             <span className="flex-1 text-left">{action.label}</span>
-            {action.checked && (
-              <Check className="h-4 w-4 shrink-0 text-brand" />
-            )}
+            {action.checked && <Check className="h-4 w-4 shrink-0 text-brand" />}
           </button>
         ))}
       </div>

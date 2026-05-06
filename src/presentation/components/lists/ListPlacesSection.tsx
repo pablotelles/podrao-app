@@ -25,9 +25,7 @@ export function ListPlacesSection({ places, isOwner, listId }: ListPlacesSection
   const [sortSheetOpen, setSortSheetOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
-  const [addedIds, setAddedIds] = useState<Set<string>>(
-    () => new Set(places.map((p) => p.id)),
-  );
+  const [addedIds, setAddedIds] = useState<Set<string>>(() => new Set(places.map((p) => p.id)));
 
   const sortedPlaces = useMemo(() => sortPlaces(places, sortOption), [places, sortOption]);
 
@@ -81,12 +79,7 @@ export function ListPlacesSection({ places, isOwner, listId }: ListPlacesSection
         ) : (
           <div className="divide-y divide-border px-3">
             {sortedPlaces.map((place) => (
-              <ListPlaceCard
-                key={place.id}
-                place={place}
-                listId={listId}
-                isOwner={isOwner}
-              />
+              <ListPlaceCard key={place.id} place={place} listId={listId} isOwner={isOwner} />
             ))}
           </div>
         )}
@@ -94,12 +87,7 @@ export function ListPlacesSection({ places, isOwner, listId }: ListPlacesSection
 
       {/* Botão Adicionar lugar (só dono) */}
       {isOwner && (
-        <Button
-          variant="dashed"
-          size="md"
-          className="w-full"
-          onClick={() => setDrawerOpen(true)}
-        >
+        <Button variant="dashed" size="md" className="w-full" onClick={() => setDrawerOpen(true)}>
           <Plus className="h-4 w-4" />
           Adicionar lugar
         </Button>
@@ -111,11 +99,7 @@ export function ListPlacesSection({ places, isOwner, listId }: ListPlacesSection
         actions={sortActions}
       />
 
-      <PlacesMapDrawer
-        open={mapOpen}
-        onClose={() => setMapOpen(false)}
-        places={places}
-      />
+      <PlacesMapDrawer open={mapOpen} onClose={() => setMapOpen(false)} places={places} />
 
       {isOwner && (
         <AddPlaceToListDrawer

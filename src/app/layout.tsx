@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'Onde Comer',
   description: 'Descubra lugares para comer perto de você',
   applicationName: 'Onde Comer',
+  themeColor: '#5856d6',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

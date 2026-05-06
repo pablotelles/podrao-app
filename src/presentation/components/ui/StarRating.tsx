@@ -58,13 +58,7 @@ export function StarRating({
               .join(' ')}
             aria-label={`${star} ${star === 1 ? 'estrela' : 'estrelas'}`}
           >
-            <span
-              className={
-                star <= value ? 'text-yellow-500' : 'text-gray-300'
-              }
-            >
-              ★
-            </span>
+            <span className={star <= value ? 'text-yellow-500' : 'text-gray-300'}>★</span>
           </button>
         ))}
       </div>

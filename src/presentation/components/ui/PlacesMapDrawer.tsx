@@ -11,7 +11,12 @@ interface PlacesMapDrawerProps {
   title?: string;
 }
 
-export function PlacesMapDrawer({ open, onClose, places, title = 'Ver no mapa' }: PlacesMapDrawerProps) {
+export function PlacesMapDrawer({
+  open,
+  onClose,
+  places,
+  title = 'Ver no mapa',
+}: PlacesMapDrawerProps) {
   return (
     <FullScreenDrawer open={open} onClose={onClose} title={title}>
       <div className="h-full">

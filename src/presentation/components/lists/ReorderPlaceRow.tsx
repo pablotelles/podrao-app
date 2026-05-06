@@ -25,11 +25,7 @@ export function ReorderPlaceRow({ place, position }: ReorderPlaceRowProps) {
   const subtitle = [place.establishmentType, place.bairro].filter(Boolean).join(' · ');
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-3 bg-bg py-3"
-    >
+    <div ref={setNodeRef} style={style} className="flex items-center gap-3 bg-bg py-3">
       {/* Drag handle */}
       <button
         {...attributes}
@@ -61,9 +57,7 @@ export function ReorderPlaceRow({ place, position }: ReorderPlaceRowProps) {
         <p className="truncate text-sm font-semibold text-text-primary leading-tight">
           {place.name}
         </p>
-        {subtitle && (
-          <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>
-        )}
+        {subtitle && <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>}
       </div>
     </div>
   );

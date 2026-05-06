@@ -14,9 +14,7 @@ export function PlaceMapPopup({ place, onViewMore, onClose }: PlaceMapPopupProps
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-semibold text-text-primary">{place.name}</p>
-          {place.bairro && (
-            <p className="mt-0.5 text-xs text-text-secondary">{place.bairro}</p>
-          )}
+          {place.bairro && <p className="mt-0.5 text-xs text-text-secondary">{place.bairro}</p>}
           <div className="mt-2 flex items-center gap-2">
             <span className="rounded-full border border-border px-2 py-0.5 text-xs font-medium text-brand">
               {PRICE_BUCKET_LABELS[place.priceBucket]}

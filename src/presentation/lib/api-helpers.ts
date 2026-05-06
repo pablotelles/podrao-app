@@ -49,9 +49,7 @@ export async function createRouteSupabaseClient() {
       getAll: () => cookieStore.getAll(),
       setAll: (list) => {
         try {
-          list.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
+          list.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         } catch {
           // Ignorado quando chamado de Server Component (read-only)
         }
@@ -66,7 +64,10 @@ export const createServerSupabaseClient = createRouteSupabaseClient;
 /** Retorna o usuário autenticado ou null. Usa getUser() (valida no servidor). */
 export async function getSession(): Promise<SupabaseUser | null> {
   const supabase = await createRouteSupabaseClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) console.error('[getSession] getUser error:', error.message, error.status);
   if (!user) console.warn('[getSession] no user found');
   if (error || !user) return null;
