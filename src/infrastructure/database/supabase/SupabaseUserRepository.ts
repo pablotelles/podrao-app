@@ -61,7 +61,12 @@ export class SupabaseUserRepository implements IUserRepository {
       const { data: authUser } = await admin.auth.admin.getUserById(id);
       if (!authUser.user) throw new Error('Usuário não encontrado no auth');
 
-      const defaultNickname = data.nickname ?? authUser.user.email?.split('@')[0] ?? id.slice(0, 8);
+      const meta = authUser.user.user_metadata as Record<string, string> | undefined;
+      const defaultNickname =
+        data.nickname ??
+        meta?.name?.split(' ')[0]?.toLowerCase() ??
+        authUser.user.email?.split('@')[0] ??
+        id.slice(0, 8);
 
       const { data: newProfile, error: insertError } = await admin
         .from('profiles')
@@ -69,9 +74,9 @@ export class SupabaseUserRepository implements IUserRepository {
           id,
           email: authUser.user.email!,
           nickname: defaultNickname,
-          name: data.name ?? null,
+          name: data.name ?? meta?.full_name ?? null,
           headline: data.headline ?? null,
-          avatar_url: data.avatarUrl ?? null,
+          avatar_url: data.avatarUrl ?? meta?.avatar_url ?? meta?.picture ?? null,
         })
         .select('id, email, nickname, name, headline, avatar_url, created_at')
         .single();

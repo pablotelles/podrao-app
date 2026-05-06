@@ -20,11 +20,17 @@ export async function GET() {
     // Profile pode não existir ainda (migration pendente ou usuário antigo sem perfil).
     // Retorna dados básicos do auth para não bloquear o acesso à conta.
     if (!user) {
-      const emailLocal = authUser.email?.split('@')[0] ?? authUser.id.slice(0, 8);
+      const meta = authUser.user_metadata as Record<string, string> | undefined;
+      const nickname =
+        meta?.name?.split(' ')[0]?.toLowerCase() ??
+        authUser.email?.split('@')[0] ??
+        authUser.id.slice(0, 8);
       return NextResponse.json({
         id: authUser.id,
         email: authUser.email ?? '',
-        nickname: emailLocal,
+        nickname,
+        name: meta?.full_name ?? undefined,
+        avatarUrl: meta?.avatar_url ?? meta?.picture ?? undefined,
         createdAt: new Date(),
       });
     }
