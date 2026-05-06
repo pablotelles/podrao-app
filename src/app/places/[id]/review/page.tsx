@@ -6,6 +6,8 @@ import { mutate } from 'swr';
 import useSWR from 'swr';
 import { PageContent, ProgressSteps, Button } from '@/presentation/components/ui';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
+import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
+import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
 import { StepRating } from '@/presentation/components/review-flow/StepRating';
 import { StepCategories } from '@/presentation/components/review-flow/StepCategories';
 import { StepComment } from '@/presentation/components/review-flow/StepComment';
@@ -31,6 +33,7 @@ export default function ReviewPage() {
 
   const [step, setStep] = useState(0);
   usePageTitle(STEPS[step] ?? 'Avaliação');
+  useSubHeaderHeight();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,11 +141,13 @@ export default function ReviewPage() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <PageContent className="mx-auto w-full max-w-lg flex-1 pb-28">
-        <div className="mb-6">
+    <div>
+      <SubHeaderPortal>
+        <div className="bg-bg px-(--spacing-page-x) py-3">
           <ProgressSteps currentStep={step} totalSteps={STEPS.length} labels={STEPS} />
         </div>
+      </SubHeaderPortal>
+      <PageContent className="mx-auto w-full max-w-lg pb-28">
         {step === 0 && (
           <StepRating
             value={rating}

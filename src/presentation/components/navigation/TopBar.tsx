@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, Bell } from 'lucide-react';
 import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
+import { useUser } from '@/presentation/contexts/UserContext';
 import type { User } from '@/domain/entities/User';
 
 const HIDDEN_ON = ['/login'];
@@ -39,14 +39,7 @@ function Avatar({ user }: { user: User | null }) {
 export function TopBar() {
   const pathname = usePathname();
   const { title } = useTopBarContext();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    fetch('/api/me')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: User | null) => setUser(data))
-      .catch(() => {});
-  }, []);
+  const { user } = useUser();
 
   if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
 
@@ -59,7 +52,7 @@ export function TopBar() {
       <Avatar user={user} />
 
       {/* Título */}
-      <h1 className="absolute left-1/2 -translate-x-1/2 text-base font-bold text-text-inverse">
+      <h1 className="absolute left-1/2 -translate-x-1/2 max-w-[55%] truncate text-base font-bold text-text-inverse">
         {title}
       </h1>
 

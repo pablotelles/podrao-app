@@ -9,6 +9,8 @@ import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
 import { Button, Input, PageContent, ProgressSteps } from '@/presentation/components/ui';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
+import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
+import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
 import { StepLocation } from '@/presentation/components/add-place/StepLocation';
 import { StepMealTypes } from '@/presentation/components/add-place/StepMealTypes';
 import { StepEstablishment } from '@/presentation/components/add-place/StepEstablishment';
@@ -75,6 +77,7 @@ export default function AddPlacePage() {
   const { submit, uploadPhoto, loading, error: submitError } = useAddPlace();
   const [step, setStep] = useState(0);
   usePageTitle(STEPS[step]);
+  useSubHeaderHeight();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -240,12 +243,13 @@ export default function AddPlacePage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <PageContent className="mx-auto w-full max-w-lg flex-1 pb-28">
-        <div className="mb-6">
+    <div>
+      <SubHeaderPortal>
+        <div className="bg-bg px-(--spacing-page-x) py-3">
           <ProgressSteps currentStep={step} totalSteps={STEPS.length} labels={STEPS} />
         </div>
-
+      </SubHeaderPortal>
+      <PageContent className="mx-auto w-full max-w-lg pb-28">
         <form id="add-place-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           {step === 0 && (
             <>

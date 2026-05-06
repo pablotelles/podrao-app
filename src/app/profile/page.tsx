@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, Pencil, MapPin, Star, Heart } from 'lucide-react';
 import { FullScreenDrawer, Button } from '@/presentation/components/ui';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
+import { useUser } from '@/presentation/contexts/UserContext';
 import {
   UserProfileHeader,
   EditProfileForm,
@@ -14,28 +15,18 @@ import {
   FavoritesTabContent,
 } from '@/presentation/components/profile';
 import { useUserStats } from '@/presentation/hooks/useUserStats';
-import type { User } from '@/domain/entities/User';
 
 export default function ProfilePage() {
   usePageTitle('Minha conta');
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, updateUser } = useUser();
   const [editOpen, setEditOpen] = useState(false);
   const { stats } = useUserStats();
 
-  useEffect(() => {
-    fetch('/api/me')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: User | null) => {
-        if (!data) {
-          router.replace('/login');
-          return;
-        }
-        setUser(data);
-      })
-      .finally(() => setLoading(false));
-  }, [router]);
+  if (!loading && !user) {
+    router.replace('/login');
+    return null;
+  }
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -43,7 +34,7 @@ export default function ProfilePage() {
   }
 
   function handleAvatarUpdate(newAvatarUrl: string) {
-    setUser((prev) => (prev ? { ...prev, avatarUrl: newAvatarUrl } : null));
+    updateUser({ avatarUrl: newAvatarUrl });
   }
 
   const initials = user?.name
@@ -56,13 +47,13 @@ export default function ProfilePage() {
     : (user?.nickname?.slice(0, 2).toUpperCase() ?? '??');
 
   return (
-    <main className="flex h-dvh flex-col bg-bg-subtle pb-16">
+    <main className="pb-16">
       {loading ? (
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex min-h-dvh items-center justify-center">
           <div className="h-8 w-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
         </div>
       ) : (
-        <div className="overflow-auto">
+        <div>
           {/* Hero do perfil - Layout horizontal com componente reutilizável */}
           <div className="bg-bg px-(--spacing-page-x) pb-6 pt-6 border-b border-border">
             <UserProfileHeader
@@ -145,7 +136,7 @@ export default function ProfilePage() {
           <EditProfileForm
             user={user}
             onSaved={(updated) => {
-              setUser(updated);
+              updateUser(updated);
               setEditOpen(false);
             }}
             onCancel={() => setEditOpen(false)}

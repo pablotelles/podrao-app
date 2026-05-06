@@ -19,6 +19,7 @@ export { OverlayIconButton } from './OverlayIconButton';
 export { PlacesMapDrawer } from './PlacesMapDrawer';
 export { PlaceRating } from './PlaceRating';
 export { ExpandableText } from './ExpandableText';
+export { StickyBar } from './StickyBar';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
 export { MealTypeCard } from './MealTypeCard';

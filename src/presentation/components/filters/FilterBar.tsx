@@ -22,58 +22,66 @@ export interface FilterValues {
 interface FilterBarProps {
   values: FilterValues;
   onChange: (values: FilterValues) => void;
+  /** Controlled open state. When provided, hides internal trigger button. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const RADIUS_OPTIONS = [500, 1000, 2000, 3000, 5000] as const;
 
-export function FilterBar({ values, onChange }: FilterBarProps) {
-  const [open, setOpen] = useState(false);
+export function FilterBar({ values, onChange, open: openProp, onOpenChange }: FilterBarProps) {
+  const [openInternal, setOpenInternal] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openInternal;
+  const setOpen = isControlled ? (v: boolean) => onOpenChange?.(v) : setOpenInternal;
   const activeCount = Object.values(values).filter(Boolean).length;
 
   return (
     <>
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
-          Filtros {activeCount > 0 && <Badge variant="brand">{activeCount}</Badge>}
-        </Button>
+      {!isControlled && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+            Filtros {activeCount > 0 && <Badge variant="brand">{activeCount}</Badge>}
+          </Button>
+        </div>
+      )}
 
-        {values.mealType && (
-          <Badge
-            variant="brand"
-            className="cursor-pointer"
-            onClick={() => onChange({ ...values, mealType: undefined })}
-          >
-            {values.mealType} ✕
-          </Badge>
-        )}
-        {values.cuisine && (
-          <Badge
-            variant="brand"
-            className="cursor-pointer"
-            onClick={() => onChange({ ...values, cuisine: undefined })}
-          >
-            {values.cuisine} ✕
-          </Badge>
-        )}
-        {values.foodType && (
-          <Badge
-            variant="brand"
-            className="cursor-pointer"
-            onClick={() => onChange({ ...values, foodType: undefined })}
-          >
-            {FOOD_TYPE_META[values.foodType].label} ✕
-          </Badge>
-        )}
-        {values.priceBucket && (
-          <Badge
-            variant="brand"
-            className="cursor-pointer"
-            onClick={() => onChange({ ...values, priceBucket: undefined })}
-          >
-            {PRICE_BUCKET_LABELS[values.priceBucket]} ✕
-          </Badge>
-        )}
-      </div>
+      {!isControlled && values.mealType && (
+        <Badge
+          variant="brand"
+          className="cursor-pointer"
+          onClick={() => onChange({ ...values, mealType: undefined })}
+        >
+          {values.mealType} ✕
+        </Badge>
+      )}
+      {!isControlled && values.cuisine && (
+        <Badge
+          variant="brand"
+          className="cursor-pointer"
+          onClick={() => onChange({ ...values, cuisine: undefined })}
+        >
+          {values.cuisine} ✕
+        </Badge>
+      )}
+      {!isControlled && values.foodType && (
+        <Badge
+          variant="brand"
+          className="cursor-pointer"
+          onClick={() => onChange({ ...values, foodType: undefined })}
+        >
+          {FOOD_TYPE_META[values.foodType].label} ✕
+        </Badge>
+      )}
+      {!isControlled && values.priceBucket && (
+        <Badge
+          variant="brand"
+          className="cursor-pointer"
+          onClick={() => onChange({ ...values, priceBucket: undefined })}
+        >
+          {PRICE_BUCKET_LABELS[values.priceBucket]} ✕
+        </Badge>
+      )}
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Filtros">
         <div className="flex flex-col gap-6">
@@ -123,6 +131,7 @@ export function FilterBar({ values, onChange }: FilterBarProps) {
               setOpen(false);
             }}
             variant="ghost"
+            className="w-full"
           >
             Limpar filtros
           </Button>
