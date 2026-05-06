@@ -48,7 +48,7 @@ export function ListDetailHeader({
   const [reorderOpen, setReorderOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
 
-  const { isSaved, savesCount, toggleSave } = useListActions({
+  const { isSaved, toggleSave } = useListActions({
     listId,
     initialFavorited: false,
     initialSaved,

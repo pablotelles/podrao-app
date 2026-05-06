@@ -78,7 +78,7 @@ export function InstallPWA() {
         {showIOSHint ? (
           <p className="mt-0.5 text-xs text-text-secondary">
             Toque em <Share className="inline h-3.5 w-3.5 align-text-bottom" /> e depois{' '}
-            <strong>"Adicionar à tela de início"</strong>
+            <strong>&ldquo;Adicionar à tela de início&rdquo;</strong>
           </p>
         ) : (
           <p className="mt-0.5 text-xs text-text-secondary">

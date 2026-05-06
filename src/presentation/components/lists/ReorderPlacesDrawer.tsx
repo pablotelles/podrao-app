@@ -38,11 +38,6 @@ export function ReorderPlacesDrawer({
   const [places, setPlaces] = useState<Place[]>(initialPlaces);
   const [saving, setSaving] = useState(false);
 
-  // Sincroniza quando o drawer abre com uma lista atualizada
-  const handleOpenChange = () => {
-    setPlaces(initialPlaces);
-  };
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
