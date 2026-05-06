@@ -19,8 +19,7 @@ import { useReactionGroup } from '@/presentation/hooks/useReactionGroup';
 import { StarRating } from '@/presentation/components/ui/StarRating';
 import { MEAL_TYPE_META, type MealType } from '@/domain/value-objects/MealType';
 import type { Review } from '@/domain/entities/Review';
-import { Card } from '../ui';
-
+import { REVIEW_COMMENT_MAX_CHARS } from './reviewConfig';
 type SerializedReview = Omit<Review, 'createdAt'> & { createdAt: string | Date };
 
 interface ReviewCardProps {
@@ -45,6 +44,7 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [commentExpanded, setCommentExpanded] = useState(false);
 
   const mealMeta = review.mealType ? MEAL_TYPE_META[review.mealType as MealType] : null;
 
@@ -80,7 +80,7 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
   };
 
   return (
-    <Card>
+    <div className="p-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3">
@@ -185,9 +185,27 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
       </div>
 
       {/* Comentário */}
-      {review.comment && (
-        <p className="mt-2 text-sm leading-relaxed text-text-primary">{review.comment}</p>
-      )}
+      {review.comment &&
+        (() => {
+          const isTruncatable = review.comment.length > REVIEW_COMMENT_MAX_CHARS;
+          const displayed =
+            isTruncatable && !commentExpanded
+              ? review.comment.slice(0, REVIEW_COMMENT_MAX_CHARS).trimEnd() + '…'
+              : review.comment;
+          return (
+            <div className="mt-2">
+              <p className="text-sm leading-relaxed text-text-primary">{displayed}</p>
+              {isTruncatable && (
+                <button
+                  onClick={() => setCommentExpanded((v) => !v)}
+                  className="mt-0.5 text-xs font-medium text-brand"
+                >
+                  {commentExpanded ? 'Ver menos' : 'Ver mais'}
+                </button>
+              )}
+            </div>
+          );
+        })()}
 
       {/* Fotos */}
       {review.photos && review.photos.length > 0 && (
@@ -201,7 +219,7 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
       )}
 
       {/* Ações */}
-      <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+      <div className="mt-3 flex items-center gap-2">
         {(
           [
             {
@@ -272,16 +290,7 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
             </button>
           );
         })}
-        <div className="ml-auto">
-          <button
-            onClick={handleShare}
-            aria-label="Compartilhar"
-            className="rounded-full p-1.5 text-text-secondary transition-colors hover:bg-bg-subtle"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
-        </div>
       </div>
-    </Card>
+    </div>
   );
 }
