@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 style={{ top: 'var(--topbar-height)', zIndex: 'var(--z-sticky)' }}
               />
               <div
-                className="min-h-dvh"
+                className="flex min-h-dvh flex-col"
                 style={{ paddingTop: 'calc(var(--topbar-height) + var(--subheader-height))' }}
               >
                 {children}

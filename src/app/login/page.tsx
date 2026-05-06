@@ -80,7 +80,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-(--spacing-page-x)">
+    <main className="flex flex-1 items-center justify-center px-(--spacing-page-x)">
       <div className="w-full max-w-sm">
         <h1 className="mb-2 text-2xl font-bold text-text-primary">Entrar</h1>
         <p className="mb-8 text-sm text-text-secondary">Entre com sua conta para continuar.</p>
