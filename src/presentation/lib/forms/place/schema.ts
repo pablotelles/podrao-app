@@ -19,6 +19,7 @@ export const createPlaceSchema = z.object({
   mealTypes: z.array(z.enum(MEAL_TYPES)).min(1, 'Selecione ao menos um tipo de refeição'),
   foodTypes: z.array(z.enum(FOOD_TYPES)).min(1, 'Selecione ao menos um tipo de comida'),
   priceBucket: z.enum(PRICE_BUCKETS),
+  description: z.string().max(1500).optional(),
   photoUrl: z.string().url().optional(),
 });
 

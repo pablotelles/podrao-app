@@ -21,6 +21,7 @@ export interface Place {
   mealTypes: MealType[];
   foodTypes: FoodType[];
   priceBucket: PriceBucket;
+  description?: string;
   medianPrice?: number;
   /** URL do logo (extraída da relação place_photos where type='logo') */
   logoUrl?: string;

@@ -32,6 +32,7 @@ export class CreatePlace {
       mealTypes: dto.mealTypes,
       foodTypes: dto.foodTypes,
       priceBucket: dto.priceBucket,
+      description: dto.description,
       photoUrl: dto.photoUrl,
       createdBy: dto.userId, // Use Case define created_by a partir do userId autenticado
     });

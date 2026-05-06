@@ -27,6 +27,7 @@ interface PlaceRow {
   meal_types: string[];
   food_types: string[];
   price_bucket: string;
+  description: string | null;
   median_price: number | null;
   logo_url: string | null;
   rating: number;
@@ -52,6 +53,7 @@ interface PlaceRowWithRelations {
   lng: number | string;
   establishment_type: string;
   price_bucket: string;
+  description: string | null;
   status: string;
   created_by: string | null;
   created_at: string;
@@ -93,6 +95,7 @@ function toDomain(row: PlaceRow): Place {
     mealTypes: (row.meal_types ?? []) as MealType[],
     foodTypes: (row.food_types ?? []) as FoodType[],
     priceBucket: row.price_bucket as PriceBucket,
+    description: row.description ?? undefined,
     medianPrice: row.median_price ?? undefined,
     logoUrl: row.logo_url ?? undefined,
     rating: Number(row.rating ?? 0),
@@ -166,6 +169,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       mealTypes,
       foodTypes,
       priceBucket: row.price_bucket as PriceBucket,
+      description: row.description ?? undefined,
       medianPrice: stats?.median_price ?? undefined,
       logoUrl: logo?.url ?? undefined,
       rating: Number(stats?.rating ?? 0),
@@ -239,6 +243,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
         location: `SRID=4326;POINT(${data.lng} ${data.lat})`,
         establishment_type: data.establishmentType,
         price_bucket: data.priceBucket,
+        description: data.description ?? null,
         created_by: data.createdBy,
         status: 'pending',
       })

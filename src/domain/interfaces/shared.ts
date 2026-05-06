@@ -32,6 +32,7 @@ export interface CreatePlaceData {
   mealTypes: MealType[];
   foodTypes: FoodType[];
   priceBucket: PriceBucket;
+  description?: string;
   photoUrl?: string;
   createdBy: string;
 }

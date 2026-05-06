@@ -8,6 +8,7 @@ import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initial
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
 import { Button, Input, PageContent, ProgressSteps } from '@/presentation/components/ui';
+import { Textarea } from '@/presentation/components/ui/Textarea';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
 import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
@@ -254,6 +255,14 @@ export default function AddPlacePage() {
           {step === 0 && (
             <>
               <Input label="Nome do lugar" error={errors.name?.message} {...register('name')} />
+              <Textarea
+                label="Descrição"
+                placeholder="Conte um pouco sobre o lugar, o que o torna especial..."
+                helperText="Opcional · máx. 500 caracteres"
+                rows={3}
+                error={errors.description?.message}
+                {...register('description')}
+              />
               <StepLocation
                 selected={selectedAddress}
                 onSelect={handleAddressSelect}

@@ -19,6 +19,7 @@ interface PlaceInfoProps {
   establishmentType: string;
   reviewsCount: number;
   rating: number;
+  description?: string;
   medianPrice?: number;
   recommendPct?: number;
   logoUrl?: string;
@@ -35,6 +36,7 @@ export function PlaceInfo({
   establishmentType,
   reviewsCount,
   rating,
+  description,
   medianPrice,
   recommendPct,
   logoUrl,
@@ -96,6 +98,13 @@ export function PlaceInfo({
           </>
         )}
       </div>
+
+      {description && (
+        <div className="border-t border-border pt-3">
+          <p className="text-xs font-medium text-text-secondary mb-1">Sobre</p>
+          <p className="text-sm leading-relaxed text-text-primary">{description}</p>
+        </div>
+      )}
     </div>
   );
 }
