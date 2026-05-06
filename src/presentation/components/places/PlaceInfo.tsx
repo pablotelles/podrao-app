@@ -5,7 +5,7 @@ import {
   type EstablishmentType,
 } from '@/domain/value-objects/EstablishmentType';
 import type { PlaceStatus } from '@/domain/entities/Place';
-import { PlaceRating } from '@/presentation/components/ui';
+import { PlaceRating, ExpandableText } from '@/presentation/components/ui';
 
 interface PlaceInfoProps {
   name: string;
@@ -101,8 +101,7 @@ export function PlaceInfo({
 
       {description && (
         <div className="border-t border-border pt-3">
-          <p className="text-xs font-medium text-text-secondary mb-1">Sobre</p>
-          <p className="text-sm leading-relaxed text-text-primary">{description}</p>
+          <ExpandableText text={description} maxLines={2} />
         </div>
       )}
     </div>
