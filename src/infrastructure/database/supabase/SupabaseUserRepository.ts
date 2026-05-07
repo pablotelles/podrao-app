@@ -1,4 +1,4 @@
-import type { User } from '@/domain/entities/User';
+import type { User, UserRole } from '@/domain/entities/User';
 import type { IUserRepository, UpdateProfileData } from '@/domain/interfaces/IUserRepository';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase, createAdminClient } from './client';
@@ -12,6 +12,7 @@ interface ProfileRow {
   name: string | null;
   headline: string | null;
   avatar_url: string | null;
+  role: UserRole;
   created_at: string;
 }
 
@@ -23,6 +24,7 @@ function toDomain(row: ProfileRow): User {
     name: row.name ?? undefined,
     headline: row.headline ?? undefined,
     avatarUrl: row.avatar_url ?? undefined,
+    role: row.role,
     createdAt: new Date(row.created_at),
   };
 }
@@ -33,7 +35,7 @@ export class SupabaseUserRepository implements IUserRepository {
   async findById(id: string): Promise<User | null> {
     const { data, error } = await this.db
       .from('profiles')
-      .select('id, email, nickname, name, headline, avatar_url, created_at')
+      .select('id, email, nickname, name, headline, avatar_url, role, created_at')
       .eq('id', id)
       .single();
 
@@ -44,7 +46,7 @@ export class SupabaseUserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const { data, error } = await this.db
       .from('profiles')
-      .select('id, email, nickname, name, headline, avatar_url, created_at')
+      .select('id, email, nickname, name, headline, avatar_url, role, created_at')
       .eq('email', email)
       .single();
 
@@ -59,7 +61,7 @@ export class SupabaseUserRepository implements IUserRepository {
 
     if (!existing) {
       const { data: authUser } = await admin.auth.admin.getUserById(id);
-      if (!authUser.user) throw new Error('Usuário não encontrado no auth');
+      if (!authUser.user) throw new Error('Usuario nao encontrado no auth');
 
       const meta = authUser.user.user_metadata as Record<string, string> | undefined;
       const defaultNickname =
@@ -78,7 +80,7 @@ export class SupabaseUserRepository implements IUserRepository {
           headline: data.headline ?? null,
           avatar_url: data.avatarUrl ?? meta?.avatar_url ?? meta?.picture ?? null,
         })
-        .select('id, email, nickname, name, headline, avatar_url, created_at')
+        .select('id, email, nickname, name, headline, avatar_url, role, created_at')
         .single();
 
       if (insertError) throw new Error(`Erro ao criar perfil: ${insertError.message}`);
@@ -95,7 +97,7 @@ export class SupabaseUserRepository implements IUserRepository {
       .from('profiles')
       .update(patch)
       .eq('id', id)
-      .select('id, email, nickname, name, headline, avatar_url, created_at')
+      .select('id, email, nickname, name, headline, avatar_url, role, created_at')
       .single();
 
     if (error) throw new Error(error.message);

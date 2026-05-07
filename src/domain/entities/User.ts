@@ -1,3 +1,5 @@
+export type UserRole = 'user' | 'admin';
+
 export interface User {
   id: string;
   email: string;
@@ -5,5 +7,6 @@ export interface User {
   name?: string;
   headline?: string;
   avatarUrl?: string;
+  role: UserRole;
   createdAt: Date;
 }
