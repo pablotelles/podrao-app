@@ -8,6 +8,7 @@ Use the `podrao-supabase-migration` subagent to handle this schema change for th
 $ARGUMENTS
 
 The migration agent MUST:
+
 1. Read CLAUDE.md (Database section) and inspect recent migrations for naming/style.
 2. Use the next numeric prefix for the migration file (e.g., `11_<description>.sql`).
 3. Update the corresponding domain entity, repository interface, and SupabaseXRepository implementation to keep TS in sync.

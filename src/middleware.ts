@@ -30,13 +30,37 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/lists/new') ||
     request.nextUrl.pathname.match(/\/lists\/[^/]+\/edit/);
 
+  const isAdminProtected = request.nextUrl.pathname.startsWith('/admin');
+
   if (isProtected && !user) {
     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  if (isAdminProtected) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ['/add-place/:path*', '/profile/:path*', '/lists/new', '/lists/:id/edit'],
+  matcher: [
+    '/add-place/:path*',
+    '/profile/:path*',
+    '/lists/new',
+    '/lists/:id/edit',
+    '/admin/:path*',
+  ],
 };
