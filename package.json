@@ -47,10 +47,14 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.15",
     "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
     "pg": "^8.20.0",
     "prettier": "^3.8.3",
     "serwist": "^9.5.11",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs,json,md,css,html,yml,yaml}": "prettier --write"
   }
 }

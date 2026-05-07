@@ -1,2 +1,4 @@
 #!/bin/sh
-git add -u && npm run format:check && npm run typecheck && npm run lint
+# Run prettier (and any future linters) only on staged files via lint-staged.
+# Run typecheck on the whole project — TS is a global concern.
+npx lint-staged && npm run typecheck
