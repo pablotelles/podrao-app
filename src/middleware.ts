@@ -36,18 +36,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (!isAdminProtected) {
+  if (isAdminProtected) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || profile.role !== 'admin') {
+    if (user.app_metadata?.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

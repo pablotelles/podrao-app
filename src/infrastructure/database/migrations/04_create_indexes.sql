@@ -65,3 +65,12 @@ CREATE INDEX idx_list_favorites_list ON list_favorites(list_id);
 -- ─── list_saves indexes ─────────────────────────────────────────────────────
 CREATE INDEX idx_list_saves_user ON list_saves(user_id);
 CREATE INDEX idx_list_saves_list ON list_saves(list_id);
+
+-- ─── reactions indexes ───────────────────────────────────────────────────────
+CREATE INDEX idx_reactions_entity ON reactions(entity_type, entity_id, type);
+CREATE INDEX idx_reactions_user ON reactions(user_id, entity_type, type);
+CREATE INDEX idx_reaction_counts_entity ON reaction_counts(entity_type, entity_id);
+
+-- ─── places moderation indexes ───────────────────────────────────────────────
+CREATE INDEX idx_places_pending_created_at ON places(created_at DESC) WHERE status = 'pending';
+CREATE INDEX idx_places_rejected_status ON places(status) WHERE status = 'rejected';

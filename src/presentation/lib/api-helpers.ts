@@ -70,15 +70,7 @@ export async function requireAdmin(): Promise<SupabaseUser> {
   } = await supabase.auth.getUser();
   if (error || !user) throw new UnauthorizedError();
 
-  const { createAdminClient } = await import('@/infrastructure/database/supabase/client');
-  const adminClient = createAdminClient();
-  const { data: profile, error: profileError } = await adminClient
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !profile || profile.role !== 'admin') {
+  if (user.app_metadata?.role !== 'admin') {
     throw new UnauthorizedError('Acesso restrito a administradores');
   }
 

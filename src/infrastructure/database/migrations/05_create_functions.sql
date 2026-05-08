@@ -205,12 +205,18 @@ BEGIN
     final_nick := base_nick || counter::TEXT;
   END LOOP;
 
-  INSERT INTO profiles (id, nickname, email)
-  VALUES (NEW.id, final_nick, NEW.email);
+  INSERT INTO profiles (id, nickname, email, name, avatar_url)
+  VALUES (
+    NEW.id,
+    final_nick,
+    NEW.email,
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'avatar_url'), '')
+  );
   
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger: create profile on user signup
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -236,6 +242,32 @@ DROP TRIGGER IF EXISTS trigger_award_review_points ON reviews;
 CREATE TRIGGER trigger_award_review_points
   AFTER INSERT ON reviews
   FOR EACH ROW EXECUTE FUNCTION award_review_points();
+
+-- ─── update_reaction_counts ──────────────────────────────────────────────────
+-- Maintain reaction_counts in sync with reactions table
+CREATE OR REPLACE FUNCTION update_reaction_counts()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO reaction_counts (entity_type, entity_id, type, count)
+    VALUES (NEW.entity_type, NEW.entity_id, NEW.type, 1)
+    ON CONFLICT (entity_type, entity_id, type)
+    DO UPDATE SET count = reaction_counts.count + 1;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE reaction_counts
+    SET count = GREATEST(0, count - 1)
+    WHERE entity_type = OLD.entity_type
+      AND entity_id   = OLD.entity_id
+      AND type        = OLD.type;
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_update_reaction_counts ON reactions;
+CREATE TRIGGER trg_update_reaction_counts
+  AFTER INSERT OR DELETE ON reactions
+  FOR EACH ROW EXECUTE FUNCTION update_reaction_counts();
 
 -- ─── increment_list_view_count ───────────────────────────────────────────────
 -- Function to increment list view count (called from application layer)

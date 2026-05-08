@@ -40,12 +40,21 @@ CREATE TABLE places (
   price_bucket       price_bucket_enum NOT NULL,
   status             TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   
+  description        TEXT,
+
   -- Column for semantic search (post-MVP) - NULL during MVP
   embedding          vector(1536),
-  
+
+  rejection_reason   TEXT,
+
   created_by         UUID REFERENCES auth.users(id),
   created_at         TIMESTAMPTZ DEFAULT NOW(),
-  updated_at         TIMESTAMPTZ DEFAULT NOW()
+  updated_at         TIMESTAMPTZ DEFAULT NOW(),
+
+  CONSTRAINT places_rejection_reason_check CHECK (
+    (status = 'rejected' AND rejection_reason IS NOT NULL)
+    OR (status <> 'rejected' AND rejection_reason IS NULL)
+  )
 );
 
 -- ─── place_cuisines ──────────────────────────────────────────────────────────
@@ -127,6 +136,7 @@ CREATE TABLE review_photos (
 
 -- ─── profiles ────────────────────────────────────────────────────────────────
 -- Public user profiles (separate from auth.users to avoid exposing sensitive data)
+-- Role is stored in auth.users.app_metadata (Supabase native, service_role only)
 CREATE TABLE profiles (
   id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   nickname    TEXT UNIQUE NOT NULL,
@@ -188,6 +198,27 @@ CREATE TABLE list_saves (
   list_id    UUID NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id, list_id)
+);
+
+-- ─── reactions ───────────────────────────────────────────────────────────────
+-- Generic reactions for any entity (places, reviews, lists)
+CREATE TABLE reactions (
+  user_id     UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  entity_type TEXT        NOT NULL,
+  entity_id   UUID        NOT NULL,
+  type        TEXT        NOT NULL DEFAULT 'useful',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, entity_type, entity_id, type)
+);
+
+-- ─── reaction_counts ─────────────────────────────────────────────────────────
+-- Denormalized counters maintained by trigger — O(1) reads without COUNT(*)
+CREATE TABLE reaction_counts (
+  entity_type TEXT    NOT NULL,
+  entity_id   UUID    NOT NULL,
+  type        TEXT    NOT NULL,
+  count       INTEGER NOT NULL DEFAULT 0 CHECK (count >= 0),
+  PRIMARY KEY (entity_type, entity_id, type)
 );
 
 -- Grant permissions to Supabase roles
