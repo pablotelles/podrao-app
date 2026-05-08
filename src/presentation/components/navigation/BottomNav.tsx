@@ -9,7 +9,7 @@ const TABS = [
   { href: '/', label: 'Explorar', Icon: Compass },
   { href: '/add-place', label: 'Adicionar', Icon: PlusCircle, exact: true },
   { href: '/lists', label: 'Listas', Icon: List },
-  { href: '/profile', label: 'Conta', Icon: UserCircle },
+  { href: '/profile', label: 'Perfil', Icon: UserCircle },
 ];
 
 /** Páginas onde a nav não deve aparecer */
