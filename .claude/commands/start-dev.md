@@ -1,25 +1,31 @@
 ---
-description: Start the dev pipeline for the current task. Reads .claude/current-task.json and runs architect -> migration -> feature-builder -> reviewer in sequence.
-argument-hint: [optional path to task file, default: .claude/current-task.json]
+description: Start the dev pipeline for a Jira card. Reads context directly from the card (Spec Path, Dev Spec Path, Approved Decisions) and runs architect -> migration -> feature-builder -> reviewer.
+argument-hint: <card ID, ex: KAN-9>
 ---
 
-## Read the handoff
+## Read context from Jira
 
-Read the file: `.claude/current-task.json`
-(or the path passed as argument: $ARGUMENTS)
+The card ID is: $ARGUMENTS
 
-File schema:
+Use `getJiraIssue` to fetch the card:
 
-- `card` - Jira card ID (ex: KAN-9)
-- `title` - task title
-- `spec_path` - product spec path (relative to repo root Podrao/)
-- `dev_spec_path` - designer dev spec path, or null
-- `approved_decisions` - decisions already approved by Pablo
-- `files_to_avoid` - files that must not be touched
-- `branch` - git branch to use
-- `status` - must be "ready_for_dev" to proceed
+- cloudId: `9da10909-fb30-4de2-82ca-bfc61b493507`
+- issueIdOrKey: $ARGUMENTS
 
-If `status` is not "ready_for_dev", report and stop.
+Extract these fields from the response:
+
+- `fields.customfield_10075` -> spec_path (plain text)
+- `fields.customfield_10073` -> dev_spec_path (ADF paragraph, extract `.content[0].content[0].text`)
+- `fields.customfield_10074` -> approved_decisions (ADF paragraph, extract text and split by newline)
+- `fields.summary` -> card title
+- `fields.description` -> additional context
+
+If `customfield_10075` is null or empty, stop and tell the user the spec_path field is not filled in the Jira card. The Cowork product phase must run first.
+
+Derive the branch name from the card key and title:
+
+- Format: `feat/[card-lowercase]-[slug-of-title]`
+- Example: KAN-9 "API de moderacao admin" -> `feat/kan-9-api-moderacao-admin`
 
 ---
 
@@ -31,10 +37,10 @@ Execute in order. Each step uses an isolated subagent via Task tool.
 
 Use subagent `podrao-architect` with:
 
-- Full contents of spec file at `spec_path` (read from parent folder ../docs/...)
-- Full contents of `dev_spec_path` if not null
-- `approved_decisions` and `files_to_avoid`
-- Card ID and branch name
+- Full file contents at spec_path (read the file)
+- Full file contents at dev_spec_path if not null (read the file)
+- approved_decisions list
+- Card ID, title, and branch
 
 From architect JSON output:
 
@@ -55,13 +61,13 @@ From migration JSON output:
 
 ### Step 3 - Feature Builder
 
-If branch not created yet (migration was skipped): `git checkout -b [branch]`
+If branch not created yet: `git checkout -b [branch]`
 
 Use subagent `podrao-feature-builder` with:
 
 - Architect plan
 - Migration output (if any)
-- `approved_decisions` and `files_to_avoid`
+- approved_decisions and any files_to_avoid
 
 From feature-builder JSON output:
 
@@ -79,7 +85,7 @@ From reviewer JSON output (`sign_off`):
 
 ### Step 5 - Final checks
 
-Run in `podrao-app/` directory:
+Run in the project directory:
 
 ```
 npm run typecheck
@@ -107,5 +113,3 @@ git push origin [branch]
 
 Reviewer warnings: [important[] or "none"]
 ```
-
-Update `.claude/current-task.json` with `status: "done"`.
