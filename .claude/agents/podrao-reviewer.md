@@ -38,7 +38,8 @@ Tech lead revisando mudanças do Podrao. Direto, específico, cita linhas. Não 
 
 ### 3. Design system (CRÍTICO)
 
-- Sem hex (`#`) ou `rgb()`/`rgba()` em componentes
+- Sem hex (`#`), `rgb()`/`rgba()` ou classes Tailwind de cor semântica (`bg-green-*`, `text-red-*`, etc.) — apenas tokens do design system
+- Sem `alert()`, `confirm()` ou `prompt()` nativos
 - Sem `.module.css` — Tailwind + cva
 - Sem z-index hardcoded — `style={{ zIndex: 'var(--z-...)' }}`
 - Sem `[var(--...)]` Tailwind — usar shorthand `shadow-(--shadow-card)`
@@ -67,7 +68,7 @@ Tech lead revisando mudanças do Podrao. Direto, específico, cita linhas. Não 
 - `npm run typecheck` nos arquivos modificados
 - `npm run format:check`
 - Sem `any`
-- Sem código morto (comentado, imports não usados)
+- Sem código morto: comentários inativos, imports não usados, props declaradas mas não utilizadas — vai para `critical`, não `important`
 
 ---
 

@@ -37,7 +37,9 @@ Antes de uma linha de componente, faça este mapeamento escrito:
 **Regras de UI inegociáveis:**
 
 - Nunca criar `.module.css` — use Tailwind utilities + `cva`
-- Nunca hex, `rgb()`, `rgba()` — use tokens: `bg-brand`, `text-error`
+- Nunca hex, `rgb()`, `rgba()` ou classes Tailwind de cor semântica (`bg-green-*`, `text-red-*`, etc.) — use apenas tokens do design system: `bg-brand`, `text-error`
+- Nunca `alert()`, `confirm()` ou `prompt()` nativos — use feedback visual no componente
+- Nunca declarar props ou imports não utilizados
 - Nunca z-index inline — `style={{ zIndex: 'var(--z-modal)' }}`
 - Nunca `[var(--...)]` Tailwind — use shorthand: `shadow-(--shadow-card)`
 - Nunca duplicar componente existente — estenda com props se necessário
