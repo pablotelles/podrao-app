@@ -5,16 +5,25 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 interface TopBarContextValue {
   title: string;
   setTitle: (title: string) => void;
+  hideBottomNav: boolean;
+  setHideBottomNav: (hide: boolean) => void;
 }
 
 const TopBarContext = createContext<TopBarContextValue>({
   title: '',
   setTitle: () => {},
+  hideBottomNav: false,
+  setHideBottomNav: () => {},
 });
 
 export function TopBarProvider({ children }: { children: ReactNode }) {
   const [title, setTitle] = useState('');
-  return <TopBarContext.Provider value={{ title, setTitle }}>{children}</TopBarContext.Provider>;
+  const [hideBottomNav, setHideBottomNav] = useState(false);
+  return (
+    <TopBarContext.Provider value={{ title, setTitle, hideBottomNav, setHideBottomNav }}>
+      {children}
+    </TopBarContext.Provider>
+  );
 }
 
 export function useTopBarContext() {
@@ -27,6 +36,15 @@ export function usePageTitle(title: string) {
   useEffect(() => {
     setTitle(title);
   }, [title, setTitle]);
+}
+
+/** Hook para esconder o BottomNav enquanto o componente estiver montado. */
+export function useHideBottomNav() {
+  const { setHideBottomNav } = useTopBarContext();
+  useEffect(() => {
+    setHideBottomNav(true);
+    return () => setHideBottomNav(false);
+  }, [setHideBottomNav]);
 }
 
 /** Componente para definir título a partir de Server Components (via prop). */

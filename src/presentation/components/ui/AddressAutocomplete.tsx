@@ -22,8 +22,26 @@ export function AddressAutocomplete({
   const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [placement, setPlacement] = useState<'below' | 'above'>('below');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync input text when selection is set externally
+  useEffect(() => {
+    if (selected != null) setQuery(selected.displayName);
+  }, [selected]);
+
+  function openWithPlacement(results: AutocompleteResult[]) {
+    if (results.length === 0) {
+      setOpen(false);
+      return;
+    }
+    const rect = containerRef.current?.getBoundingClientRect();
+    const spaceBelow = rect ? window.innerHeight - rect.bottom : 999;
+    // max-h-60 = 240px; add 16px buffer
+    setPlacement(spaceBelow < 256 ? 'above' : 'below');
+    setOpen(true);
+  }
 
   const search = useCallback(async (q: string) => {
     if (q.trim().length < 3) {
@@ -37,23 +55,25 @@ export function AddressAutocomplete({
       const data = (await res.json()) as { results: AutocompleteResult[] };
       const results = data.results ?? [];
       setSuggestions(results);
-      setOpen(results.length > 0);
+      openWithPlacement(results);
     } catch {
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setQuery(val);
+    // If user edits after a selection, clear the confirmed selection
+    if (selected) onClear();
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => void search(val), 300);
   };
 
   const handleSelect = (result: AutocompleteResult) => {
-    setQuery('');
+    setQuery(result.displayName);
     setSuggestions([]);
     setOpen(false);
     onSelect(result);
@@ -68,33 +88,6 @@ export function AddressAutocomplete({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
-
-  if (selected) {
-    return (
-      <div className="flex flex-col gap-1">
-        <div
-          className={[
-            'flex items-start justify-between rounded-md border px-3 py-2.5',
-            error ? 'border-error' : 'border-border',
-            'bg-bg',
-          ].join(' ')}
-        >
-          <div>
-            <p className="text-sm font-medium text-text-primary">{selected.displayPlace}</p>
-            <p className="text-xs text-text-secondary">{selected.displayAddress}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClear}
-            className="ml-3 mt-0.5 shrink-0 text-xs text-brand"
-          >
-            Alterar
-          </button>
-        </div>
-        {error && <p className="text-xs text-error">{error}</p>}
-      </div>
-    );
-  }
 
   return (
     <div
@@ -125,7 +118,10 @@ export function AddressAutocomplete({
       {error && <p className="text-xs text-error">{error}</p>}
       {open && suggestions.length > 0 && (
         <ul
-          className="absolute top-11 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-bg shadow-lg"
+          className={[
+            'absolute max-h-60 w-full overflow-y-auto rounded-md border border-border bg-bg shadow-lg',
+            placement === 'above' ? 'bottom-11' : 'top-11',
+          ].join(' ')}
           style={{ zIndex: 'var(--z-dropdown)' }}
         >
           {suggestions.map((s, i) => (

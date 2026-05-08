@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Compass, PlusCircle, List, UserCircle } from 'lucide-react';
+import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
 
 const TABS = [
   { href: '/', label: 'Explorar', Icon: Compass },
@@ -16,8 +17,10 @@ const HIDDEN_ON = ['/login', '/add-place', '/lists/new', '/admin'];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { hideBottomNav } = useTopBarContext();
 
   const isHidden =
+    hideBottomNav ||
     HIDDEN_ON.some((p) => pathname.startsWith(p)) ||
     pathname.includes('/review') ||
     pathname.endsWith('/edit');
