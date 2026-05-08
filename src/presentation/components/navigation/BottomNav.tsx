@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 /** Páginas onde a nav não deve aparecer */
-const HIDDEN_ON = ['/login', '/add-place', '/lists/new'];
+const HIDDEN_ON = ['/login', '/add-place', '/lists/new', '/admin'];
 
 export function BottomNav() {
   const pathname = usePathname();
