@@ -6,6 +6,7 @@ import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
 import { submitReviewInitialValues } from '@/presentation/lib/forms/review/initialValues';
 import { Button, Input, Textarea, StarRating, ToggleGroup } from '@/presentation/components/ui';
+import { useToast } from '@/presentation/hooks/useToast';
 import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 
 interface ReviewFormProps {
@@ -14,6 +15,7 @@ interface ReviewFormProps {
 }
 
 export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
+  const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -46,9 +48,16 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
       }
       // Revalidar stats do usuário
       mutate('/api/me/stats');
+      showToast({
+        type: 'success',
+        title: 'Avaliação enviada',
+        message: 'Obrigado por compartilhar!',
+      });
       onSuccess?.();
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Erro ao enviar avaliação');
+      const msg = err instanceof Error ? err.message : 'Erro ao enviar avaliação';
+      setServerError(msg);
+      showToast({ type: 'error', title: 'Erro ao enviar avaliação', message: msg });
     } finally {
       setSubmitting(false);
     }
@@ -97,8 +106,8 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
 
       {serverError && <p className="text-sm text-error">{serverError}</p>}
 
-      <Button type="submit" disabled={submitting}>
-        {submitting ? 'Enviando...' : 'Enviar avaliação'}
+      <Button type="submit" isLoading={submitting} loadingText="Enviando...">
+        Enviar avaliação
       </Button>
     </form>
   );

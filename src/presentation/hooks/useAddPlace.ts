@@ -4,11 +4,13 @@ import { useState, useRef } from 'react';
 import { mutate } from 'swr';
 import type { CreatePlaceInput } from '@/presentation/lib/schemas/placeSchema';
 import type { Place } from '@/domain/entities/Place';
+import { useToast } from '@/presentation/hooks/useToast';
 
 export function useAddPlace() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const submittingRef = useRef(false);
+  const { showToast } = useToast();
 
   async function submit(data: CreatePlaceInput): Promise<Place | null> {
     // Prevenir submits simultâneos
@@ -32,9 +34,16 @@ export function useAddPlace() {
       const place = (await res.json()) as Place;
       // Revalidar stats do usuário (quando o lugar for aprovado, a contagem aumenta)
       mutate('/api/me/stats');
+      showToast({
+        type: 'success',
+        title: 'Lugar enviado para análise!',
+        message: 'Será avaliado pela comunidade',
+      });
       return place;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao cadastrar lugar');
+      const msg = err instanceof Error ? err.message : 'Erro ao cadastrar lugar';
+      setError(msg);
+      showToast({ type: 'error', title: 'Erro ao cadastrar lugar', message: msg });
       return null;
     } finally {
       setLoading(false);

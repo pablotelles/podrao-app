@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useFavorites } from '@/presentation/hooks/useFavorites';
 import { Button } from '@/presentation/components/ui/Button';
+import { useToast } from '@/presentation/hooks/useToast';
 
 interface FavoriteButtonProps {
   placeId: string;
@@ -10,6 +11,7 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({ placeId }: FavoriteButtonProps) {
   const { isFavorited, toggle, isLoading } = useFavorites();
+  const { showToast } = useToast();
   const [isToggling, setIsToggling] = useState(false);
 
   const favorited = isFavorited(placeId);
@@ -18,9 +20,16 @@ export function FavoriteButton({ placeId }: FavoriteButtonProps) {
     setIsToggling(true);
     try {
       await toggle(placeId);
+      showToast({
+        type: 'success',
+        title: favorited ? 'Removido dos favoritos' : 'Adicionado aos favoritos',
+      });
     } catch (err) {
-      console.error('Erro ao favoritar:', err);
-      // TODO: mostrar toast de erro
+      showToast({
+        type: 'error',
+        title: 'Erro ao favoritar',
+        message: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       setIsToggling(false);
     }

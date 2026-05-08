@@ -30,3 +30,5 @@ export { MealTypeCard } from './MealTypeCard';
 export { RadioListItem } from './RadioListItem';
 export { AddressAutocomplete } from './AddressAutocomplete';
 export { Toast } from './Toast';
+export type { ToastProps } from './Toast';
+export { ToastProvider } from './ToastProvider';

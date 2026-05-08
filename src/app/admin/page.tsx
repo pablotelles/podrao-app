@@ -2,14 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Eye, XCircle, CheckCircle } from 'lucide-react';
-import {
-  Button,
-  Badge,
-  DataTable,
-  EmptyState,
-  Skeleton,
-  Toast,
-} from '@/presentation/components/ui';
+import { Button, Badge, DataTable, EmptyState, Skeleton } from '@/presentation/components/ui';
+import { useToast } from '@/presentation/hooks/useToast';
 import { AdminFilters } from './AdminFilters';
 import { RejectModal } from './RejectModal';
 import { usePendingPlaces } from '@/presentation/hooks/usePendingPlaces';
@@ -17,13 +11,9 @@ import type { PendingPlaceItem } from '@/domain/entities/PendingPlaceItem';
 
 const PAGE_SIZE = 5;
 
-interface ToastMessage {
-  text: string;
-  type: 'success' | 'error';
-}
-
 export default function AdminPage() {
   const { places, total, error, isLoading, refresh } = usePendingPlaces();
+  const { showToast } = useToast();
 
   const [filteredPlaces, setFilteredPlaces] = useState<PendingPlaceItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,7 +21,6 @@ export default function AdminPage() {
   const [selectedPlace, setSelectedPlace] = useState<{ id: string; name: string } | null>(null);
   const [approvingIds, setApprovingIds] = useState<Set<string>>(new Set());
   const [rejectingIds, setRejectingIds] = useState<Set<string>>(new Set());
-  const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
 
   // Sync filteredPlaces with real data after load
   useEffect(() => {
@@ -39,14 +28,6 @@ export default function AdminPage() {
       setFilteredPlaces(places);
     }
   }, [places, isLoading, error]);
-
-  // Auto-dismiss toast
-  useEffect(() => {
-    if (!toastMessage) return;
-    const delay = toastMessage.type === 'success' ? 3000 : 5000;
-    const timer = setTimeout(() => setToastMessage(null), delay);
-    return () => clearTimeout(timer);
-  }, [toastMessage]);
 
   const totalPages = Math.ceil(filteredPlaces.length / PAGE_SIZE);
   const paginatedPlaces = filteredPlaces.slice(
@@ -78,11 +59,11 @@ export default function AdminPage() {
         throw new Error((err as { error?: string }).error ?? 'Erro ao aprovar');
       }
       setFilteredPlaces((prev) => prev.filter((p) => p.id !== placeId));
-      setToastMessage({ text: 'Lugar aprovado com sucesso', type: 'success' });
+      showToast({ type: 'success', title: 'Lugar aprovado com sucesso' });
       await refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro ao aprovar';
-      setToastMessage({ text: `Erro ao aprovar: ${msg}`, type: 'error' });
+      showToast({ type: 'error', title: `Erro ao aprovar: ${msg}` });
     } finally {
       setApprovingIds((prev) => {
         const next = new Set(prev);
@@ -106,11 +87,11 @@ export default function AdminPage() {
       }
       setFilteredPlaces((prev) => prev.filter((p) => p.id !== placeId));
       handleCloseRejectModal();
-      setToastMessage({ text: 'Lugar rejeitado com sucesso', type: 'success' });
+      showToast({ type: 'success', title: 'Lugar rejeitado com sucesso' });
       await refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro ao rejeitar';
-      setToastMessage({ text: `Erro ao rejeitar: ${msg}`, type: 'error' });
+      showToast({ type: 'error', title: `Erro ao rejeitar: ${msg}` });
     } finally {
       setRejectingIds((prev) => {
         const next = new Set(prev);
@@ -288,8 +269,6 @@ export default function AdminPage() {
           onConfirm={handleConfirmReject}
         />
       )}
-
-      {toastMessage && <Toast type={toastMessage.type}>{toastMessage.text}</Toast>}
     </>
   );
 }
