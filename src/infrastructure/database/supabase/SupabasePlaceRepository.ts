@@ -28,6 +28,7 @@ interface PlaceRow {
   food_types: string[];
   price_bucket: string;
   description: string | null;
+  rejection_reason: string | null;
   median_price: number | null;
   logo_url: string | null;
   rating: number;
@@ -54,6 +55,7 @@ interface PlaceRowWithRelations {
   establishment_type: string;
   price_bucket: string;
   description: string | null;
+  rejection_reason: string | null;
   status: string;
   created_by: string | null;
   created_at: string;
@@ -96,6 +98,7 @@ function toDomain(row: PlaceRow): Place {
     foodTypes: (row.food_types ?? []) as FoodType[],
     priceBucket: row.price_bucket as PriceBucket,
     description: row.description ?? undefined,
+    rejectionReason: row.rejection_reason ?? undefined,
     medianPrice: row.median_price ?? undefined,
     logoUrl: row.logo_url ?? undefined,
     rating: Number(row.rating ?? 0),
@@ -170,6 +173,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       foodTypes,
       priceBucket: row.price_bucket as PriceBucket,
       description: row.description ?? undefined,
+      rejectionReason: row.rejection_reason ?? undefined,
       medianPrice: stats?.median_price ?? undefined,
       logoUrl: logo?.url ?? undefined,
       rating: Number(stats?.rating ?? 0),
@@ -344,8 +348,15 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     } as PlaceRow);
   }
 
-  async updateStatus(id: string, status: PlaceStatus): Promise<void> {
-    const { error } = await this.db.from('places').update({ status }).eq('id', id);
+  async updateStatus(id: string, status: PlaceStatus, rejectionReason?: string): Promise<void> {
+    const patch: Record<string, unknown> = { status };
+    if (status === 'rejected') {
+      patch.rejection_reason = rejectionReason ?? null;
+    } else {
+      // Enforce DB constraint: rejection_reason must be NULL when not rejected
+      patch.rejection_reason = null;
+    }
+    const { error } = await this.db.from('places').update(patch).eq('id', id);
     if (error) throw new Error(error.message);
   }
 
@@ -438,6 +449,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       foodTypes,
       priceBucket: row.price_bucket as PriceBucket,
       medianPrice: stats?.median_price ?? undefined,
+      rejectionReason: row.rejection_reason ?? undefined,
       logoUrl: logo?.url ?? undefined,
       rating: Number(stats?.rating ?? 0),
       reviewsCount: Number(stats?.reviews_count ?? 0),
@@ -461,6 +473,33 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => this.rowWithRelationsToDomain(row));
+  }
+
+  async getPendingPlaces(
+    limit: number,
+    offset: number,
+  ): Promise<{ places: Place[]; total: number }> {
+    const [dataRes, countRes] = await Promise.all([
+      this.db
+        .from('places')
+        .select(
+          `*, place_stats(rating, reviews_count, median_price),
+           place_cuisines(cuisine_type), place_meals(meal_type),
+           place_food_types(food_type), place_photos(url, type, position)`,
+        )
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1),
+      this.db.from('places').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    ]);
+
+    if (dataRes.error) throw new Error(dataRes.error.message);
+    if (countRes.error) throw new Error(countRes.error.message);
+
+    return {
+      places: (dataRes.data ?? []).map((row) => this.rowWithRelationsToDomain(row)),
+      total: countRes.count ?? 0,
+    };
   }
 
   async findFavoritedByUser(userId: string): Promise<Place[]> {

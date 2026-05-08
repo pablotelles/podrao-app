@@ -10,11 +10,12 @@ export interface IPlaceReader {
   countByCreator(userId: string): Promise<number>;
   findByCreator(userId: string): Promise<Place[]>;
   findFavoritedByUser(userId: string): Promise<Place[]>;
+  getPendingPlaces(limit: number, offset: number): Promise<{ places: Place[]; total: number }>;
 }
 
 export interface IPlaceWriter {
   create(data: CreatePlaceData): Promise<Place>;
-  updateStatus(id: string, status: PlaceStatus): Promise<void>;
+  updateStatus(id: string, status: PlaceStatus, rejectionReason?: string): Promise<void>;
   update(id: string, data: Partial<CreatePlaceData>): Promise<Place>;
   saveEmbedding(id: string, embedding: number[]): Promise<void>;
 }

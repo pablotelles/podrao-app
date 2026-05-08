@@ -61,6 +61,30 @@ export async function createRouteSupabaseClient() {
 /** Alias para Server Components (read-only — setAll é no-op) */
 export const createServerSupabaseClient = createRouteSupabaseClient;
 
+/** Retorna o usuário autenticado com role admin, ou lança UnauthorizedError. */
+export async function requireAdmin(): Promise<SupabaseUser> {
+  const supabase = await createRouteSupabaseClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error || !user) throw new UnauthorizedError();
+
+  const { createAdminClient } = await import('@/infrastructure/database/supabase/client');
+  const adminClient = createAdminClient();
+  const { data: profile, error: profileError } = await adminClient
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile || profile.role !== 'admin') {
+    throw new UnauthorizedError('Acesso restrito a administradores');
+  }
+
+  return user;
+}
+
 /** Retorna o usuário autenticado ou null. Usa getUser() (valida no servidor). */
 export async function getSession(): Promise<SupabaseUser | null> {
   const supabase = await createRouteSupabaseClient();

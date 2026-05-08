@@ -20,6 +20,8 @@ import { SearchNearbyPlaces } from '@/application/use-cases/places/SearchNearbyP
 import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
 import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
 import { ApprovePlace } from '@/application/use-cases/places/ApprovePlace';
+import { GetPendingPlaces } from '@/application/use-cases/places/GetPendingPlaces';
+import { RejectPlace } from '@/application/use-cases/places/RejectPlace';
 import { GeneratePlaceEmbedding } from '@/application/use-cases/places/GeneratePlaceEmbedding';
 import { GetMyPlaces } from '@/application/use-cases/places/GetMyPlaces';
 import { GetFavoritePlaces } from '@/application/use-cases/places/GetFavoritePlaces';
@@ -97,6 +99,8 @@ export const searchNearbyPlaces = lazySingleton(
 export const createPlace = lazySingleton(() => new CreatePlace(placeRepository, cacheProvider));
 export const getPlaceById = lazySingleton(() => new GetPlaceById(placeRepository));
 export const approvePlace = lazySingleton(() => new ApprovePlace(placeRepository, cacheProvider));
+export const getPendingPlaces = lazySingleton(() => new GetPendingPlaces(placeRepository));
+export const rejectPlace = lazySingleton(() => new RejectPlace(placeRepository));
 export const getMyPlaces = lazySingleton(() => new GetMyPlaces(placeRepository));
 export const getFavoritePlaces = lazySingleton(() => new GetFavoritePlaces(placeRepository));
 export const generatePlaceEmbedding = lazySingleton(

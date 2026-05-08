@@ -84,4 +84,39 @@ O que este plano explicitamente não cobre.
 - Não propõe violações da regra de dependência ou das 5 regras de split-readiness
 - DTOs sempre recebem `userId`, nunca `createdBy`/session
 - Novo valor visual → token em globals.css primeiro, nunca inline
-- Se o pedido tem trade-offs ocultos ou é ambíguo → `[AGUARDA_INPUT]` antes de planejar
+- Se o pedido tem trade-offs ocultos ou é ambíguo → `[AGUARDA_INPUT]` antes
+
+---
+
+## Output
+
+Retorne **sempre** este bloco JSON como última coisa na resposta:
+
+```json
+{
+  "status": "done" | "awaiting_input",
+  "feature_summary": "uma frase",
+  "layers_affected": {
+    "domain": ["src/domain/entities/X.ts"],
+    "application": ["src/application/use-cases/X/CreateX.ts"],
+    "infrastructure": ["src/infrastructure/database/supabase/SupabaseXRepository.ts"],
+    "presentation": ["src/app/api/x/route.ts", "src/presentation/components/x/XCard.tsx"]
+  },
+  "schema_changes": true | false,
+  "migration_hint": "adicionar coluna role em profiles" | null,
+  "reuse": [
+    { "element": "Button", "exists_at": "src/presentation/components/ui/Button.tsx" },
+    { "element": "XUseCase", "exists_at": "create" }
+  ],
+  "risks": ["descrição do risco"],
+  "execution_sequence": ["1. migration", "2. entity", "3. use case", "4. route", "5. component"],
+  "agent_assignments": {
+    "needs_migration": true | false,
+    "needs_feature_builder": true | false
+  },
+  "open_questions": ["..."]
+}
+```
+
+- `status: "awaiting_input"` → preencha `open_questions` e encerre com `[AGUARDA_INPUT]`
+- Consumido por: **podrao-dev-orchestrator** (usa `agent_assignments` para decidir quais agentes invocar e em que ordem)

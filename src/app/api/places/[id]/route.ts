@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { approvePlace } from '@/presentation/lib/container';
+import { approvePlace, rejectPlace } from '@/presentation/lib/container';
 import { createPlaceSchema } from '@/presentation/lib/schemas/placeSchema';
 import {
   createRouteSupabaseClient,
+  requireAdmin,
   errorResponse,
-  getSession,
 } from '@/presentation/lib/api-helpers';
 import { UnauthorizedError } from '@/application/errors/UnauthorizedError';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
 import { SupabaseStorageProvider } from '@/infrastructure/storage/SupabaseStorageProvider';
 import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
-import type { PlaceStatus } from '@/domain/entities/Place';
 import { createAdminClient } from '@/infrastructure/database/supabase/client';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -45,9 +44,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // Moderação: aprovar/rejeitar — exclusivo para admins
     if (body.status && (body.status === 'approved' || body.status === 'rejected')) {
-      const isAdmin = user.app_metadata?.role === 'admin';
-      if (!isAdmin) throw new UnauthorizedError('Apenas administradores podem moderar lugares');
-      await approvePlace.execute(id, body.status as Extract<PlaceStatus, 'approved' | 'rejected'>);
+      await requireAdmin();
+      if (body.status === 'approved') {
+        await approvePlace.execute(id);
+      } else {
+        await rejectPlace.execute({
+          placeId: id,
+          reason: typeof body.rejectionReason === 'string' ? body.rejectionReason : '',
+          userId: user.id,
+        });
+      }
       return NextResponse.json({ success: true });
     }
 

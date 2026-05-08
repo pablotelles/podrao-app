@@ -42,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Handoff de task — gerado pelo Cowork, nao commitar
+.claude/current-task.json

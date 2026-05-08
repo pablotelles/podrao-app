@@ -79,11 +79,27 @@ npm run format:check
 
 ---
 
-## Relatório final
+## Output
 
-- Path da migration + o que faz
-- Arquivos de aplicação modificados
-- Se destrutivo: plano de backfill
-- Checks: typecheck/format
-- Comando para Pablo: `npm run db:migrate`
-- Follow-ups (re-embed, backfill stats, invalidar cache)
+Retorne **sempre** este bloco JSON como última coisa na resposta:
+
+```json
+{
+  "status": "done" | "awaiting_input",
+  "migration_path": "src/infrastructure/database/migrations/NN_descricao.sql",
+  "files_modified": [
+    "src/domain/entities/X.ts",
+    "src/domain/interfaces/IXRepository.ts",
+    "src/infrastructure/database/supabase/SupabaseXRepository.ts"
+  ],
+  "destructive": false,
+  "backfill_required": false,
+  "checks": { "typecheck": true, "format": true },
+  "pablo_command": "npm run db:migrate",
+  "follow_ups": ["re-embed embeddings", "backfill stats"]
+}
+```
+
+- `status: "awaiting_input"` → mudança destrutiva detectada; preencha e encerre com `[AGUARDA_INPUT]`
+- `follow_ups: []` → quando não há ações adicionais necessárias
+- Consumido por: **podrao-dev-orchestrator** (passa `migration_path` e `files_modified` ao feature-builder para evitar retrabalho)

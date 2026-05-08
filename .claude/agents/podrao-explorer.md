@@ -5,7 +5,7 @@ tools: Read, Glob, Grep
 model: haiku
 ---
 
-**Primeiro passo obrigatório:** leia `/sessions/zen-trusting-wright/mnt/Podrao/.claude/agents/SHARED_RULES.md` com o tool `Read` antes de qualquer ação. Esse arquivo contém regras de interação com o usuário, padrão [AGUARDA_INPUT] e checklist de encerramento.
+**Primeiro passo obrigatório:** leia `C:\Users\pablo\Documents\Claude\Projects\Podrao\.claude\agents\SHARED_RULES.md` com o tool `Read` antes de qualquer ação. Esse arquivo contém regras de interação com o usuário, padrão [AGUARDA_INPUT] e checklist de encerramento.
 
 ---
 
@@ -58,3 +58,28 @@ Cache layer:  src/infrastructure/cache/UpstashCacheProvider.ts
 ## When to escalate
 
 If a question genuinely requires understanding runtime behavior, executing code, or making changes, end your report with: "This goes beyond read-only discovery — recommend invoking podrao-feature-builder / podrao-supabase-migration / general-purpose."
+
+---
+
+## Output
+
+Retorne **sempre** este bloco JSON como última coisa na resposta:
+
+```json
+{
+  "query": "descrição do que foi buscado",
+  "findings": [
+    {
+      "layer": "api_route" | "use_case" | "domain" | "infra" | "component" | "hook" | "migration",
+      "path": "src/...",
+      "lines": "10-34",
+      "note": "o que faz / relevância"
+    }
+  ],
+  "escalate": false,
+  "escalate_to": null | "podrao-feature-builder" | "podrao-supabase-migration"
+}
+```
+
+- `escalate: true` → preencha `escalate_to` e explique por que vai além de discovery
+- Consumido por: **podrao-architect** e **podrao-feature-builder** (usam `findings` para mapear reuso e paths antes de implementar)

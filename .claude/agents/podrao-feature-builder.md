@@ -111,11 +111,26 @@ npm run lint
 
 ---
 
-## Relatório final
+## Output
 
-- Arquivos criados/modificados
-- Camadas tocadas
-- Componentes/hooks reutilizados (com paths)
-- Tokens de design usados; novos tokens adicionados ao globals.css
-- Resultados dos checks
-- Desvios do template e motivo
+Retorne **sempre** este bloco JSON como última coisa na resposta:
+
+```json
+{
+  "status": "done" | "error",
+  "files_created": ["src/domain/entities/X.ts", "src/app/api/x/route.ts"],
+  "files_modified": ["src/infrastructure/container.ts"],
+  "layers_touched": ["domain", "application", "infrastructure", "presentation"],
+  "components_reused": [
+    { "name": "Button", "path": "src/presentation/components/ui/Button.tsx" }
+  ],
+  "new_tokens": ["--color-x: value adicionado a globals.css"],
+  "checks": { "typecheck": true, "lint": true, "format": true },
+  "deviations": ["descrição do desvio e motivo"]
+}
+```
+
+- `status: "error"` → typecheck/lint falhou; descreva o erro em `deviations` e não declare concluído
+- `new_tokens: []` → quando não foi necessário criar tokens novos
+- `deviations: []` → quando seguiu o template sem exceções
+- Consumido por: **podrao-reviewer** (recebe `files_created` + `files_modified` como lista exata de arquivos a revisar)
