@@ -1,5 +1,5 @@
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
-import type { Place } from '@/domain/entities/Place';
+import type { PendingPlaceItem } from '@/domain/entities/PendingPlaceItem';
 
 export interface GetPendingPlacesDTO {
   limit: number;
@@ -7,7 +7,7 @@ export interface GetPendingPlacesDTO {
 }
 
 export interface GetPendingPlacesResult {
-  places: Place[];
+  places: PendingPlaceItem[];
   total: number;
 }
 

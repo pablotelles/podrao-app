@@ -1,4 +1,5 @@
 import type { Place, PlaceStatus } from '@/domain/entities/Place';
+import type { PendingPlaceItem } from '@/domain/entities/PendingPlaceItem';
 import type { PlacePhoto, PhotoType } from '@/domain/entities/PlacePhoto';
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
 import type { CreatePlaceData, SearchPlacesParams } from '@/domain/interfaces/shared';
@@ -478,7 +479,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   async getPendingPlaces(
     limit: number,
     offset: number,
-  ): Promise<{ places: Place[]; total: number }> {
+  ): Promise<{ places: PendingPlaceItem[]; total: number }> {
     const [dataRes, countRes] = await Promise.all([
       this.db
         .from('places')
@@ -496,8 +497,22 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     if (dataRes.error) throw new Error(dataRes.error.message);
     if (countRes.error) throw new Error(countRes.error.message);
 
+    const rows = dataRes.data ?? [];
+    const creatorIds = [...new Set(rows.map((r) => r.created_by).filter(Boolean))];
+    let nicknameMap: Record<string, string> = {};
+    if (creatorIds.length > 0) {
+      const { data: profiles } = await this.db
+        .from('profiles')
+        .select('id, nickname')
+        .in('id', creatorIds);
+      nicknameMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.nickname]));
+    }
+
     return {
-      places: (dataRes.data ?? []).map((row) => this.rowWithRelationsToDomain(row)),
+      places: rows.map((row) => ({
+        ...this.rowWithRelationsToDomain(row),
+        creatorNickname: nicknameMap[row.created_by] ?? undefined,
+      })),
       total: countRes.count ?? 0,
     };
   }

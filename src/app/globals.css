@@ -109,6 +109,25 @@ body {
 }
 
 /* ===================================================================
+   ANIMAÇÕES — keyframes reutilizáveis
+   =================================================================== */
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@theme {
+  --animate-slide-up: slide-up 0.2s ease-out;
+}
+
+/* ===================================================================
    MAPA — animações e overrides do Leaflet
    =================================================================== */
 

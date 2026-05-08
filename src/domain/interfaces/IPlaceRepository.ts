@@ -1,4 +1,5 @@
 import type { Place, PlaceStatus } from '../entities/Place';
+import type { PendingPlaceItem } from '../entities/PendingPlaceItem';
 import type { PlacePhoto, PhotoType } from '../entities/PlacePhoto';
 import type { CreatePlaceData } from './shared';
 import type { SearchPlacesParams } from './shared';
@@ -10,7 +11,10 @@ export interface IPlaceReader {
   countByCreator(userId: string): Promise<number>;
   findByCreator(userId: string): Promise<Place[]>;
   findFavoritedByUser(userId: string): Promise<Place[]>;
-  getPendingPlaces(limit: number, offset: number): Promise<{ places: Place[]; total: number }>;
+  getPendingPlaces(
+    limit: number,
+    offset: number,
+  ): Promise<{ places: PendingPlaceItem[]; total: number }>;
 }
 
 export interface IPlaceWriter {
