@@ -31,7 +31,21 @@ Para cada camada (Domain / Application / Infrastructure / Presentation), liste o
 
 ### 3. Schema / banco
 
-Nova tabela, coluna, index, função, bucket? Path da migration (próximo NN). Coluna geo → GIST index obrigatório. Mudança destrutiva → flag com plano de backfill. Se não há mudanças: diga explicitamente.
+Nova tabela, coluna, index, trigger, bucket? Path da migration (próximo NN). Coluna geo → GIST index obrigatório. Mudança destrutiva → flag com plano de backfill. Se não há mudanças: diga explicitamente.
+
+**Linha divisória SQL / TypeScript — aplique antes de decidir `needs_migration`:**
+
+| Vai em migration (banco)                          | Vai em TypeScript (repositório)                |
+| ------------------------------------------------- | ---------------------------------------------- |
+| `CREATE TABLE`, `CREATE INDEX`                    | filtros de negócio (meal_type, cuisine, price) |
+| Triggers (operações atômicas)                     | scoring e ranking                              |
+| `ST_DWithin` via client filter                    | agregação de arrays                            |
+| SQL function com índice especial (pgvector `<=>`) | paginação lógica                               |
+| —                                                 | shape do response                              |
+
+**Teste rápido:** "se mudar isso precisar de `npm run db:migrate`, está no lugar certo. Se for só lógica de produto, vai em TypeScript no `SupabaseXRepository.ts`."
+
+SQL functions para query logic, scoring ou filtros de negócio **nunca** vão em migration — tornam impossível mudar regras de produto sem migration. A única exceção aceita é uma SQL function que use índice especializado que não existe no client (ex: pgvector `<=>` com índice HNSW para busca semântica).
 
 ### 4. Auditoria de reuso (CRÍTICO)
 

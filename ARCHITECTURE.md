@@ -429,93 +429,87 @@ Esta é a decisão técnica mais crítica do projeto. **Custo, velocidade e prec
 
 **Usar `GEOGRAPHY` elimina a necessidade de conversões manuais de graus para km.**
 
-### 6.2 Query de Busca Principal (Supabase RPC)
+### 6.2 Query de Busca Principal — padrão TypeScript-first
 
-Encapsular em uma função PostgreSQL evita N+1 e permite usar o índice espacial corretamente.
+**Princípio:** o banco conhece estrutura, índices e atomicidade. Scoring, filtros de negócio e ranking vivem em TypeScript — onde mudar é só código, sem migration.
+
+| Fica no SQL                                        | Fica no TypeScript                             |
+| -------------------------------------------------- | ---------------------------------------------- |
+| `CREATE TABLE`, `CREATE INDEX`                     | filtros de negócio (meal_type, cuisine, price) |
+| Triggers (operações atômicas garantidas)           | scoring e ranking                              |
+| `ST_DWithin` no WHERE (precisa do índice GIST)     | agregação de arrays                            |
+| `ST_Distance` no SELECT (leitura nos já filtrados) | paginação lógica                               |
+| Trigger de stats (rating, median_price)            | shape do response                              |
+
+**Regra de ouro:** se mudar isso precisar de migration → está no lugar certo. Se mudar é só lógica de produto → está no lugar errado.
+
+#### O que vai no SQL: apenas geo filter e leitura de distância
 
 ```sql
--- migration: create_search_nearby_places.sql
-CREATE OR REPLACE FUNCTION search_nearby_places(
-  p_lat          FLOAT,
-  p_lng          FLOAT,
-  p_radius_m     FLOAT DEFAULT 3000,     -- 3km padrão
-  p_meal_type    TEXT   DEFAULT NULL,
-  p_cuisine      TEXT   DEFAULT NULL,
-  p_max_price    NUMERIC DEFAULT NULL,
-  p_limit        INT    DEFAULT 20,
-  p_offset       INT    DEFAULT 0
-)
-RETURNS TABLE (
-  id                 UUID,
-  name               TEXT,
-  address            TEXT,
-  bairro             TEXT,
-  establishment_type TEXT,
-  cuisine_types      TEXT[],
-  meal_types         TEXT[],
-  price_bucket       TEXT,
-  median_price       NUMERIC,
-  photo_url          TEXT,
-  rating             NUMERIC,
-  reviews_count      INT,
-  distance_m         FLOAT   -- retorna a distância calculada
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    p.id,
-    p.name,
-    p.address,
-    p.bairro,
-    p.establishment_type,
-    p.cuisine_types,
-    p.meal_types,
-    p.price_bucket,
-    p.median_price,
-    p.photo_url,
-    p.rating,
-    p.reviews_count,
-    ST_Distance(
-      p.location,
-      ST_MakePoint(p_lng, p_lat)::geography
-    ) AS distance_m
-  FROM places p
-  WHERE
-    p.status = 'approved'
-
-    -- ST_DWithin usa o índice GIST — NÃO usar ST_Distance no WHERE
-    AND ST_DWithin(
-      p.location,
-      ST_MakePoint(p_lng, p_lat)::geography,
-      p_radius_m
-    )
-
-    -- filtros opcionais com short-circuit
-    AND (p_meal_type IS NULL OR p_meal_type = ANY(p.meal_types))
-    AND (p_cuisine    IS NULL OR p_cuisine   = ANY(p.cuisine_types))
-    AND (p_max_price  IS NULL OR COALESCE(p.median_price, 9999) <= p_max_price)
-
-  ORDER BY
-    -- ranking composto: distância + qualidade
-    (
-      -- normaliza distância: mais perto = maior score
-      (1.0 - LEAST(distance_m / p_radius_m, 1.0)) * 0.4 +
-      -- nota (0-5 → 0-1)
-      (COALESCE(p.rating, 0) / 5.0) * 0.4 +
-      -- popularidade (log para não dominar)
-      (LOG(GREATEST(p.reviews_count, 1)) / 5.0) * 0.2
-    ) DESC
-
-  LIMIT p_limit
-  OFFSET p_offset;
-END;
-$$ LANGUAGE plpgsql STABLE;
+-- Não há SQL function para busca — o repositório TypeScript usa o client Supabase diretamente.
+-- O único SQL que justifica migration aqui são os índices abaixo (já criados na seção 5):
+--   CREATE INDEX idx_places_location ON places USING GIST(location);   -- ST_DWithin usa este
+--   CREATE INDEX idx_places_status   ON places(status);
+--   CREATE INDEX idx_places_cuisine_types ON places USING GIN(cuisine_types);
+--   CREATE INDEX idx_places_meal_types    ON places USING GIN(meal_types);
 ```
 
-**Regra de ouro PostGIS:**
+#### O que vai no TypeScript: todo o resto
 
-- `ST_DWithin` no `WHERE` → usa índice GIST → O(log n)
-- `ST_Distance` apenas no `SELECT` / `ORDER BY` → calcula só nos registros já filtrados
+```typescript
+// src/infrastructure/database/supabase/SupabasePlaceRepository.ts
+async searchNearby(params: SearchPlacesDTO): Promise<Place[]> {
+  // 1. Geo filter — inevitável no SQL por causa do índice GIST
+  const { data, error } = await this.db
+    .from('places')
+    .select('id, name, address, bairro, establishment_type, cuisine_types, meal_types, price_bucket, median_price, photo_url, rating, reviews_count, lat, lng')
+    .eq('status', 'approved')
+    .filter('location', 'st_dwithin', `SRID=4326;POINT(${params.lng} ${params.lat})`, params.radiusMeters ?? 3000);
+
+  if (error) throw new Error(error.message);
+  if (!data) return [];
+
+  // 2. Distância calculada no TS — conjunto já pequeno após filtro GIST
+  const withDistance = data.map(p => ({
+    ...p,
+    distance_m: haversineDistance(params.lat, params.lng, p.lat, p.lng),
+  }));
+
+  // 3. Filtros de negócio — TypeScript puro, sem migration
+  const filtered = withDistance.filter(p =>
+    (!params.mealType || p.meal_types.includes(params.mealType)) &&
+    (!params.cuisine  || p.cuisine_types.includes(params.cuisine)) &&
+    (!params.maxPrice || (p.median_price ?? 9999) <= params.maxPrice)
+  );
+
+  // 4. Scoring e ranking — TypeScript puro, muda sem migration
+  return filtered
+    .map(p => ({ ...p, score: calcPlaceScore(p, params) }))
+    .sort((a, b) => b.score - a.score)
+    .map(toDomainPlace);
+}
+```
+
+```typescript
+// src/infrastructure/database/supabase/scoring.ts
+// Lógica de produto isolada — muda os pesos aqui sem tocar em banco
+export function calcPlaceScore(
+  place: { distance_m: number; rating: number | null; reviews_count: number },
+  params: { radiusMeters?: number },
+): number {
+  const radius = params.radiusMeters ?? 3000;
+  const geo = 1 - Math.min(place.distance_m / radius, 1); // mais perto = maior
+  const rating = (place.rating ?? 0) / 5; // normaliza 0-5 → 0-1
+  const popular = Math.log(Math.max(place.reviews_count, 1)) / 5; // log para não dominar
+  return 0.4 * geo + 0.4 * rating + 0.2 * popular;
+}
+```
+
+**Regras de ouro PostGIS:**
+
+- `ST_DWithin` no WHERE via Supabase client filter → usa índice GIST → O(log n)
+- `ST_Distance` não vai no SQL — calcula distância com Haversine em TypeScript nos registros já filtrados (conjunto pequeno, custo irrelevante)
+- Nunca criar SQL function para query logic — impossibilita mudar regras de produto sem migration
 
 ### 6.3 Cache de Geolocalização
 
@@ -655,19 +649,24 @@ CREATE INDEX idx_places_embedding
 
 ### 7.3 Busca combinada: geo + semântica
 
+A busca semântica é o único caso onde uma SQL function ainda faz sentido — o operador `<=>` (distância coseno do pgvector) só funciona com o índice HNSW dentro do banco. Mas o scoring composto fica em TypeScript, seguindo o mesmo princípio da busca geo.
+
+**O que fica no SQL:** filtro geo (`ST_DWithin` + índice GIST) + similaridade semântica (`<=>` + índice HNSW). Nenhum ORDER BY, nenhum score composto.
+
 ```sql
-CREATE OR REPLACE FUNCTION search_places_semantic(
-  p_lat          FLOAT,
-  p_lng          FLOAT,
-  p_radius_m     FLOAT,
-  p_query_embed  vector(1536),   -- embedding gerado da query do usuário
-  p_limit        INT DEFAULT 20
+-- migration justificada: usa dois índices especiais que só o banco resolve
+CREATE OR REPLACE FUNCTION get_places_with_similarity(
+  p_lat         FLOAT,
+  p_lng         FLOAT,
+  p_radius_m    FLOAT,
+  p_query_embed vector(1536),
+  p_limit       INT DEFAULT 100   -- busca mais, TypeScript filtra e ordena
 )
 RETURNS TABLE (
-  id           UUID,
-  name         TEXT,
-  distance_m   FLOAT,
-  similarity   FLOAT            -- 0 a 1, quanto mais alto mais similar
+  id          UUID,
+  name        TEXT,
+  distance_m  FLOAT,
+  similarity  FLOAT   -- 0 a 1, calculado pelo índice HNSW
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -681,14 +680,36 @@ BEGIN
     p.status = 'approved'
     AND ST_DWithin(p.location, ST_MakePoint(p_lng, p_lat)::geography, p_radius_m)
     AND p.embedding IS NOT NULL
-  ORDER BY
-    -- score composto: 60% semântica + 40% proximidade
-    ((1 - (p.embedding <=> p_query_embed)) * 0.6)
-    + ((1.0 - LEAST(ST_Distance(p.location, ST_MakePoint(p_lng, p_lat)::geography) / p_radius_m, 1.0)) * 0.4)
-    DESC
+  -- sem ORDER BY aqui — ordenação e scoring no TypeScript
   LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql STABLE;
+```
+
+**O que fica no TypeScript:** scoring composto, ordenação final, paginação.
+
+```typescript
+// src/infrastructure/database/supabase/SupabasePlaceRepository.ts
+async searchSemantic(params: SemanticSearchDTO): Promise<Place[]> {
+  const { data } = await this.db.rpc('get_places_with_similarity', {
+    p_lat: params.lat,
+    p_lng: params.lng,
+    p_radius_m: params.radiusMeters,
+    p_query_embed: params.embedding,
+    p_limit: 100,
+  });
+
+  // Scoring composto — muda os pesos aqui, sem migration
+  return (data ?? [])
+    .map(p => ({
+      ...p,
+      score: 0.6 * p.similarity
+           + 0.4 * (1 - Math.min(p.distance_m / params.radiusMeters, 1)),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, params.limit ?? 20)
+    .map(toDomainPlace);
+}
 ```
 
 **Operadores pgvector:**
@@ -871,11 +892,25 @@ interface SearchPlacesDTO {
 Qualquer implementação de repositório pode substituir outra.
 
 ```typescript
-// Implementação Supabase (produção)
+// Implementação Supabase (produção) — sem RPC, lógica de query em TypeScript
 class SupabasePlaceRepository implements IPlaceRepository {
   async searchNearby(params: SearchPlacesDTO): Promise<Place[]> {
-    const { data } = await supabase.rpc('search_nearby_places', { ... });
-    return data.map(toDomainPlace);
+    const { data } = await this.db
+      .from('places')
+      .select('...')
+      .eq('status', 'approved')
+      .filter(
+        'location',
+        'st_dwithin',
+        `SRID=4326;POINT(${params.lng} ${params.lat})`,
+        params.radiusMeters,
+      );
+    return (data ?? [])
+      .map((p) => ({ ...p, distance_m: haversineDistance(params.lat, params.lng, p.lat, p.lng) }))
+      .filter((p) => !params.mealType || p.meal_types.includes(params.mealType))
+      .map((p) => ({ ...p, score: calcPlaceScore(p, params) }))
+      .sort((a, b) => b.score - a.score)
+      .map(toDomainPlace);
   }
 }
 
@@ -883,7 +918,7 @@ class SupabasePlaceRepository implements IPlaceRepository {
 class InMemoryPlaceRepository implements IPlaceRepository {
   private places: Place[] = [];
   async searchNearby(params: SearchPlacesDTO): Promise<Place[]> {
-    return this.places.filter(p => isWithinRadius(p, params));
+    return this.places.filter((p) => isWithinRadius(p, params));
   }
 }
 // Use cases testáveis sem banco, sem rede, sem Supabase
@@ -1404,8 +1439,8 @@ supabase/
     20260101000002_create_reviews.sql
     20260101000003_create_indexes.sql
     20260101000004_rls_policies.sql
-    20260101000005_search_function.sql
-    20260101000006_update_stats_trigger.sql
+    20260101000005_update_stats_trigger.sql
+    # Não há migration para search function — a query vive em SupabasePlaceRepository.ts
 ```
 
 ---
@@ -1444,18 +1479,18 @@ ORDER BY day DESC;
 
 **Objetivo:** Infraestrutura funcionando, busca geo básica rodando.
 
-| #    | Tarefa                                          | Critério de aceite                 |
-| ---- | ----------------------------------------------- | ---------------------------------- |
-| 1.1  | Setup Next.js 15 + Tailwind + TypeScript strict | `npm run dev` sem erros            |
-| 1.2  | Supabase: projeto criado + migrations rodando   | `supabase db push` OK              |
-| 1.3  | PostGIS: tabela `places` com coluna `geography` | INSERT + ST_DWithin funciona       |
-| 1.4  | Índices GIST + GIN criados e validados          | EXPLAIN ANALYZE mostra Index Scan  |
-| 1.5  | Função `search_nearby_places` SQL criada        | RPC retorna resultados ordenados   |
-| 1.6  | Magic link auth funcionando end-to-end          | Login + sessão + logout            |
-| 1.7  | Middleware de proteção de rotas                 | `/add-place` redireciona sem auth  |
-| 1.8  | PWA manifest + service worker básico            | Lighthouse PWA score > 90          |
-| 1.9  | Estrutura de pastas + interfaces domain criadas | Zero dependência em domain/        |
-| 1.10 | Container de DI configurado                     | Use cases instanciam via container |
+| #    | Tarefa                                              | Critério de aceite                             |
+| ---- | --------------------------------------------------- | ---------------------------------------------- |
+| 1.1  | Setup Next.js 15 + Tailwind + TypeScript strict     | `npm run dev` sem erros                        |
+| 1.2  | Supabase: projeto criado + migrations rodando       | `supabase db push` OK                          |
+| 1.3  | PostGIS: tabela `places` com coluna `geography`     | INSERT + ST_DWithin funciona                   |
+| 1.4  | Índices GIST + GIN criados e validados              | EXPLAIN ANALYZE mostra Index Scan              |
+| 1.5  | `SupabasePlaceRepository.searchNearby` implementado | Busca geo retorna resultados ordenados sem RPC |
+| 1.6  | Magic link auth funcionando end-to-end              | Login + sessão + logout                        |
+| 1.7  | Middleware de proteção de rotas                     | `/add-place` redireciona sem auth              |
+| 1.8  | PWA manifest + service worker básico                | Lighthouse PWA score > 90                      |
+| 1.9  | Estrutura de pastas + interfaces domain criadas     | Zero dependência em domain/                    |
+| 1.10 | Container de DI configurado                         | Use cases instanciam via container             |
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: podrao-supabase-migration
 tools: Read, Write, Edit, Glob, Grep, Bash
-description: Use this agent for any database schema change — creating or altering tables, columns, indexes, functions, triggers, storage buckets, or PostGIS/pgvector configurations. It writes the SQL migration, updates entity and repository, and produces a backfill plan for destructive changes.
+description: Use this agent for database schema changes — creating or altering tables, columns, indexes, triggers, storage buckets, or PostGIS/pgvector configurations. Does NOT write SQL functions for query logic, scoring or business filters — those belong in TypeScript. Writes the SQL migration, updates entity and repository, and produces a backfill plan for destructive changes.
 model: sonnet
 ---
 
@@ -33,8 +33,33 @@ Backend sênior especializado em Postgres + Supabase + PostGIS. Aplica mudanças
 
 - Geo: `location GEOGRAPHY(POINT, 4326)` + `lat`/`lng` numéricos para leituras baratas
 - Index geo: `CREATE INDEX ... USING GIST (location)`
-- Busca: `ST_DWithin` no WHERE (usa index) · `ST_Distance` só no SELECT/ORDER BY
+- Busca: o `ST_DWithin` é passado via Supabase JS client filter — **não crie SQL function para isso**
+- `ST_Distance` não vai no SQL — calcula distância com Haversine em TypeScript nos registros já filtrados
 - Vetores: `embedding vector(1536)`, index ivfflat ou hnsw, NOT NULL proibido no MVP
+- Exceção aceita: SQL function que usa o operador `<=>` (pgvector) com índice HNSW para busca semântica — esse operador não tem equivalente no client; o scoring composto mesmo assim fica em TypeScript
+
+## O que NÃO vai em migration
+
+**Anti-padrão:** criar SQL function para query logic, scoring ou filtros de negócio.
+
+```sql
+-- ❌ ERRADO — scoring no SQL torna impossível mudar pesos sem migration
+CREATE FUNCTION search_nearby_places(...) AS $$
+  ORDER BY (0.4 * geo + 0.4 * rating + 0.2 * reviews) DESC
+$$ ...
+
+-- ❌ ERRADO — filtros de negócio no SQL
+AND (p_meal_type IS NULL OR p_meal_type = ANY(p.meal_types))
+```
+
+```typescript
+// ✅ CORRETO — scoring em TypeScript, muda sem migration
+return data
+  .map((p) => ({ ...p, score: calcPlaceScore(p, params) }))
+  .sort((a, b) => b.score - a.score);
+```
+
+**Regra:** se o motivo de ir ao banco é usar um índice especial (GIST, HNSW) → pode ser migration. Se é lógica de produto que pode mudar → TypeScript no `SupabaseXRepository.ts`.
 
 ---
 
