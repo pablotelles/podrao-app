@@ -9,6 +9,7 @@ import type { MealType } from '@/domain/value-objects/MealType';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
+import { calcPlaceScore } from './scoring';
 
 // Shape returned by search_nearby_places RPC.
 // cuisine_types, meal_types, food_types are TEXT[] reconstructed by subqueries in the SQL function.
@@ -79,6 +80,22 @@ interface PlacePhotoRow {
   position: number;
   uploaded_by: string | null;
   uploaded_at: string;
+}
+
+function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function getStats(
+  row: PlaceRowWithRelations,
+): { rating: number; reviews_count: number; median_price: number | null } | null {
+  return Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
 }
 
 function toDomain(row: PlaceRow): Place {
@@ -187,20 +204,76 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   }
 
   async searchNearby(params: SearchPlacesParams): Promise<Place[]> {
-    const { data, error } = await this.db.rpc('search_nearby_places', {
-      p_lat: params.lat,
-      p_lng: params.lng,
-      p_radius_m: params.radiusMeters ?? 3000,
-      p_meal_type: params.mealType ?? null,
-      p_cuisine: params.cuisine ?? null,
-      p_food_type: params.foodType ?? null,
-      p_max_price: params.maxPrice ?? null,
-      p_limit: params.limit ?? 20,
-      p_offset: params.offset ?? 0,
-    });
+    const radius = params.radiusMeters ?? 3000;
+    const limit = params.limit ?? 20;
+    const offset = params.offset ?? 0;
+
+    const { data, error } = await this.db
+      .from('places')
+      .select(
+        `*,
+         place_stats ( rating, reviews_count, median_price ),
+         place_cuisines ( cuisine_type ),
+         place_meals ( meal_type ),
+         place_food_types ( food_type ),
+         place_photos ( url, type, position )`,
+      )
+      .eq('status', 'approved')
+      .filter(
+        'location',
+        'st_dwithin',
+        JSON.stringify({
+          origin: `SRID=4326;POINT(${params.lng} ${params.lat})`,
+          distance: radius,
+          use_spheroid: false,
+        }),
+      );
 
     if (error) throw new Error(error.message);
-    return (data as PlaceRow[]).map(toDomain);
+
+    let rows = (data ?? []) as PlaceRowWithRelations[];
+
+    if (params.mealType) {
+      rows = rows.filter((r) => (r.place_meals ?? []).some((m) => m.meal_type === params.mealType));
+    }
+
+    if (params.cuisine) {
+      rows = rows.filter((r) =>
+        (r.place_cuisines ?? []).some((c) => c.cuisine_type === params.cuisine),
+      );
+    }
+
+    if (params.foodType) {
+      rows = rows.filter((r) =>
+        (r.place_food_types ?? []).some((f) => f.food_type === params.foodType),
+      );
+    }
+
+    // maxPrice is a monetary cap — no direct bucket mapping available, skipping price filter
+
+    const withDistance = rows.map((row) => {
+      const distanceM = haversineM(params.lat, params.lng, Number(row.lat), Number(row.lng));
+      return { row, distanceM };
+    });
+
+    withDistance.sort(
+      (a, b) =>
+        calcPlaceScore({
+          rating: Number(getStats(b.row)?.rating ?? 0),
+          reviewsCount: Number(getStats(b.row)?.reviews_count ?? 0),
+          distanceM: b.distanceM,
+        }) -
+        calcPlaceScore({
+          rating: Number(getStats(a.row)?.rating ?? 0),
+          reviewsCount: Number(getStats(a.row)?.reviews_count ?? 0),
+          distanceM: a.distanceM,
+        }),
+    );
+
+    return withDistance.slice(offset, offset + limit).map(({ row, distanceM }) => ({
+      ...this.rowWithRelationsToDomain(row),
+      distanceM,
+    }));
   }
 
   async searchByName(query: string, limit = 20): Promise<Place[]> {

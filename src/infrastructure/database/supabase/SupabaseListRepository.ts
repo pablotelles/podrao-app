@@ -11,34 +11,7 @@ import { supabase } from './client';
 
 interface RecentListRpcRow {
   id: string;
-  title: string;
-  cover_url: string | null;
-  bairro: string | null;
-  places_count: number;
-  saves_count: number;
-  price_range_min: number | null;
-  price_range_max: number | null;
-  created_at: string;
   updated_at: string;
-}
-
-function rpcRowToDomain(row: RecentListRpcRow): UserList {
-  return {
-    id: row.id,
-    ownerId: '',
-    name: row.title,
-    isPublic: true,
-    coverUrl: row.cover_url ?? undefined,
-    placesCount: row.places_count,
-    viewCount: 0,
-    favoritesCount: 0,
-    savesCount: row.saves_count,
-    priceRangeMin: row.price_range_min ?? undefined,
-    priceRangeMax: row.price_range_max ?? undefined,
-    bairro: row.bairro ?? undefined,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
-  };
 }
 
 interface ListRow {
@@ -153,12 +126,7 @@ export class SupabaseListRepository implements IListRepository {
     if (data.isPublic !== undefined) updateData.is_public = data.isPublic;
     if (data.coverUrl !== undefined) updateData.cover_url = data.coverUrl;
 
-    const { data: row, error } = await this.db
-      .from('lists')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    const { error } = await this.db.from('lists').update(updateData).eq('id', id).select().single();
 
     if (error) throw new Error(error.message);
 
@@ -246,8 +214,7 @@ export class SupabaseListRepository implements IListRepository {
   }
 
   async incrementViewCount(listId: string): Promise<void> {
-    // Incremento atômico — ignora erro pois view count não é crítico
-    await this.db.rpc('increment_list_view', { p_list_id: listId });
+    await this.db.rpc('increment_list_view_count', { list_uuid: listId });
   }
 
   async toggleFavorite(userId: string, listId: string): Promise<{ favorited: boolean }> {
@@ -260,14 +227,12 @@ export class SupabaseListRepository implements IListRepository {
         .eq('user_id', userId)
         .eq('list_id', listId);
       if (error) throw new Error(error.message);
-      await this.db.rpc('decrement_list_favorites', { p_list_id: listId });
       return { favorited: false };
     } else {
       const { error } = await this.db
         .from('list_favorites')
         .insert({ user_id: userId, list_id: listId });
       if (error) throw new Error(error.message);
-      await this.db.rpc('increment_list_favorites', { p_list_id: listId });
       return { favorited: true };
     }
   }
@@ -282,14 +247,12 @@ export class SupabaseListRepository implements IListRepository {
         .eq('user_id', userId)
         .eq('list_id', listId);
       if (error) throw new Error(error.message);
-      await this.db.rpc('decrement_list_saves', { p_list_id: listId });
       return { saved: false };
     } else {
       const { error } = await this.db
         .from('list_saves')
         .insert({ user_id: userId, list_id: listId });
       if (error) throw new Error(error.message);
-      await this.db.rpc('increment_list_saves', { p_list_id: listId });
       return { saved: true };
     }
   }
@@ -387,9 +350,79 @@ export class SupabaseListRepository implements IListRepository {
     if (error) throw new Error(error.message);
 
     const rows = (data ?? []) as RecentListRpcRow[];
-    const lists = rows.map(rpcRowToDomain);
-    const lastRow = rows[rows.length - 1];
-    const nextCursor = rows.length >= limit && lastRow ? new Date(lastRow.updated_at) : null;
+    if (rows.length === 0) return { lists: [], nextCursor: null };
+
+    const nextCursor = rows.length >= limit ? new Date(rows[rows.length - 1].updated_at) : null;
+
+    const ids = rows.map((r) => r.id);
+
+    const { data: listData, error: listErr } = await this.db
+      .from('lists')
+      .select('*, list_places(count)')
+      .in('id', ids);
+
+    if (listErr) throw new Error(listErr.message);
+
+    const { data: placeData, error: placeErr } = await this.db
+      .from('list_places')
+      .select('list_id, position, places(bairro, place_stats(median_price))')
+      .in('list_id', ids)
+      .order('position', { ascending: true });
+
+    if (placeErr) throw new Error(placeErr.message);
+
+    type PlaceDataRow = {
+      list_id: string;
+      position: number;
+      places: { bairro: string | null; place_stats: { median_price: number | null }[] } | null;
+    };
+
+    const placeRows = (placeData ?? []) as unknown as PlaceDataRow[];
+
+    const bairroByList = new Map<string, string>();
+    const pricesByList = new Map<string, number[]>();
+
+    for (const pr of placeRows) {
+      if (!pr.places) continue;
+      const place = pr.places;
+
+      if (place.bairro && !bairroByList.has(pr.list_id)) {
+        bairroByList.set(pr.list_id, place.bairro);
+      }
+
+      const statsArr = Array.isArray(place.place_stats)
+        ? place.place_stats
+        : place.place_stats
+          ? [place.place_stats]
+          : [];
+      const median = statsArr[0]?.median_price ?? null;
+      if (median !== null) {
+        const existing = pricesByList.get(pr.list_id) ?? [];
+        existing.push(median);
+        pricesByList.set(pr.list_id, existing);
+      }
+    }
+
+    const listMap = new Map<string, UserList>(
+      (listData as ListWithCountRow[]).map((row) => {
+        const placesCount = row.list_places?.[0]?.count ?? 0;
+        const prices = pricesByList.get(row.id) ?? [];
+        const priceRangeMin = prices.length > 0 ? Math.min(...prices) : undefined;
+        const priceRangeMax = prices.length > 0 ? Math.max(...prices) : undefined;
+        const bairro = bairroByList.get(row.id);
+        return [
+          row.id,
+          {
+            ...listToDomain(row, placesCount),
+            priceRangeMin,
+            priceRangeMax,
+            bairro,
+          },
+        ];
+      }),
+    );
+
+    const lists = ids.map((id) => listMap.get(id)).filter((l): l is UserList => l !== undefined);
 
     return { lists, nextCursor };
   }

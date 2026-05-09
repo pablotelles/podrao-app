@@ -14,15 +14,14 @@ Use `getJiraIssue` to fetch the card:
 
 Extract these fields from the response:
 
-- `fields.customfield_10075` -> spec_path (plain text)
-- `fields.customfield_10073` -> two paths from ADF (two paragraphs):
-  - dev_spec_path: `.content[0].content[0].text`
+- `fields.description` -> spec_content (ADF — extract all text nodes concatenated; this is the product spec written by podrao-product)
+- `fields.customfield_10073` -> two values from ADF (two paragraphs):
+  - dev_spec_slim: `.content[0].content[0].text` (component mapping + new tokens)
   - html_path: `.content[1].content[0].text` (optional — may not exist for cards without UI)
 - `fields.customfield_10074` -> approved_decisions (ADF paragraph, extract text and split by newline)
 - `fields.summary` -> card title
-- `fields.description` -> additional context
 
-If `customfield_10075` is null or empty, stop and tell the user the spec_path field is not filled in the Jira card. The Cowork product phase must run first.
+If `fields.description` is null or empty, stop and tell the user the product spec has not been written to the Jira card. The Cowork product phase must run first via /impl in the Cowork session.
 
 Derive the branch name from the card key and title:
 
@@ -39,8 +38,8 @@ Execute in order. Each step uses an isolated subagent via Task tool.
 
 Use subagent `podrao-architect` with:
 
-- Full file contents at spec_path (read the file)
-- Full file contents at dev_spec_path if not null (read the file)
+- spec_content (from fields.description — no file read needed)
+- dev_spec_slim (from customfield_10073 paragraph 1 — no file read needed)
 - approved_decisions list
 - Card ID, title, and branch
 
