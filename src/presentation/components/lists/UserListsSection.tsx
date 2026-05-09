@@ -1,47 +1,33 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react';
 import { useLists } from '@/presentation/hooks/useLists';
-import { Button } from '@/presentation/components/ui/Button';
-import { ListList } from './ListList';
-import type { UserList } from '@/domain/entities/List';
+import { ListsSection } from './ListsSection';
 
 export function UserListsSection() {
   const router = useRouter();
-  const { lists, deleteList, isLoading } = useLists();
-  const [deletingListId, setDeletingListId] = useState<string | null>(null);
-  const [menuList, setMenuList] = useState<UserList | null>(null);
-
-  const handleDelete = async (list: UserList) => {
-    if (!confirm('Tem certeza que deseja deletar esta lista?')) return;
-
-    setDeletingListId(list.id);
-    try {
-      await deleteList(list.id);
-      setMenuList(null);
-    } catch (err) {
-      console.error('Erro ao deletar lista:', err);
-    } finally {
-      setDeletingListId(null);
-    }
-  };
+  const { lists, isLoading, error, refresh } = useLists();
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-text-primary">Minhas Listas</h2>
-        <Button onClick={() => router.push('/lists/new')} size="sm">
-          ➕ Nova Lista
-        </Button>
-      </div>
-
-      <ListList
-        lists={lists}
-        isLoading={isLoading}
-        onMenuClick={(list) => setMenuList(list)}
-        onDelete={handleDelete}
-      />
-    </div>
+    <ListsSection
+      title="Minhas Listas"
+      lists={lists}
+      isLoading={isLoading}
+      error={error}
+      onRetry={refresh}
+      headerAction={
+        <button
+          type="button"
+          className="flex items-center gap-1 text-sm font-medium text-brand"
+          onClick={() => router.push('/lists/new')}
+        >
+          <Plus size={14} />
+          Nova lista
+        </button>
+      }
+      emptyTitle="Nenhuma lista criada"
+      emptyDescription="Crie sua primeira lista e compartilhe com amigos."
+    />
   );
 }

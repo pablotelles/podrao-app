@@ -1,41 +1,69 @@
 'use client';
 
-import Link from 'next/link';
-import type { UserList } from '@/domain/entities/List';
-import { Card } from '@/presentation/components/ui/Card';
+import { useRouter } from 'next/navigation';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/presentation/components/ui/Badge';
+import type { UserList } from '@/domain/entities/List';
 
 interface ListCardProps {
   list: UserList;
-  onDelete?: () => void;
+  /** Quando fornecido, exibe MoreHorizontal em vez de ChevronRight */
+  onMenuClick?: (list: UserList) => void;
 }
 
-export function ListCard({ list, onDelete }: ListCardProps) {
+function ListThumb({ list }: { list: UserList }) {
+  if (list.coverUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={list.coverUrl}
+        alt={list.name}
+        className="h-14 w-14 shrink-0 rounded-md object-cover"
+      />
+    );
+  }
   return (
-    <Card className="hover:shadow-(--shadow-card-hover) transition-shadow">
-      <div className="flex items-start p-4">
-        <Link href={`/lists/${list.id}`} className="flex-1">
-          <h3 className="font-semibold text-text-primary">{list.name}</h3>
-          {list.description && (
-            <p className="mt-1 text-sm text-text-secondary line-clamp-2">{list.description}</p>
-          )}
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-sm text-text-secondary">
-              {list.placesCount ?? 0} {list.placesCount === 1 ? 'lugar' : 'lugares'}
-            </span>
-            {list.isPublic && <Badge variant="default">Pública</Badge>}
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-brand-subtle text-2xl">
+      {list.name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+export function ListCard({ list, onMenuClick }: ListCardProps) {
+  const router = useRouter();
+  const placesText = list.placesCount === 1 ? '1 lugar' : `${list.placesCount ?? 0} lugares`;
+
+  return (
+    <div className="flex w-full items-center gap-3 border-b border-bg-subtle py-3 last:border-b-0">
+      <button
+        type="button"
+        className="flex flex-1 items-center gap-3 text-left"
+        onClick={() => router.push(`/lists/${list.id}`)}
+      >
+        <ListThumb list={list} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-text-primary">{list.name}</p>
+          <div className="mt-0.5 flex items-center gap-1 text-xs text-text-secondary">
+            <span>{placesText}</span>
+            <span>·</span>
+            <Badge variant={list.isPublic ? 'success' : 'default'}>
+              {list.isPublic ? 'Pública' : 'Privada'}
+            </Badge>
           </div>
-        </Link>
-        {onDelete && (
-          <button
-            onClick={onDelete}
-            className="ml-3 text-text-secondary hover:text-red-600"
-            aria-label="Deletar lista"
-          >
-            🗑️
-          </button>
-        )}
-      </div>
-    </Card>
+        </div>
+      </button>
+      {onMenuClick ? (
+        <button
+          type="button"
+          onClick={() => onMenuClick(list)}
+          className="shrink-0 text-text-disabled hover:text-text-secondary"
+          aria-label="Opções da lista"
+        >
+          <MoreHorizontal size={18} />
+        </button>
+      ) : (
+        <ChevronRight size={16} className="shrink-0 text-text-disabled" />
+      )}
+    </div>
   );
 }

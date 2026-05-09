@@ -155,7 +155,13 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
           <div className="flex-1 overflow-auto" style={{ isolation: 'isolate' }}>
             {view === 'list' ? (
               <div className="mx-auto max-w-2xl px-(--spacing-page-x) py-4 pb-8">
-                <PlaceList places={places} isLoading={isLoading} error={error} />
+                <PlaceList
+                  places={places}
+                  isLoading={isLoading}
+                  error={error}
+                  variant="expanded"
+                  display="cards"
+                />
               </div>
             ) : (
               <DynamicPlaceMap

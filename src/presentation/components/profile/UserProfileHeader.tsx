@@ -65,15 +65,11 @@ export function UserProfileHeader({
       </div>
 
       {/* Headline/Bio - Começa alinhado com o avatar (esquerda) */}
-      {headline ? (
+      {headline && (
         <div className="mt-3">
           <UserHeadline headline={headline} size="sm" />
         </div>
-      ) : onEmptyHeadlineClick ? (
-        <button onClick={onEmptyHeadlineClick} className="mt-3 text-sm text-brand hover:underline">
-          + Adicionar uma bio
-        </button>
-      ) : null}
+      )}
     </div>
   );
 }

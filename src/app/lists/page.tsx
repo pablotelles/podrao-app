@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
 import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
-import { ListList, UserListsSection } from '@/presentation/components/lists';
+import { ListsSection, UserListsSection } from '@/presentation/components/lists';
 import { usePublicLists, useSavedLists } from '@/presentation/hooks/useListsExplore';
 
 type ListsTab = 'explorar' | 'minhas' | 'salvas';
@@ -21,7 +21,7 @@ function ExplorarTab() {
   const { lists, isLoading } = usePublicLists();
   return (
     <div className="px-(--spacing-page-x) py-4">
-      <ListList lists={lists} isLoading={isLoading} />
+      <ListsSection lists={lists} isLoading={isLoading} />
     </div>
   );
 }
@@ -30,7 +30,7 @@ function SalvasTab() {
   const { lists, isLoading } = useSavedLists();
   return (
     <div className="px-(--spacing-page-x) py-4">
-      <ListList lists={lists} isLoading={isLoading} />
+      <ListsSection lists={lists} isLoading={isLoading} />
     </div>
   );
 }

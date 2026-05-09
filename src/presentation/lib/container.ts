@@ -45,6 +45,7 @@ import { GetPublicLists } from '@/application/use-cases/lists/GetPublicLists';
 import { GetSavedLists } from '@/application/use-cases/lists/GetSavedLists';
 import { ReorderListPlaces } from '@/application/use-cases/lists/ReorderListPlaces';
 import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
+import { GetMyReviews } from '@/application/use-cases/reviews/GetMyReviews';
 
 function lazySingleton<T extends object>(factory: () => T): T {
   let instance: T | undefined;
@@ -137,6 +138,11 @@ export const reorderListPlaces = lazySingleton(() => new ReorderListPlaces(listR
 // User stats
 export const getUserStats = lazySingleton(
   () => new GetUserStats(placeRepository, reviewRepository, favoriteRepository),
+);
+
+// My reviews
+export const getMyReviews = lazySingleton(
+  () => new GetMyReviews(reviewRepository, placeRepository),
 );
 
 // --- Providers exportados para uso direto em routes ---

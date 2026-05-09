@@ -1,30 +1,39 @@
 import type { Place } from '@/domain/entities/Place';
 import { PlaceCard } from './PlaceCard';
-import { PlaceRow } from './PlaceRow';
-import { PlaceCardSkeleton, EmptyState, Skeleton } from '@/presentation/components/ui';
+import { EmptyState, Skeleton } from '@/presentation/components/ui';
 
 interface PlaceListProps {
   places: Place[];
   isLoading: boolean;
   error?: Error | null;
-  direction?: 'vertical' | 'horizontal';
+  variant?: 'brief' | 'expanded';
+  /** 'divided': linhas com border-b (padrão, para uso dentro de SectionShell)
+   *  'cards': cada item com shadow individual (para uso standalone) */
+  display?: 'divided' | 'cards';
   showRank?: boolean;
   onMenuClick?: (place: Place) => void;
 }
 
-function PlaceRowSkeleton() {
+function PlaceCardSkeleton({
+  variant,
+  standalone,
+}: {
+  variant: 'brief' | 'expanded';
+  standalone: boolean;
+}) {
+  const align = variant === 'expanded' ? 'items-start' : 'items-center';
+  const cls = standalone
+    ? `flex ${align} gap-3 rounded-md bg-bg ${variant === 'expanded' ? 'p-3.5' : 'p-3'} shadow-(--shadow-card)`
+    : `flex ${align} gap-3 border-b border-bg-subtle py-3 last:border-b-0`;
+  const thumbCls = variant === 'expanded' ? 'h-18 w-18' : 'h-14 w-14';
+
   return (
-    <div className="flex items-stretch gap-0 rounded-xl border border-border bg-bg overflow-hidden min-h-[100px]">
-      <Skeleton className="w-24 shrink-0" />
-      <div className="flex flex-1 flex-col gap-2 px-4 py-3">
+    <div className={cls}>
+      <Skeleton className={`${thumbCls} shrink-0 rounded-md`} />
+      <div className="flex flex-1 flex-col gap-2">
         <Skeleton className="h-4 w-2/3" />
+        {variant === 'expanded' && <Skeleton className="h-3 w-full" />}
         <Skeleton className="h-3 w-1/2" />
-        <Skeleton className="h-3 w-1/3" />
-        <Skeleton className="h-3 w-1/4" />
-      </div>
-      <div className="flex flex-col justify-between py-3 pr-4">
-        <Skeleton className="h-5 w-5" />
-        <Skeleton className="h-5 w-5" />
       </div>
     </div>
   );
@@ -34,26 +43,19 @@ export function PlaceList({
   places,
   isLoading,
   error,
-  direction = 'vertical',
+  variant = 'brief',
+  display = 'divided',
   showRank = false,
   onMenuClick,
 }: PlaceListProps) {
+  const standalone = display === 'cards';
+  const containerCls = standalone ? 'flex flex-col gap-2' : 'flex flex-col';
+
   if (isLoading) {
-    if (direction === 'horizontal') {
-      return (
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="w-48 shrink-0">
-              <PlaceCardSkeleton />
-            </div>
-          ))}
-        </div>
-      );
-    }
     return (
-      <div className="flex flex-col gap-2">
+      <div className={containerCls}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <PlaceRowSkeleton key={i} />
+          <PlaceCardSkeleton key={i} variant={variant} standalone={standalone} />
         ))}
       </div>
     );
@@ -79,26 +81,16 @@ export function PlaceList({
     );
   }
 
-  if (direction === 'horizontal') {
-    return (
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {places.map((place) => (
-          <div key={place.id} className="w-48 shrink-0">
-            <PlaceCard place={place} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-2">
+    <div className={containerCls}>
       {places.map((place, index) => (
-        <PlaceRow
+        <PlaceCard
           key={place.id}
           place={place}
+          variant={variant}
           rank={showRank ? index + 1 : undefined}
           onMenuClick={onMenuClick}
+          standalone={standalone}
         />
       ))}
     </div>

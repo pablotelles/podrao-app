@@ -11,5 +11,4 @@ export { ListPlaceCard } from './ListPlaceCard';
 export { ListPlacesSection } from './ListPlacesSection';
 export { AddPlaceToListDrawer } from './AddPlaceToListDrawer';
 export { AddPlaceResultRow } from './AddPlaceResultRow';
-export { ListRow } from './ListRow';
-export { ListList } from './ListList';
+export { ListsSection } from './ListsSection';
