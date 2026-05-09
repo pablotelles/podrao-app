@@ -12,7 +12,7 @@ const SESSION_KEY = 'podrao_onboarding_seen';
 
 function persistSeen() {
   try {
-    sessionStorage.setItem(SESSION_KEY, 'true');
+    localStorage.setItem(SESSION_KEY, 'true');
   } catch {}
 }
 

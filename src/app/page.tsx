@@ -14,7 +14,7 @@ export default function HomePage() {
   // No servidor não roda, então o estado fica null e nada é renderizado
   useLayoutEffect(() => {
     try {
-      setHasSeenOnboarding(sessionStorage.getItem('podrao_onboarding_seen') === 'true');
+      setHasSeenOnboarding(localStorage.getItem('podrao_onboarding_seen') === 'true');
     } catch {
       setHasSeenOnboarding(false);
     }
