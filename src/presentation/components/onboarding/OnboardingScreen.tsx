@@ -5,7 +5,7 @@ import { MapPin, Star, ListCollapse, Loader2 } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/Button';
 import { Card } from '@/presentation/components/ui/Card';
 import { AddressAutocomplete } from '@/presentation/components/ui/AddressAutocomplete';
-import { useHideBottomNav } from '@/presentation/contexts/TopBarContext';
+import { useHideBottomNav, useHideTopBar } from '@/presentation/contexts/TopBarContext';
 import type { AutocompleteResult } from '@/domain/interfaces/IMapProvider';
 
 const SESSION_KEY = 'podrao_onboarding_seen';
@@ -40,6 +40,7 @@ interface OnboardingScreenProps {
 
 export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   useHideBottomNav();
+  useHideTopBar();
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsDenied, setGpsDenied] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<AutocompleteResult | null>(null);
@@ -72,7 +73,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   }
 
   return (
-    <div className="flex min-h-[calc(100dvh-var(--topbar-height))] flex-col">
+    <div className="flex min-h-dvh flex-col">
       {/* ── Hero ── */}
       <div
         className="relative flex shrink-0 flex-col items-center justify-center overflow-hidden"

@@ -5,6 +5,7 @@ import { UserProvider } from '@/presentation/contexts/UserContext';
 import { TopBar } from '@/presentation/components/navigation/TopBar';
 import { BottomNav } from '@/presentation/components/navigation/BottomNav';
 import { InstallPWA } from '@/presentation/components/navigation/InstallPWA';
+import { MainLayout } from '@/presentation/components/navigation/MainLayout';
 import { ToastProvider } from '@/presentation/components/ui/ToastProvider';
 import './globals.css';
 
@@ -29,12 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   className="fixed left-0 right-0"
                   style={{ top: 'var(--topbar-height)', zIndex: 'var(--z-sticky)' }}
                 />
-                <div
-                  className="flex min-h-dvh flex-col"
-                  style={{ paddingTop: 'calc(var(--topbar-height) + var(--subheader-height))' }}
-                >
-                  {children}
-                </div>
+                <MainLayout>{children}</MainLayout>
                 <InstallPWA />
                 <BottomNav />
               </ToastProvider>

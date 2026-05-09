@@ -1,12 +1,21 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  type ReactNode,
+} from 'react';
 
 interface TopBarContextValue {
   title: string;
   setTitle: (title: string) => void;
   hideBottomNav: boolean;
   setHideBottomNav: (hide: boolean) => void;
+  hideTopBar: boolean;
+  setHideTopBar: (hide: boolean) => void;
 }
 
 const TopBarContext = createContext<TopBarContextValue>({
@@ -14,13 +23,18 @@ const TopBarContext = createContext<TopBarContextValue>({
   setTitle: () => {},
   hideBottomNav: false,
   setHideBottomNav: () => {},
+  hideTopBar: false,
+  setHideTopBar: () => {},
 });
 
 export function TopBarProvider({ children }: { children: ReactNode }) {
   const [title, setTitle] = useState('');
   const [hideBottomNav, setHideBottomNav] = useState(false);
+  const [hideTopBar, setHideTopBar] = useState(false);
   return (
-    <TopBarContext.Provider value={{ title, setTitle, hideBottomNav, setHideBottomNav }}>
+    <TopBarContext.Provider
+      value={{ title, setTitle, hideBottomNav, setHideBottomNav, hideTopBar, setHideTopBar }}
+    >
       {children}
     </TopBarContext.Provider>
   );
@@ -41,10 +55,19 @@ export function usePageTitle(title: string) {
 /** Hook para esconder o BottomNav enquanto o componente estiver montado. */
 export function useHideBottomNav() {
   const { setHideBottomNav } = useTopBarContext();
-  useEffect(() => {
+  useLayoutEffect(() => {
     setHideBottomNav(true);
     return () => setHideBottomNav(false);
   }, [setHideBottomNav]);
+}
+
+/** Hook para esconder a TopBar enquanto o componente estiver montado. */
+export function useHideTopBar() {
+  const { setHideTopBar } = useTopBarContext();
+  useLayoutEffect(() => {
+    setHideTopBar(true);
+    return () => setHideTopBar(false);
+  }, [setHideTopBar]);
 }
 
 /** Componente para definir título a partir de Server Components (via prop). */

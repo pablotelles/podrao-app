@@ -38,10 +38,10 @@ function Avatar({ user }: { user: User | null }) {
 
 export function TopBar() {
   const pathname = usePathname();
-  const { title } = useTopBarContext();
+  const { title, hideTopBar } = useTopBarContext();
   const { user } = useUser();
 
-  if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
+  if (hideTopBar || HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
 
   return (
     <header
