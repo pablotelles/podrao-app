@@ -15,7 +15,9 @@ Use `getJiraIssue` to fetch the card:
 Extract these fields from the response:
 
 - `fields.customfield_10075` -> spec_path (plain text)
-- `fields.customfield_10073` -> dev_spec_path (ADF paragraph, extract `.content[0].content[0].text`)
+- `fields.customfield_10073` -> two paths from ADF (two paragraphs):
+  - dev_spec_path: `.content[0].content[0].text`
+  - html_path: `.content[1].content[0].text` (optional — may not exist for cards without UI)
 - `fields.customfield_10074` -> approved_decisions (ADF paragraph, extract text and split by newline)
 - `fields.summary` -> card title
 - `fields.description` -> additional context
@@ -68,6 +70,7 @@ Use subagent `podrao-feature-builder` with:
 - Architect plan
 - Migration output (if any)
 - approved_decisions and any files_to_avoid
+- html_path (if extracted from Jira — pass as `html_path` for visual reference)
 
 From feature-builder JSON output:
 
@@ -111,5 +114,5 @@ git add [files_created + files_modified]
 git commit -m "feat([card lowercase]): [title]"
 git push origin [branch]
 
-Reviewer warnings: [important[] or "none"]
+Reviewer warnings: [important[] or "n
 ```

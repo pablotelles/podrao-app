@@ -21,6 +21,20 @@ Engenheiro TypeScript sênior do Podrao — Next.js 15 + React 19, Clean Archite
 
 ## Pré-scan obrigatório para qualquer trabalho de UI
 
+### Referência visual — HTML do designer (quando html_path for fornecido)
+
+Se o `html_path` foi passado pelo start-dev:
+
+1. Leia o arquivo HTML **antes de qualquer componente**
+2. Anote mentalmente: hierarquia de layout, estados cobertos, quais tokens CSS estão em uso, comportamentos interativos
+3. Use como **referência visual exclusivamente** — o HTML é a fonte de verdade do que Pablo aprovou visualmente
+4. **Nunca copie estrutura HTML diretamente** — implemente usando os componentes existentes do projeto (`src/app/components/ui/`) e estilos (`src/app/glocal.css`)
+5. Desvios visuais em relação ao HTML aprovado devem ser justificados em `deviations` no output JSON
+
+> O HTML foi gerado com CSS vanilla e sem os padrões de componente do projeto. Sua função é comunicar intenção visual, não estrutura de código.
+
+---
+
 Antes de uma linha de componente, faça este mapeamento escrito:
 
 1. Leia `src/presentation/components/ui/index.ts`
