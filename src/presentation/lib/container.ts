@@ -43,6 +43,8 @@ import { ToggleListFavorite } from '@/application/use-cases/lists/ToggleListFavo
 import { ToggleListSave } from '@/application/use-cases/lists/ToggleListSave';
 import { GetPublicLists } from '@/application/use-cases/lists/GetPublicLists';
 import { GetSavedLists } from '@/application/use-cases/lists/GetSavedLists';
+import { GetFeaturedLists } from '@/application/use-cases/lists/GetFeaturedLists';
+import { GetRecentLists } from '@/application/use-cases/lists/GetRecentLists';
 import { ReorderListPlaces } from '@/application/use-cases/lists/ReorderListPlaces';
 import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
 import { GetMyReviews } from '@/application/use-cases/reviews/GetMyReviews';
@@ -134,6 +136,8 @@ export const toggleListSave = lazySingleton(() => new ToggleListSave(listReposit
 export const getPublicLists = lazySingleton(() => new GetPublicLists(listRepository));
 export const getSavedLists = lazySingleton(() => new GetSavedLists(listRepository));
 export const reorderListPlaces = lazySingleton(() => new ReorderListPlaces(listRepository));
+export const getFeaturedLists = lazySingleton(() => new GetFeaturedLists(listRepository));
+export const getRecentLists = lazySingleton(() => new GetRecentLists(listRepository));
 
 // User stats
 export const getUserStats = lazySingleton(

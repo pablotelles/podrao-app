@@ -13,6 +13,11 @@ export interface UserList {
   savesCount: number;
   createdAt: Date;
   updatedAt: Date;
+  /** Faixa de preço dos lugares da lista (derivada de place_stats.median_price) */
+  priceRangeMin?: number;
+  priceRangeMax?: number;
+  /** Bairro predominante dos lugares da lista (primeiro lugar por position) */
+  bairro?: string;
 }
 
 export interface ListFavorite {

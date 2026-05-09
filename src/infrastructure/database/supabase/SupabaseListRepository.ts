@@ -3,9 +3,43 @@ import type {
   IListRepository,
   CreateListData,
   UpdateListData,
+  FindRecentNearbyParams,
+  FindRecentNearbyResult,
 } from '@/domain/interfaces/IListRepository';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
+
+interface RecentListRpcRow {
+  id: string;
+  title: string;
+  cover_url: string | null;
+  bairro: string | null;
+  places_count: number;
+  saves_count: number;
+  price_range_min: number | null;
+  price_range_max: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+function rpcRowToDomain(row: RecentListRpcRow): UserList {
+  return {
+    id: row.id,
+    ownerId: '',
+    name: row.title,
+    isPublic: true,
+    coverUrl: row.cover_url ?? undefined,
+    placesCount: row.places_count,
+    viewCount: 0,
+    favoritesCount: 0,
+    savesCount: row.saves_count,
+    priceRangeMin: row.price_range_min ?? undefined,
+    priceRangeMax: row.price_range_max ?? undefined,
+    bairro: row.bairro ?? undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
 
 interface ListRow {
   id: string;
@@ -321,6 +355,43 @@ export class SupabaseListRepository implements IListRepository {
       const placesCount = row.list_places?.[0]?.count ?? 0;
       return listToDomain(row, placesCount);
     });
+  }
+
+  async findFeatured(limit = 10): Promise<UserList[]> {
+    const { data, error } = await this.db
+      .from('lists')
+      .select('*, list_places(count)')
+      .eq('is_public', true)
+      .order('saves_count', { ascending: false })
+      .limit(limit);
+
+    if (error) throw new Error(error.message);
+    return (data as ListWithCountRow[]).map((row) => {
+      const placesCount = row.list_places?.[0]?.count ?? 0;
+      return listToDomain(row, placesCount);
+    });
+  }
+
+  async findRecentNearby(params: FindRecentNearbyParams): Promise<FindRecentNearbyResult> {
+    const { lat, lng, radiusM = 15000, since, cursor, limit = 10 } = params;
+
+    const { data, error } = await this.db.rpc('search_recent_lists_nearby', {
+      p_lat: lat ?? null,
+      p_lng: lng ?? null,
+      p_radius_m: radiusM,
+      p_since: since ? since.toISOString() : null,
+      p_cursor: cursor ? cursor.toISOString() : null,
+      p_limit: limit,
+    });
+
+    if (error) throw new Error(error.message);
+
+    const rows = (data ?? []) as RecentListRpcRow[];
+    const lists = rows.map(rpcRowToDomain);
+    const lastRow = rows[rows.length - 1];
+    const nextCursor = rows.length >= limit && lastRow ? new Date(lastRow.updated_at) : null;
+
+    return { lists, nextCursor };
   }
 
   async getSavedListsByUser(userId: string): Promise<UserList[]> {

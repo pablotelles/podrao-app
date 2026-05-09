@@ -48,6 +48,10 @@
     /* Sombras */
     --shadow-card: 0 2px 8px 0 rgb(0 0 0 / 0.08), 0 0 0 1px rgb(0 0 0 / 0.04);
     --shadow-modal: 0 16px 48px -4px rgb(0 0 0 / 0.18);
+    --shadow-fab: 0 4px 14px rgb(88 86 214 / 0.45);
+
+    /* Cores de overlay */
+    --color-overlay-gradient: rgba(0, 0, 0, 0.65);
 
     /* Layout heights */
     --topbar-height: 56px;

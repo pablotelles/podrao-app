@@ -5,7 +5,8 @@ import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
 import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
 import { ListsSection, UserListsSection } from '@/presentation/components/lists';
-import { usePublicLists, useSavedLists } from '@/presentation/hooks/useListsExplore';
+import { useSavedLists } from '@/presentation/hooks/useListsExplore';
+import { ExplorarListasContent } from '@/presentation/components/lists/explore/ExplorarListasContent';
 
 type ListsTab = 'explorar' | 'minhas' | 'salvas';
 
@@ -18,12 +19,7 @@ const TABS: { id: ListsTab; label: string }[] = [
 // Tab bar height matches the default in useSubHeaderHeight (52px)
 
 function ExplorarTab() {
-  const { lists, isLoading } = usePublicLists();
-  return (
-    <div className="px-(--spacing-page-x) py-4">
-      <ListsSection lists={lists} isLoading={isLoading} />
-    </div>
-  );
+  return <ExplorarListasContent />;
 }
 
 function SalvasTab() {

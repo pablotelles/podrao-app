@@ -1,5 +1,19 @@
 import type { UserList, ListPlace, ListFavorite, ListSave } from '../entities/List';
 
+export interface FindRecentNearbyParams {
+  lat?: number;
+  lng?: number;
+  radiusM?: number;
+  since?: Date;
+  cursor?: Date;
+  limit?: number;
+}
+
+export interface FindRecentNearbyResult {
+  lists: UserList[];
+  nextCursor: Date | null;
+}
+
 export interface CreateListData {
   ownerId: string;
   name: string;
@@ -19,6 +33,10 @@ export interface IListRepository {
   findById(id: string): Promise<UserList | null>;
   findByOwner(userId: string): Promise<UserList[]>;
   findPublic(limit?: number, offset?: number): Promise<UserList[]>;
+  /** Listas em destaque — as mais salvas/favoritadas (sem filtro geo) */
+  findFeatured(limit?: number): Promise<UserList[]>;
+  /** Listas recentes próximas — via RPC search_recent_lists_nearby */
+  findRecentNearby(params: FindRecentNearbyParams): Promise<FindRecentNearbyResult>;
   getSavedListsByUser(userId: string): Promise<UserList[]>;
   create(data: CreateListData): Promise<UserList>;
   update(id: string, data: UpdateListData): Promise<UserList>;
