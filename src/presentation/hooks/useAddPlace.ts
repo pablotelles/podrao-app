@@ -5,12 +5,14 @@ import { mutate } from 'swr';
 import type { CreatePlaceInput } from '@/presentation/lib/schemas/placeSchema';
 import type { Place } from '@/domain/entities/Place';
 import { useToast } from '@/presentation/hooks/useToast';
+import { useImageUpload } from '@/presentation/hooks/useImageUpload';
 
 export function useAddPlace() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const submittingRef = useRef(false);
   const { showToast } = useToast();
+  const { upload } = useImageUpload();
 
   async function submit(data: CreatePlaceInput): Promise<Place | null> {
     // Prevenir submits simultâneos
@@ -51,13 +53,12 @@ export function useAddPlace() {
     }
   }
 
-  async function uploadPhoto(file: File): Promise<string | null> {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: form });
-    if (!res.ok) return null;
-    const { url } = (await res.json()) as { url: string };
-    return url;
+  async function uploadPhoto(file: File, isCover = false): Promise<string | null> {
+    try {
+      return await upload(file, isCover ? 'place_cover' : 'place_gallery');
+    } catch {
+      return null;
+    }
   }
 
   return { submit, uploadPhoto, loading, error };

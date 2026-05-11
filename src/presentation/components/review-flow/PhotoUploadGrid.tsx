@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useImageUpload } from '@/presentation/hooks/useImageUpload';
 
 interface PhotoUploadGridProps {
   photoUrls: string[];
@@ -10,6 +11,7 @@ interface PhotoUploadGridProps {
 export function PhotoUploadGrid({ photoUrls, onChange }: PhotoUploadGridProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const { upload } = useImageUpload();
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -27,21 +29,8 @@ export function PhotoUploadGrid({ photoUrls, onChange }: PhotoUploadGridProps) {
       const uploadedUrls: string[] = [];
 
       for (const file of files) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('bucket', 'review-photos');
-
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!res.ok) {
-          throw new Error('Erro ao fazer upload da foto');
-        }
-
-        const data = (await res.json()) as { url: string };
-        uploadedUrls.push(data.url);
+        const url = await upload(file, 'review_photo');
+        uploadedUrls.push(url);
       }
 
       onChange([...photoUrls, ...uploadedUrls]);

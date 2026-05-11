@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { Badge, PageContent } from '@/presentation/components/ui';
 import { PageTitle } from '@/presentation/contexts/TopBarContext';
-import { ReviewList } from '@/presentation/components/reviews/ReviewList';
+import { PlaceReviewList } from '@/presentation/components/reviews/PlaceReviewList';
 import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
 import { PlaceInfo } from '@/presentation/components/places/PlaceInfo';
@@ -109,7 +109,11 @@ export default async function PlaceDetailPage({ params }: Props) {
             )}
           </div>
 
-          <ReviewList reviews={serializedReviews} placeId={place.id} currentUserId={user?.id} />
+          <PlaceReviewList
+            reviews={serializedReviews}
+            placeId={place.id}
+            currentUserId={user?.id}
+          />
         </PageContent>
       </div>
     );

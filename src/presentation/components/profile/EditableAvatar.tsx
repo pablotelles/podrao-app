@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { Camera } from 'lucide-react';
 import { UserAvatar } from './UserAvatar';
+import { useImageUpload } from '@/presentation/hooks/useImageUpload';
 
 interface EditableAvatarProps {
   src?: string;
@@ -14,7 +15,8 @@ interface EditableAvatarProps {
 
 export function EditableAvatar({ src, alt, fallback, size, onUpdate }: EditableAvatarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const { upload, uploading } = useImageUpload();
 
   const handleClick = () => {
     inputRef.current?.click();
@@ -24,20 +26,11 @@ export function EditableAvatar({ src, alt, fallback, size, onUpdate }: EditableA
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
+    setUploadError(null);
 
     try {
-      // 1. Upload da imagem
-      const formData = new FormData();
-      formData.append('file', file);
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadRes.ok) throw new Error('Erro ao fazer upload da imagem');
-
-      const { url } = (await uploadRes.json()) as { url: string };
+      // 1. Comprimir e fazer upload da imagem
+      const url = await upload(file, 'user_avatar');
 
       // 2. Atualizar perfil com nova avatarUrl
       const updateRes = await fetch('/api/me', {
@@ -52,9 +45,8 @@ export function EditableAvatar({ src, alt, fallback, size, onUpdate }: EditableA
       onUpdate?.(url);
     } catch (err) {
       console.error('Erro ao atualizar avatar:', err);
-      alert('Erro ao atualizar foto de perfil. Tente novamente.');
+      setUploadError(err instanceof Error ? err.message : 'Erro ao atualizar foto de perfil');
     } finally {
-      setUploading(false);
       // Limpar input para permitir selecionar o mesmo arquivo novamente
       if (inputRef.current) inputRef.current.value = '';
     }
@@ -85,9 +77,19 @@ export function EditableAvatar({ src, alt, fallback, size, onUpdate }: EditableA
 
       {/* Loading overlay */}
       {uploading && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black bg-opacity-50">
+        <div
+          className="absolute inset-0 flex items-center justify-center rounded-full"
+          style={{ background: 'var(--color-overlay-scrim)' }}
+        >
           <div className="h-6 w-6 rounded-full border-2 border-white border-t-transparent animate-spin" />
         </div>
+      )}
+
+      {/* Inline error — replaces native alert() */}
+      {uploadError && (
+        <p className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-error px-2 py-0.5 text-[10px] text-text-inverse shadow-sm">
+          {uploadError}
+        </p>
       )}
     </div>
   );

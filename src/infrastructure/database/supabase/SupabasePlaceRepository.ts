@@ -252,6 +252,12 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     if (data.establishmentType !== undefined) patch.establishment_type = data.establishmentType;
     if (data.priceBucket !== undefined) patch.price_bucket = data.priceBucket;
 
+    if (Object.keys(patch).length === 0) {
+      const place = await this.findById(id);
+      if (!place) throw new Error(`Place ${id} not found`);
+      return place;
+    }
+
     const { data: row, error } = await this.db
       .from('places')
       .update(patch)
@@ -398,6 +404,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       attributes,
       priceBucket: row.price_bucket as PriceBucket,
       rejectionReason: row.rejection_reason ?? undefined,
+      description: row.description ?? undefined,
       logoUrl: logo?.url ?? undefined,
       rating: Number(stats?.rating ?? 0),
       reviewsCount: Number(stats?.reviews_count ?? 0),

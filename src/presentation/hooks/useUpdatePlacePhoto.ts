@@ -1,33 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import type { Place } from '@/domain/entities/Place';
+import { useImageUpload } from '@/presentation/hooks/useImageUpload';
 
 export function useUpdatePlacePhoto() {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { upload, uploading, error } = useImageUpload();
 
   async function updatePhoto(placeId: string, file: File): Promise<Place | null> {
-    setUploading(true);
-    setError(null);
-
     try {
-      // 1. Upload da foto
-      const formData = new FormData();
-      formData.append('file', file);
+      const url = await upload(file, 'place_cover');
 
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error('Erro ao fazer upload da foto');
-      }
-
-      const { url } = (await uploadRes.json()) as { url: string };
-
-      // 2. Atualizar o lugar com a nova URL
       const updateRes = await fetch(`/api/places/${placeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -40,11 +22,8 @@ export function useUpdatePlacePhoto() {
       }
 
       return (await updateRes.json()) as Place;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao atualizar foto');
+    } catch {
       return null;
-    } finally {
-      setUploading(false);
     }
   }
 

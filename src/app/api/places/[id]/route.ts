@@ -96,12 +96,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       // Adicionar novo logo
       await adminPlaceRepo.addPlacePhoto(id, parsed.data.photoUrl, 'logo');
 
-      // Remover photoUrl do parsed.data para não tentar atualizar o campo DEPRECATED
       delete parsed.data.photoUrl;
     }
 
-    // Atualizar apenas os campos fornecidos
-    const updated = await adminPlaceRepo.update(id, parsed.data);
+    const hasFieldsToUpdate = Object.keys(parsed.data).length > 0;
+    const updated = hasFieldsToUpdate
+      ? await adminPlaceRepo.update(id, parsed.data)
+      : await getPlaceById.execute(id);
     return NextResponse.json(updated);
   } catch (err) {
     return errorResponse(err);

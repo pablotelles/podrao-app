@@ -96,6 +96,7 @@ export const cacheProvider: ICacheProvider = lazySingleton(() =>
     : new NullCacheProvider(),
 );
 const storageProvider = lazySingleton(() => new SupabaseStorageProvider());
+const adminStorageProvider = lazySingleton(() => new SupabaseStorageProvider(createAdminClient()));
 const mapProvider: IMapProvider = lazySingleton(() => {
   const provider = process.env.MAP_PROVIDER ?? 'locationiq';
   if (provider === 'google') {
@@ -194,4 +195,4 @@ export const getMyReviews = lazySingleton(
 
 // --- Providers exportados para uso direto em routes ---
 // Nota: UserRepository agora é instanciado com cliente autenticado em cada route
-export { mapProvider, storageProvider };
+export { mapProvider, storageProvider, adminStorageProvider };
