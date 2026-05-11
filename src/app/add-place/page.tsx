@@ -81,6 +81,23 @@ export default function AddPlacePage() {
   const [submittedPlace, setSubmittedPlace] = useState<SubmittedPlace | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<AutocompleteResult | null>(null);
   const isSubmittingRef = useRef(false);
+  const prevStepRef = useRef(0);
+
+  // Push a fake history entry when advancing so the native back button steps back
+  useEffect(() => {
+    if (step > prevStepRef.current) {
+      window.history.pushState(null, '', window.location.href);
+    }
+    prevStepRef.current = step;
+  }, [step]);
+
+  useEffect(() => {
+    function handlePopState() {
+      setStep((s) => (s > 0 ? s - 1 : s));
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const {
     register,
@@ -402,13 +419,32 @@ export default function AddPlacePage() {
         className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom,0))]"
         style={{ zIndex: 'var(--z-sticky)' }}
       >
-        <div className="mx-auto flex max-w-lg flex-col gap-2.5">
-          {/* Primary button */}
+        <div className="mx-auto flex max-w-lg items-center gap-3">
+          {/* Back button — circular icon, only when step > 0 */}
+          {step > 0 && (
+            <button
+              type="button"
+              onClick={() => setStep((s) => s - 1)}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[1.5px] border-border text-text-secondary transition-all hover:border-brand hover:text-brand"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M12.5 15L7.5 10L12.5 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+
+          {/* Primary button — fills remaining space */}
           {step < TOTAL_STEPS - 1 ? (
             <button
               type="button"
               onClick={handleNext}
-              className="w-full rounded-full bg-brand py-3.75 text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover"
+              className="flex-1 rounded-full bg-brand py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               Continuar →
             </button>
@@ -417,20 +453,9 @@ export default function AddPlacePage() {
               type="submit"
               form="add-place-form"
               disabled={loading || submitted}
-              className="w-full rounded-full bg-brand py-3.75 text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-full bg-brand py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'Cadastrando...' : 'Cadastrar lugar ✓'}
-            </button>
-          )}
-
-          {/* Back button */}
-          {step > 0 && (
-            <button
-              type="button"
-              onClick={() => setStep((s) => s - 1)}
-              className="w-full rounded-full border border-border py-3.25 text-[14px] font-medium text-text-secondary transition-all hover:border-brand hover:text-brand"
-            >
-              ← Voltar
             </button>
           )}
         </div>
