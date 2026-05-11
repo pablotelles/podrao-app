@@ -95,23 +95,29 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     const limit = params.limit ?? 20;
     const offset = params.offset ?? 0;
 
+    // Bounding box using numeric lat/lng columns (PostgREST st_dwithin filter is unreliable
+    // with the JS client — object serialization produces [object Object] in the URL).
+    // Exact radius filtering is applied via haversine below.
+    const latDelta = radius / 111_320;
+    const lngDelta = radius / (111_320 * Math.cos((params.lat * Math.PI) / 180));
+
     const { data, error } = await this.db
       .from('places')
       .select(PLACE_SELECT)
       .eq('status', 'approved')
-      .filter(
-        'location',
-        'st_dwithin',
-        JSON.stringify({
-          origin: `SRID=4326;POINT(${params.lng} ${params.lat})`,
-          distance: radius,
-          use_spheroid: false,
-        }),
-      );
+      .gte('lat', params.lat - latDelta)
+      .lte('lat', params.lat + latDelta)
+      .gte('lng', params.lng - lngDelta)
+      .lte('lng', params.lng + lngDelta);
 
     if (error) throw new Error(error.message);
 
     let rows = (data ?? []) as PlaceRowWithRelations[];
+
+    // Trim bounding-box overshoots to the actual circle radius
+    rows = rows.filter(
+      (r) => haversineM(params.lat, params.lng, Number(r.lat), Number(r.lng)) <= radius,
+    );
 
     if (params.period) {
       rows = rows.filter((r) => (r.place_periods ?? []).some((p) => p.period === params.period));
