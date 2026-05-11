@@ -1,6 +1,4 @@
-import type { CuisineType } from '@/domain/value-objects/CuisineType';
-import type { FoodType } from '@/domain/value-objects/FoodType';
-import type { MealType } from '@/domain/value-objects/MealType';
+import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 
 export interface CreatePlaceDTO {
@@ -14,9 +12,10 @@ export interface CreatePlaceDTO {
   lat: number;
   lng: number;
   establishmentType: string;
-  cuisineTypes: CuisineType[];
-  mealTypes: MealType[];
-  foodTypes: FoodType[];
+  /** Operating periods when the place is active */
+  periods: OperatingPeriod[];
+  /** Adaptive key-value attributes by establishment type */
+  attributes: Record<string, string[]>;
   priceBucket: PriceBucket;
   description?: string;
   photoUrl?: string;

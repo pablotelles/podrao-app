@@ -29,6 +29,9 @@
     --color-warning: #d97706;
     --color-error: #dc2626;
     --color-info: #2563eb;
+    --color-success-bg: #f0fdf4;
+    --color-warning-bg: #fef3c7;
+    --color-error-bg: #fef2f2;
 
     /* Espaçamento */
     --spacing-page-x: 1rem;
@@ -49,9 +52,10 @@
     --shadow-card: 0 2px 8px 0 rgb(0 0 0 / 0.08), 0 0 0 1px rgb(0 0 0 / 0.04);
     --shadow-modal: 0 16px 48px -4px rgb(0 0 0 / 0.18);
     --shadow-fab: 0 4px 14px rgb(88 86 214 / 0.45);
+    --shadow-toggle-thumb: 0 1px 4px rgb(0 0 0 / 0.2);
 
     /* Cores de overlay */
-    --color-overlay-gradient: rgba(0, 0, 0, 0.65);
+    --color-overlay-gradient: rgb(0 0 0 / 0.65);
 
     /* Layout heights */
     --topbar-height: 56px;
@@ -95,6 +99,9 @@
   --color-warning: var(--color-warning);
   --color-error: var(--color-error);
   --color-info: var(--color-info);
+  --color-success-bg: var(--color-success-bg);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-error-bg: var(--color-error-bg);
 
   --font-family-sans: var(--font-sans);
 

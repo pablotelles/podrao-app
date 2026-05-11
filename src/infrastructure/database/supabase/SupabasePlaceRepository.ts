@@ -3,44 +3,11 @@ import type { PendingPlaceItem } from '@/domain/entities/PendingPlaceItem';
 import type { PlacePhoto, PhotoType } from '@/domain/entities/PlacePhoto';
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
 import type { CreatePlaceData, SearchPlacesParams } from '@/domain/interfaces/shared';
-import type { CuisineType } from '@/domain/value-objects/CuisineType';
-import type { FoodType } from '@/domain/value-objects/FoodType';
-import type { MealType } from '@/domain/value-objects/MealType';
+import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
 import { calcPlaceScore } from './scoring';
-
-// Shape returned by search_nearby_places RPC.
-// cuisine_types, meal_types, food_types are TEXT[] reconstructed by subqueries in the SQL function.
-interface PlaceRow {
-  id: string;
-  name: string;
-  address: string;
-  numero: string | null;
-  complemento: string | null;
-  bairro: string | null;
-  cidade: string;
-  estado: string;
-  lat: number;
-  lng: number;
-  establishment_type: string;
-  cuisine_types: string[];
-  meal_types: string[];
-  food_types: string[];
-  price_bucket: string;
-  description: string | null;
-  rejection_reason: string | null;
-  median_price: number | null;
-  logo_url: string | null;
-  rating: number;
-  reviews_count: number;
-  status: string;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
-  distance_m?: number;
-}
 
 // Shape returned by .from('places').select(`*, place_stats(...), ...`) with joined relations.
 interface PlaceRowWithRelations {
@@ -66,9 +33,8 @@ interface PlaceRowWithRelations {
     | { rating: number; reviews_count: number; median_price: number | null }[]
     | { rating: number; reviews_count: number; median_price: number | null }
     | null;
-  place_cuisines: { cuisine_type: string }[] | null;
-  place_meals: { meal_type: string }[] | null;
-  place_food_types: { food_type: string }[] | null;
+  place_periods: { period: string }[] | null;
+  place_attributes: { key: string; value: string }[] | null;
   place_photos: { url: string; type: string; position: number }[] | null;
 }
 
@@ -98,36 +64,21 @@ function getStats(
   return Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
 }
 
-function toDomain(row: PlaceRow): Place {
-  return {
-    id: row.id,
-    name: row.name,
-    address: row.address,
-    numero: row.numero ?? undefined,
-    complemento: row.complemento ?? undefined,
-    bairro: row.bairro ?? undefined,
-    cidade: row.cidade,
-    estado: row.estado,
-    lat: Number(row.lat),
-    lng: Number(row.lng),
-    establishmentType: row.establishment_type,
-    cuisineTypes: (row.cuisine_types ?? []) as CuisineType[],
-    mealTypes: (row.meal_types ?? []) as MealType[],
-    foodTypes: (row.food_types ?? []) as FoodType[],
-    priceBucket: row.price_bucket as PriceBucket,
-    description: row.description ?? undefined,
-    rejectionReason: row.rejection_reason ?? undefined,
-    medianPrice: row.median_price ?? undefined,
-    logoUrl: row.logo_url ?? undefined,
-    rating: Number(row.rating ?? 0),
-    reviewsCount: Number(row.reviews_count ?? 0),
-    status: row.status as PlaceStatus,
-    createdBy: row.created_by ?? undefined,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
-    distanceM: row.distance_m,
-  };
+/** Converts place_attributes rows into a grouped Record<key, string[]> */
+function groupAttributes(rows: { key: string; value: string }[] | null): Record<string, string[]> {
+  const result: Record<string, string[]> = {};
+  for (const row of rows ?? []) {
+    if (!result[row.key]) result[row.key] = [];
+    result[row.key].push(row.value);
+  }
+  return result;
 }
+
+const PLACE_SELECT = `*,
+  place_stats ( rating, reviews_count, median_price ),
+  place_periods ( period ),
+  place_attributes ( key, value ),
+  place_photos ( url, type, position )`;
 
 export class SupabasePlaceRepository implements IPlaceRepository {
   constructor(private readonly db: SupabaseClient = supabase) {}
@@ -135,72 +86,10 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   // ─── reads ────────────────────────────────────────────────────────────────
 
   async findById(id: string): Promise<Place | null> {
-    const { data, error } = await this.db
-      .from('places')
-      .select(
-        `*,
-         place_stats ( rating, reviews_count, median_price ),
-         place_cuisines ( cuisine_type ),
-         place_meals ( meal_type ),
-         place_food_types ( food_type ),
-         place_photos ( url, type, position )`,
-      )
-      .eq('id', id)
-      .single();
+    const { data, error } = await this.db.from('places').select(PLACE_SELECT).eq('id', id).single();
 
     if (error || !data) return null;
-
-    const row = data as PlaceRowWithRelations;
-
-    // Supabase may return a 1:1 relation as an object or single-element array.
-    const stats: { rating: number; reviews_count: number; median_price: number | null } | null =
-      Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
-
-    const cuisineTypes =
-      (row.place_cuisines as { cuisine_type: string }[] | null)?.map(
-        (c) => c.cuisine_type as CuisineType,
-      ) ?? [];
-
-    const mealTypes =
-      (row.place_meals as { meal_type: string }[] | null)?.map((m) => m.meal_type as MealType) ??
-      [];
-
-    const foodTypes =
-      (row.place_food_types as { food_type: string }[] | null)?.map(
-        (f) => f.food_type as FoodType,
-      ) ?? [];
-
-    const logo = (
-      row.place_photos as { url: string; type: string; position: number }[] | null
-    )?.find((p) => p.type === 'logo');
-
-    return {
-      id: row.id,
-      name: row.name,
-      address: row.address,
-      numero: row.numero ?? undefined,
-      complemento: row.complemento ?? undefined,
-      bairro: row.bairro ?? undefined,
-      cidade: row.cidade,
-      estado: row.estado,
-      lat: Number(row.lat),
-      lng: Number(row.lng),
-      establishmentType: row.establishment_type,
-      cuisineTypes,
-      mealTypes,
-      foodTypes,
-      priceBucket: row.price_bucket as PriceBucket,
-      description: row.description ?? undefined,
-      rejectionReason: row.rejection_reason ?? undefined,
-      medianPrice: stats?.median_price ?? undefined,
-      logoUrl: logo?.url ?? undefined,
-      rating: Number(stats?.rating ?? 0),
-      reviewsCount: Number(stats?.reviews_count ?? 0),
-      status: row.status as PlaceStatus,
-      createdBy: row.created_by ?? undefined,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-    };
+    return this.rowWithRelationsToDomain(data as PlaceRowWithRelations);
   }
 
   async searchNearby(params: SearchPlacesParams): Promise<Place[]> {
@@ -210,14 +99,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     const { data, error } = await this.db
       .from('places')
-      .select(
-        `*,
-         place_stats ( rating, reviews_count, median_price ),
-         place_cuisines ( cuisine_type ),
-         place_meals ( meal_type ),
-         place_food_types ( food_type ),
-         place_photos ( url, type, position )`,
-      )
+      .select(PLACE_SELECT)
       .eq('status', 'approved')
       .filter(
         'location',
@@ -233,23 +115,21 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     let rows = (data ?? []) as PlaceRowWithRelations[];
 
-    if (params.mealType) {
-      rows = rows.filter((r) => (r.place_meals ?? []).some((m) => m.meal_type === params.mealType));
+    if (params.period) {
+      rows = rows.filter((r) => (r.place_periods ?? []).some((p) => p.period === params.period));
     }
 
-    if (params.cuisine) {
+    if (params.attributeKey && params.attributeValue) {
       rows = rows.filter((r) =>
-        (r.place_cuisines ?? []).some((c) => c.cuisine_type === params.cuisine),
+        (r.place_attributes ?? []).some(
+          (a) => a.key === params.attributeKey && a.value === params.attributeValue,
+        ),
+      );
+    } else if (params.attributeKey) {
+      rows = rows.filter((r) =>
+        (r.place_attributes ?? []).some((a) => a.key === params.attributeKey),
       );
     }
-
-    if (params.foodType) {
-      rows = rows.filter((r) =>
-        (r.place_food_types ?? []).some((f) => f.food_type === params.foodType),
-      );
-    }
-
-    // maxPrice is a monetary cap — no direct bucket mapping available, skipping price filter
 
     const withDistance = rows.map((row) => {
       const distanceM = haversineM(params.lat, params.lng, Number(row.lat), Number(row.lng));
@@ -279,17 +159,13 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   async searchByName(query: string, limit = 20): Promise<Place[]> {
     const { data, error } = await this.db
       .from('places')
-      .select(
-        `*, place_stats(rating, reviews_count, median_price),
-         place_cuisines(cuisine_type), place_meals(meal_type),
-         place_food_types(food_type), place_photos(url, type, position)`,
-      )
+      .select(PLACE_SELECT)
       .ilike('name', `%${query}%`)
       .eq('status', 'approved')
       .limit(limit);
 
     if (error) throw new Error(error.message);
-    return (data ?? []).map((row) => this.rowWithRelationsToDomain(row));
+    return (data ?? []).map((row) => this.rowWithRelationsToDomain(row as PlaceRowWithRelations));
   }
 
   async countByCreator(userId: string): Promise<number> {
@@ -330,34 +206,32 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     if (error) throw new Error(error.message);
 
-    if (data.cuisineTypes.length > 0) {
+    if (data.periods.length > 0) {
       const { error: e } = await this.db
-        .from('place_cuisines')
-        .insert(data.cuisineTypes.map((ct) => ({ place_id: row.id, cuisine_type: ct })));
-      if (e) throw new Error(`place_cuisines insert: ${e.message}`);
+        .from('place_periods')
+        .insert(data.periods.map((p) => ({ place_id: row.id, period: p })));
+      if (e) throw new Error(`place_periods insert: ${e.message}`);
     }
 
-    if (data.mealTypes.length > 0) {
-      const { error: e } = await this.db
-        .from('place_meals')
-        .insert(data.mealTypes.map((mt) => ({ place_id: row.id, meal_type: mt })));
-      if (e) throw new Error(`place_meals insert: ${e.message}`);
+    // Flatten attributes Record<key, string[]> into rows
+    const attrRows: { place_id: string; key: string; value: string }[] = [];
+    for (const [key, values] of Object.entries(data.attributes)) {
+      for (const value of values) {
+        attrRows.push({ place_id: row.id, key, value });
+      }
+    }
+    if (attrRows.length > 0) {
+      const { error: e } = await this.db.from('place_attributes').insert(attrRows);
+      if (e) throw new Error(`place_attributes insert: ${e.message}`);
     }
 
-    if (data.foodTypes.length > 0) {
-      const { error: e } = await this.db
-        .from('place_food_types')
-        .insert(data.foodTypes.map((ft) => ({ place_id: row.id, food_type: ft })));
-      if (e) throw new Error(`place_food_types insert: ${e.message}`);
-    }
-
-    return toDomain({
+    return this.rowWithRelationsToDomain({
       ...row,
-      logo_url: null,
-      cuisine_types: data.cuisineTypes,
-      meal_types: data.mealTypes,
-      food_types: data.foodTypes,
-    } as PlaceRow);
+      place_stats: null,
+      place_periods: data.periods.map((p) => ({ period: p })),
+      place_attributes: attrRows.map(({ key, value }) => ({ key, value })),
+      place_photos: null,
+    });
   }
 
   async update(id: string, data: Partial<CreatePlaceData>): Promise<Place> {
@@ -383,43 +257,41 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     if (error) throw new Error(error.message);
 
-    if (data.cuisineTypes !== undefined) {
-      await this.db.from('place_cuisines').delete().eq('place_id', id);
-      if (data.cuisineTypes.length > 0) {
+    if (data.periods !== undefined) {
+      await this.db.from('place_periods').delete().eq('place_id', id);
+      if (data.periods.length > 0) {
         const { error: e } = await this.db
-          .from('place_cuisines')
-          .insert(data.cuisineTypes.map((ct) => ({ place_id: id, cuisine_type: ct })));
-        if (e) throw new Error(`place_cuisines update: ${e.message}`);
+          .from('place_periods')
+          .insert(data.periods.map((p) => ({ place_id: id, period: p })));
+        if (e) throw new Error(`place_periods update: ${e.message}`);
       }
     }
 
-    if (data.mealTypes !== undefined) {
-      await this.db.from('place_meals').delete().eq('place_id', id);
-      if (data.mealTypes.length > 0) {
-        const { error: e } = await this.db
-          .from('place_meals')
-          .insert(data.mealTypes.map((mt) => ({ place_id: id, meal_type: mt })));
-        if (e) throw new Error(`place_meals update: ${e.message}`);
+    if (data.attributes !== undefined) {
+      await this.db.from('place_attributes').delete().eq('place_id', id);
+      const attrRows: { place_id: string; key: string; value: string }[] = [];
+      for (const [key, values] of Object.entries(data.attributes)) {
+        for (const value of values) {
+          attrRows.push({ place_id: id, key, value });
+        }
+      }
+      if (attrRows.length > 0) {
+        const { error: e } = await this.db.from('place_attributes').insert(attrRows);
+        if (e) throw new Error(`place_attributes update: ${e.message}`);
       }
     }
 
-    if (data.foodTypes !== undefined) {
-      await this.db.from('place_food_types').delete().eq('place_id', id);
-      if (data.foodTypes.length > 0) {
-        const { error: e } = await this.db
-          .from('place_food_types')
-          .insert(data.foodTypes.map((ft) => ({ place_id: id, food_type: ft })));
-        if (e) throw new Error(`place_food_types update: ${e.message}`);
-      }
-    }
-
-    return toDomain({
+    return this.rowWithRelationsToDomain({
       ...row,
-      logo_url: null,
-      cuisine_types: data.cuisineTypes ?? [],
-      meal_types: data.mealTypes ?? [],
-      food_types: data.foodTypes ?? [],
-    } as PlaceRow);
+      place_stats: null,
+      place_periods: (data.periods ?? []).map((p) => ({ period: p })),
+      place_attributes: data.attributes
+        ? Object.entries(data.attributes).flatMap(([key, values]) =>
+            values.map((value) => ({ key, value })),
+          )
+        : [],
+      place_photos: null,
+    });
   }
 
   async updateStatus(id: string, status: PlaceStatus, rejectionReason?: string): Promise<void> {
@@ -492,20 +364,19 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   private rowWithRelationsToDomain(row: PlaceRowWithRelations): Place {
     const stats: { rating: number; reviews_count: number; median_price: number | null } | null =
       Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
-    const cuisineTypes =
-      (row.place_cuisines as { cuisine_type: string }[] | null)?.map(
-        (c) => c.cuisine_type as CuisineType,
-      ) ?? [];
-    const mealTypes =
-      (row.place_meals as { meal_type: string }[] | null)?.map((m) => m.meal_type as MealType) ??
+
+    const periods =
+      (row.place_periods as { period: string }[] | null)?.map((p) => p.period as OperatingPeriod) ??
       [];
-    const foodTypes =
-      (row.place_food_types as { food_type: string }[] | null)?.map(
-        (f) => f.food_type as FoodType,
-      ) ?? [];
+
+    const attributes = groupAttributes(
+      row.place_attributes as { key: string; value: string }[] | null,
+    );
+
     const logo = (
       row.place_photos as { url: string; type: string; position: number }[] | null
     )?.find((p) => p.type === 'logo');
+
     return {
       id: row.id,
       name: row.name,
@@ -518,9 +389,8 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       lat: Number(row.lat),
       lng: Number(row.lng),
       establishmentType: row.establishment_type,
-      cuisineTypes,
-      mealTypes,
-      foodTypes,
+      periods,
+      attributes,
       priceBucket: row.price_bucket as PriceBucket,
       medianPrice: stats?.median_price ?? undefined,
       rejectionReason: row.rejection_reason ?? undefined,
@@ -537,16 +407,12 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   async findByCreator(userId: string): Promise<Place[]> {
     const { data, error } = await this.db
       .from('places')
-      .select(
-        `*, place_stats(rating, reviews_count, median_price),
-         place_cuisines(cuisine_type), place_meals(meal_type),
-         place_food_types(food_type), place_photos(url, type, position)`,
-      )
+      .select(PLACE_SELECT)
       .eq('created_by', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
-    return (data ?? []).map((row) => this.rowWithRelationsToDomain(row));
+    return (data ?? []).map((row) => this.rowWithRelationsToDomain(row as PlaceRowWithRelations));
   }
 
   async getPendingPlaces(
@@ -556,11 +422,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     const [dataRes, countRes] = await Promise.all([
       this.db
         .from('places')
-        .select(
-          `*, place_stats(rating, reviews_count, median_price),
-           place_cuisines(cuisine_type), place_meals(meal_type),
-           place_food_types(food_type), place_photos(url, type, position)`,
-        )
+        .select(PLACE_SELECT)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1),
@@ -583,7 +445,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     return {
       places: rows.map((row) => ({
-        ...this.rowWithRelationsToDomain(row),
+        ...this.rowWithRelationsToDomain(row as PlaceRowWithRelations),
         creatorNickname: nicknameMap[row.created_by] ?? undefined,
       })),
       total: countRes.count ?? 0,
@@ -601,14 +463,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
     if (!favs?.length) return [];
 
     const ids = favs.map((f: { place_id: string }) => f.place_id);
-    const { data, error } = await this.db
-      .from('places')
-      .select(
-        `*, place_stats(rating, reviews_count, median_price),
-         place_cuisines(cuisine_type), place_meals(meal_type),
-         place_food_types(food_type), place_photos(url, type, position)`,
-      )
-      .in('id', ids);
+    const { data, error } = await this.db.from('places').select(PLACE_SELECT).in('id', ids);
 
     if (error) throw new Error(error.message);
     // Preserve favorite ordering

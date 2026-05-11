@@ -16,7 +16,6 @@ import { StepReview } from '@/presentation/components/review-flow/StepReview';
 import { StepSuccess } from '@/presentation/components/review-flow/StepSuccess';
 import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
 import type { ReviewScore } from '@/domain/entities/ReviewScore';
-import type { MealType } from '@/domain/value-objects/MealType';
 import type { Place } from '@/domain/entities/Place';
 
 const STEPS = ['Nota geral', 'Detalhes', 'Comentário', 'Fotos', 'Revisão'] as const;
@@ -42,7 +41,6 @@ export default function ReviewPage() {
   const [rating, setRating] = useState<number | undefined>(undefined);
   const [scores, setScores] = useState<ReviewScore[]>([]);
   const [comment, setComment] = useState('');
-  const [mealType, setMealType] = useState<MealType | undefined>(undefined);
   const [amountPaidPerPerson, setAmountPaidPerPerson] = useState<number | undefined>(undefined);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
 
@@ -77,7 +75,6 @@ export default function ReviewPage() {
       scores: scores.length > 0 ? scores : undefined,
       photoUrls: photoUrls.length > 0 ? photoUrls : undefined,
       comment: comment.trim() || undefined,
-      mealType,
       amountPaidPerPerson,
     };
 
@@ -136,7 +133,6 @@ export default function ReviewPage() {
     scores,
     photoUrls,
     comment,
-    mealType,
     amountPaidPerPerson,
   };
 
@@ -162,8 +158,6 @@ export default function ReviewPage() {
           <StepComment
             comment={comment}
             onCommentChange={setComment}
-            mealType={mealType}
-            onMealTypeChange={setMealType}
             amountPaidPerPerson={amountPaidPerPerson}
             onAmountPaidChange={setAmountPaidPerPerson}
           />

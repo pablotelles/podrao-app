@@ -5,9 +5,8 @@ import { mutate } from 'swr';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
 import { submitReviewInitialValues } from '@/presentation/lib/forms/review/initialValues';
-import { Button, Input, Textarea, StarRating, ToggleGroup } from '@/presentation/components/ui';
+import { Button, Input, Textarea, StarRating } from '@/presentation/components/ui';
 import { useToast } from '@/presentation/hooks/useToast';
-import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 
 interface ReviewFormProps {
   placeId: string;
@@ -31,7 +30,6 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
   });
 
   const rating = watch('rating');
-  const mealType = watch('mealType');
 
   async function onSubmit(data: SubmitReviewInput) {
     setSubmitting(true);
@@ -85,16 +83,6 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
         error={errors.amountPaidPerPerson?.message}
         {...register('amountPaidPerPerson', { valueAsNumber: true })}
       />
-
-      <div>
-        <p className="mb-2 text-sm font-medium text-text-primary">Tipo de refeição</p>
-        <ToggleGroup
-          mode="single"
-          options={MEAL_TYPES}
-          value={mealType}
-          onChange={(v) => setValue('mealType', v)}
-        />
-      </div>
 
       <Textarea
         label="Comentário (opcional)"

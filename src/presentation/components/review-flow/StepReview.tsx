@@ -55,13 +55,10 @@ export function StepReview({ data, placeName }: StepReviewProps) {
         </div>
       )}
 
-      {/* Contexto da visita */}
-      {(data.mealType || data.amountPaidPerPerson) && (
+      {/* Valor por pessoa */}
+      {data.amountPaidPerPerson && (
         <div className="mb-4 flex gap-3 text-xs text-text-secondary">
-          {data.mealType && <span>🍽️ {data.mealType}</span>}
-          {data.amountPaidPerPerson && (
-            <span>💰 R$ {data.amountPaidPerPerson.toFixed(2)}/pessoa</span>
-          )}
+          <span>R$ {data.amountPaidPerPerson.toFixed(2)}/pessoa</span>
         </div>
       )}
 

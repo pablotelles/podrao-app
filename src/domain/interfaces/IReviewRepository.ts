@@ -1,5 +1,4 @@
 import type { Review } from '../entities/Review';
-import type { MealType } from '../value-objects/MealType';
 import type { ReviewScore } from '../entities/ReviewScore';
 
 export interface CreateReviewData {
@@ -9,7 +8,6 @@ export interface CreateReviewData {
   scores?: ReviewScore[];
   photoUrls?: string[];
   comment?: string;
-  mealType?: MealType;
   amountPaidPerPerson?: number;
 }
 

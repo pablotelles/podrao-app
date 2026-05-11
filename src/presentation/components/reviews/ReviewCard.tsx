@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useReactionGroup } from '@/presentation/hooks/useReactionGroup';
 import { StarRating } from '@/presentation/components/ui/StarRating';
-import { MEAL_TYPE_META, type MealType } from '@/domain/value-objects/MealType';
 import type { Review } from '@/domain/entities/Review';
 import { REVIEW_COMMENT_MAX_CHARS } from './reviewConfig';
 type SerializedReview = Omit<Review, 'createdAt'> & { createdAt: string | Date };
@@ -45,8 +44,6 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [commentExpanded, setCommentExpanded] = useState(false);
-
-  const mealMeta = review.mealType ? MEAL_TYPE_META[review.mealType as MealType] : null;
 
   const reaction = useReactionGroup({
     entityType: 'review',
@@ -177,11 +174,6 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
         <span className="text-sm font-semibold text-text-primary">
           {review.rating.toFixed(1).replace('.', ',')}
         </span>
-        {mealMeta && (
-          <span className="ml-1 text-xs text-text-secondary">
-            {mealMeta.emoji} {mealMeta.label}
-          </span>
-        )}
       </div>
 
       {/* Comentário */}

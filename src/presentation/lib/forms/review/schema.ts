@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { MEAL_TYPES } from '@/domain/value-objects/MealType';
 import { REVIEW_CATEGORIES } from '@/domain/value-objects/ReviewCategory';
 
 export const submitReviewSchema = z.object({
@@ -15,7 +14,6 @@ export const submitReviewSchema = z.object({
     .optional(),
   photoUrls: z.array(z.string().url()).max(5).optional(),
   comment: z.string().max(500).optional(),
-  mealType: z.enum(MEAL_TYPES).optional(),
   amountPaidPerPerson: z.number().positive().max(1999).optional(),
 });
 

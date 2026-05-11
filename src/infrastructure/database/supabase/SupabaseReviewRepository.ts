@@ -1,7 +1,6 @@
 import type { Review } from '@/domain/entities/Review';
 import type { ReviewScore } from '@/domain/entities/ReviewScore';
 import type { IReviewRepository, CreateReviewData } from '@/domain/interfaces/IReviewRepository';
-import type { MealType } from '@/domain/value-objects/MealType';
 import type { ReviewCategory } from '@/domain/value-objects/ReviewCategory';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
@@ -13,7 +12,6 @@ interface ReviewRow {
   user_id: string;
   rating: number;
   amount_paid: number | null;
-  meal_type: string | null;
   comment: string | null;
   created_at: string;
 }
@@ -60,7 +58,6 @@ async function toDomain(row: ReviewRow, db: SupabaseClient): Promise<Review> {
     scores: scores && scores.length > 0 ? scores : undefined,
     photos: photos && photos.length > 0 ? photos : undefined,
     comment: row.comment ?? undefined,
-    mealType: (row.meal_type as MealType) ?? undefined,
     amountPaidPerPerson: row.amount_paid ?? undefined,
     createdAt: new Date(row.created_at),
   };
@@ -137,7 +134,6 @@ export class SupabaseReviewRepository implements IReviewRepository {
         scores: scoresByReview.get(row.id),
         photos: photosByReview.get(row.id),
         comment: row.comment ?? undefined,
-        mealType: (row.meal_type as MealType) ?? undefined,
         amountPaidPerPerson: row.amount_paid ?? undefined,
         createdAt: new Date(row.created_at),
         reactionCounts: reactionCounts.get(row.id) ?? {},
@@ -172,7 +168,6 @@ export class SupabaseReviewRepository implements IReviewRepository {
         user_id: data.userId,
         rating: data.rating,
         amount_paid: data.amountPaidPerPerson,
-        meal_type: data.mealType,
         comment: data.comment,
       })
       .select()

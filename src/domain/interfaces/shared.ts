@@ -1,6 +1,4 @@
-import type { CuisineType } from '../value-objects/CuisineType';
-import type { FoodType } from '../value-objects/FoodType';
-import type { MealType } from '../value-objects/MealType';
+import type { OperatingPeriod } from '../value-objects/OperatingPeriod';
 import type { PriceBucket } from '../value-objects/PriceBucket';
 
 /** Parâmetros de busca geográfica com filtros opcionais */
@@ -8,9 +6,9 @@ export interface SearchPlacesParams {
   lat: number;
   lng: number;
   radiusMeters?: number;
-  mealType?: MealType;
-  cuisine?: CuisineType;
-  foodType?: FoodType;
+  period?: OperatingPeriod;
+  attributeKey?: string;
+  attributeValue?: string;
   maxPrice?: number;
   limit?: number;
   offset?: number;
@@ -28,9 +26,10 @@ export interface CreatePlaceData {
   lat: number;
   lng: number;
   establishmentType: string;
-  cuisineTypes: CuisineType[];
-  mealTypes: MealType[];
-  foodTypes: FoodType[];
+  /** Operating periods when the place is active */
+  periods: OperatingPeriod[];
+  /** Adaptive key-value attributes by establishment type */
+  attributes: Record<string, string[]>;
   priceBucket: PriceBucket;
   description?: string;
   photoUrl?: string;

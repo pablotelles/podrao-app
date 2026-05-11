@@ -1,13 +1,10 @@
 'use client';
 
-import { Textarea, Input, ToggleGroup } from '@/presentation/components/ui';
-import { MEAL_TYPES, type MealType } from '@/domain/value-objects/MealType';
+import { Textarea, Input } from '@/presentation/components/ui';
 
 interface StepCommentProps {
   comment: string;
   onCommentChange: (value: string) => void;
-  mealType?: MealType;
-  onMealTypeChange: (value: MealType | undefined) => void;
   amountPaidPerPerson?: number;
   onAmountPaidChange: (value: number | undefined) => void;
   errors?: {
@@ -19,8 +16,6 @@ interface StepCommentProps {
 export function StepComment({
   comment,
   onCommentChange,
-  mealType,
-  onMealTypeChange,
   amountPaidPerPerson,
   onAmountPaidChange,
   errors,
@@ -44,19 +39,6 @@ export function StepComment({
           helperText={`${comment.length}/500 caracteres`}
           error={errors?.comment}
         />
-
-        <div>
-          <p className="mb-2 text-sm font-medium text-text-primary">Tipo de refeição</p>
-          <p className="mb-3 text-xs text-text-secondary">
-            Dica: comentários detalhados ajudam outras pessoas
-          </p>
-          <ToggleGroup
-            mode="single"
-            options={MEAL_TYPES}
-            value={mealType}
-            onChange={(v) => onMealTypeChange(v)}
-          />
-        </div>
 
         <Input
           label="Quanto você gastou por pessoa?"

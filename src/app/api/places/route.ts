@@ -17,14 +17,15 @@ export async function GET(req: NextRequest) {
         { status: 400 },
       );
 
-    const { lat, lng, radius, meal, cuisine, food, maxPrice, limit, offset } = parsed.data;
+    const { lat, lng, radius, period, attributeKey, attributeValue, maxPrice, limit, offset } =
+      parsed.data;
     const places = await searchNearbyPlaces.execute({
       lat,
       lng,
       radiusMeters: radius,
-      mealType: meal,
-      cuisine,
-      foodType: food,
+      period,
+      attributeKey,
+      attributeValue,
       maxPrice,
       limit,
       offset,

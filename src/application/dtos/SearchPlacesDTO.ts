@@ -1,14 +1,12 @@
-import type { CuisineType } from '@/domain/value-objects/CuisineType';
-import type { FoodType } from '@/domain/value-objects/FoodType';
-import type { MealType } from '@/domain/value-objects/MealType';
+import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 
 export interface SearchPlacesDTO {
   lat: number;
   lng: number;
   radiusMeters?: number;
-  mealType?: MealType;
-  cuisine?: CuisineType;
-  foodType?: FoodType;
+  period?: OperatingPeriod;
+  attributeKey?: string;
+  attributeValue?: string;
   maxPrice?: number;
   limit?: number;
   offset?: number;

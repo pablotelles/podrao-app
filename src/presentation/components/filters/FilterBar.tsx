@@ -2,19 +2,13 @@
 
 import { useState } from 'react';
 import { Button, Sheet, Badge } from '@/presentation/components/ui';
-import { MEAL_TYPES } from '@/domain/value-objects/MealType';
-import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
-import { FOOD_TYPES, FOOD_TYPE_META } from '@/domain/value-objects/FoodType';
+import { OPERATING_PERIODS, OPERATING_PERIOD_META } from '@/domain/value-objects/OperatingPeriod';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
-import type { MealType } from '@/domain/value-objects/MealType';
-import type { CuisineType } from '@/domain/value-objects/CuisineType';
-import type { FoodType } from '@/domain/value-objects/FoodType';
+import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 
 export interface FilterValues {
-  mealType?: MealType;
-  cuisine?: CuisineType;
-  foodType?: FoodType;
+  period?: OperatingPeriod;
   priceBucket?: PriceBucket;
   radiusMeters?: number;
 }
@@ -46,31 +40,13 @@ export function FilterBar({ values, onChange, open: openProp, onOpenChange }: Fi
         </div>
       )}
 
-      {!isControlled && values.mealType && (
+      {!isControlled && values.period && (
         <Badge
           variant="brand"
           className="cursor-pointer"
-          onClick={() => onChange({ ...values, mealType: undefined })}
+          onClick={() => onChange({ ...values, period: undefined })}
         >
-          {values.mealType} ✕
-        </Badge>
-      )}
-      {!isControlled && values.cuisine && (
-        <Badge
-          variant="brand"
-          className="cursor-pointer"
-          onClick={() => onChange({ ...values, cuisine: undefined })}
-        >
-          {values.cuisine} ✕
-        </Badge>
-      )}
-      {!isControlled && values.foodType && (
-        <Badge
-          variant="brand"
-          className="cursor-pointer"
-          onClick={() => onChange({ ...values, foodType: undefined })}
-        >
-          {FOOD_TYPE_META[values.foodType].label} ✕
+          {OPERATING_PERIOD_META[values.period].label} ✕
         </Badge>
       )}
       {!isControlled && values.priceBucket && (
@@ -86,25 +62,16 @@ export function FilterBar({ values, onChange, open: openProp, onOpenChange }: Fi
       <Sheet open={open} onClose={() => setOpen(false)} title="Filtros">
         <div className="flex flex-col gap-6">
           <FilterSection
-            label="Refeição"
-            options={MEAL_TYPES as unknown as string[]}
-            selected={values.mealType}
-            onSelect={(v) => onChange({ ...values, mealType: v as MealType | undefined })}
-          />
-          <FilterSection
-            label="Cozinha"
-            options={CUISINE_TYPES as unknown as string[]}
-            selected={values.cuisine}
-            onSelect={(v) => onChange({ ...values, cuisine: v as CuisineType | undefined })}
-          />
-          <FilterSection
-            label="Tipo de comida"
-            options={FOOD_TYPES as unknown as string[]}
-            selected={values.foodType}
+            label="Período"
+            options={OPERATING_PERIODS as unknown as string[]}
+            selected={values.period}
             labels={Object.fromEntries(
-              FOOD_TYPES.map((f) => [f, `${FOOD_TYPE_META[f].emoji} ${FOOD_TYPE_META[f].label}`]),
+              OPERATING_PERIODS.map((p) => [
+                p,
+                `${OPERATING_PERIOD_META[p].emoji} ${OPERATING_PERIOD_META[p].label}`,
+              ]),
             )}
-            onSelect={(v) => onChange({ ...values, foodType: v as FoodType | undefined })}
+            onSelect={(v) => onChange({ ...values, period: v as OperatingPeriod | undefined })}
           />
           <FilterSection
             label="Faixa de preço"

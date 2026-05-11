@@ -12,10 +12,8 @@ export class CreatePlace {
 
   async execute(dto: CreatePlaceDTO): Promise<Place> {
     if (!dto.name.trim()) throw new ValidationError('Nome do lugar é obrigatório');
-    if (!dto.cuisineTypes.length)
-      throw new ValidationError('Selecione ao menos um tipo de cozinha');
-    if (!dto.mealTypes.length) throw new ValidationError('Selecione ao menos um tipo de refeição');
-    if (!dto.foodTypes.length) throw new ValidationError('Selecione ao menos um tipo de comida');
+    if (!dto.periods.length)
+      throw new ValidationError('Selecione ao menos um período de funcionamento');
 
     const place = await this.placeRepo.create({
       name: dto.name.trim(),
@@ -28,9 +26,8 @@ export class CreatePlace {
       lat: dto.lat,
       lng: dto.lng,
       establishmentType: dto.establishmentType,
-      cuisineTypes: dto.cuisineTypes,
-      mealTypes: dto.mealTypes,
-      foodTypes: dto.foodTypes,
+      periods: dto.periods,
+      attributes: dto.attributes,
       priceBucket: dto.priceBucket,
       description: dto.description,
       photoUrl: dto.photoUrl,

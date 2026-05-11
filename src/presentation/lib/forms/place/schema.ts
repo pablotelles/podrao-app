@@ -1,7 +1,5 @@
 import { z } from 'zod';
-import { CUISINE_TYPES } from '@/domain/value-objects/CuisineType';
-import { FOOD_TYPES } from '@/domain/value-objects/FoodType';
-import { MEAL_TYPES } from '@/domain/value-objects/MealType';
+import { OPERATING_PERIODS } from '@/domain/value-objects/OperatingPeriod';
 import { PRICE_BUCKETS } from '@/domain/value-objects/PriceBucket';
 
 export const createPlaceSchema = z.object({
@@ -15,9 +13,11 @@ export const createPlaceSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   establishmentType: z.string().min(2),
-  cuisineTypes: z.array(z.enum(CUISINE_TYPES)).min(1, 'Selecione ao menos um tipo de cozinha'),
-  mealTypes: z.array(z.enum(MEAL_TYPES)).min(1, 'Selecione ao menos um tipo de refeição'),
-  foodTypes: z.array(z.enum(FOOD_TYPES)).min(1, 'Selecione ao menos um tipo de comida'),
+  periods: z
+    .array(z.enum(OPERATING_PERIODS))
+    .min(1, 'Selecione ao menos um período de funcionamento'),
+  /** Adaptive key-value attributes by establishment type */
+  attributes: z.record(z.string(), z.array(z.string())).default({}),
   priceBucket: z.enum(PRICE_BUCKETS),
   description: z.string().max(1500).optional(),
   photoUrl: z.string().url().optional(),
@@ -29,9 +29,9 @@ export const searchPlacesSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   radius: z.coerce.number().min(100).max(50000).optional(),
-  meal: z.enum(MEAL_TYPES).optional(),
-  cuisine: z.enum(CUISINE_TYPES).optional(),
-  food: z.enum(FOOD_TYPES).optional(),
+  period: z.enum(OPERATING_PERIODS).optional(),
+  attributeKey: z.string().optional(),
+  attributeValue: z.string().optional(),
   maxPrice: z.coerce.number().positive().optional(),
   limit: z.coerce.number().min(1).max(50).optional(),
   offset: z.coerce.number().min(0).optional(),

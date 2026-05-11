@@ -53,9 +53,7 @@ export function ListPlaceCard({ place, listId, isOwner }: ListPlaceCardProps) {
   const [removing, setRemoving] = useState(false);
 
   const distance = formatDistance(place.distanceM);
-  const meta = [PRICE_BUCKET_LABELS[place.priceBucket], place.mealTypes[0], distance]
-    .filter(Boolean)
-    .join(' · ');
+  const meta = [PRICE_BUCKET_LABELS[place.priceBucket], distance].filter(Boolean).join(' · ');
   const subtitle = [place.establishmentType, place.bairro].filter(Boolean).join(' · ');
 
   const handleRemove = async () => {

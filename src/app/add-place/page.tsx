@@ -7,21 +7,14 @@ import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/for
 import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
-import { Button, Input, PageContent, ProgressSteps } from '@/presentation/components/ui';
-import { Textarea } from '@/presentation/components/ui/Textarea';
+import { PageContent } from '@/presentation/components/ui';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
-import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
-import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
-import { StepLocation } from '@/presentation/components/add-place/StepLocation';
-import { StepMealTypes } from '@/presentation/components/add-place/StepMealTypes';
-import { StepEstablishment } from '@/presentation/components/add-place/StepEstablishment';
-import { StepCuisine } from '@/presentation/components/add-place/StepCuisine';
-import { StepFoodType } from '@/presentation/components/add-place/StepFoodType';
-import { StepPrice } from '@/presentation/components/add-place/StepPrice';
-import { StepPhoto } from '@/presentation/components/add-place/StepPhoto';
-import type { MealType } from '@/domain/value-objects/MealType';
-import type { CuisineType } from '@/domain/value-objects/CuisineType';
-import type { FoodType } from '@/domain/value-objects/FoodType';
+import { StepBasic } from '@/presentation/components/add-place/StepBasic';
+import { StepDetails } from '@/presentation/components/add-place/StepDetails';
+import { StepEnrichment } from '@/presentation/components/add-place/StepEnrichment';
+import { ESTABLISHMENT_TYPE_META } from '@/domain/value-objects/EstablishmentType';
+import type { EstablishmentType } from '@/domain/value-objects/EstablishmentType';
+import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 import type { AutocompleteResult } from '@/domain/interfaces/IMapProvider';
 
@@ -60,28 +53,32 @@ function toEstadoSigla(state: string): string {
   return ESTADO_SIGLAS[state] ?? state.slice(0, 2).toUpperCase();
 }
 
+const STEP_LABELS = ['Básico', 'Detalhes', 'Enriquecimento'] as const;
+const TOTAL_STEPS = STEP_LABELS.length;
+
 const STEP_FIELDS: (keyof CreatePlaceInput)[][] = [
-  ['name', 'numero', 'lat', 'lng'],
-  ['mealTypes'],
-  ['establishmentType'],
-  ['cuisineTypes'],
-  ['foodTypes'],
+  ['name', 'lat', 'lng', 'numero', 'address', 'cidade', 'estado', 'establishmentType'],
+  ['periods'],
   ['priceBucket'],
-  [],
 ];
 
-const STEPS = ['Local', 'Refeições', 'Tipo', 'Cozinha', 'Comida', 'Preço', 'Foto'] as const;
+interface SubmittedPlace {
+  name: string;
+  address: string;
+  establishmentType: EstablishmentType;
+}
 
 export default function AddPlacePage() {
   const router = useRouter();
   const geo = useGeolocation();
   const { submit, uploadPhoto, loading, error: submitError } = useAddPlace();
   const [step, setStep] = useState(0);
-  usePageTitle(STEPS[step]);
-  useSubHeaderHeight();
+  usePageTitle(STEP_LABELS[step]);
+
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedPlace, setSubmittedPlace] = useState<SubmittedPlace | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<AutocompleteResult | null>(null);
   const isSubmittingRef = useRef(false);
 
@@ -91,33 +88,23 @@ export default function AddPlacePage() {
     setValue,
     watch,
     trigger,
+    reset,
     formState: { errors },
   } = useZodForm<CreatePlaceInput>({
     schema: createPlaceSchema,
     defaultValues: createPlaceInitialValues,
   });
 
-  const mealTypes = watch('mealTypes') ?? [];
-  const cuisineTypes = watch('cuisineTypes') ?? [];
-  const foodTypes = watch('foodTypes') ?? [];
   const formLat = watch('lat');
   const formLng = watch('lng');
-  const formAddress = watch('address');
-  const formNumero = watch('numero');
-  const formCidade = watch('cidade');
-  const formEstado = watch('estado');
-
-  useEffect(() => {
-    if (!formLat && !formLng) return;
-    console.log('[add-place] endereço completo:', {
-      address: formAddress,
-      numero: formNumero,
-      cidade: formCidade,
-      estado: formEstado,
-      lat: formLat,
-      lng: formLng,
-    });
-  }, [formAddress, formNumero, formCidade, formEstado, formLat, formLng]);
+  const establishmentType = watch('establishmentType') as EstablishmentType | undefined;
+  const periods = (watch('periods') ?? []) as OperatingPeriod[];
+  const attributes = watch('attributes') ?? {};
+  const priceBucket = watch('priceBucket') as PriceBucket | undefined;
+  const formName = watch('name') ?? '';
+  const formAddress = watch('address') ?? '';
+  const formCidade = watch('cidade') ?? '';
+  const formEstado = watch('estado') ?? '';
 
   const applyReverseGeocode = useCallback(
     async (lat: number, lng: number) => {
@@ -158,7 +145,7 @@ export default function AddPlacePage() {
         setGeocoding(false);
       }
     },
-    [setValue, setSelectedAddress],
+    [setValue],
   );
 
   const handleAddressSelect = useCallback(
@@ -173,7 +160,7 @@ export default function AddPlacePage() {
       if (result.address.neighbourhood) setValue('bairro', result.address.neighbourhood);
       setSelectedAddress(result);
     },
-    [setValue, setSelectedAddress],
+    [setValue],
   );
 
   const numeroDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,14 +207,13 @@ export default function AddPlacePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geo.lat, geo.lng]);
 
+  function handleAttributeChange(key: string, value: string[]) {
+    setValue('attributes', { ...attributes, [key]: value });
+  }
+
   async function onSubmit(data: CreatePlaceInput) {
-    // Dupla proteção contra submits simultâneos
-    if (submitted || isSubmittingRef.current) {
-      return;
-    }
-
+    if (submitted || isSubmittingRef.current) return;
     isSubmittingRef.current = true;
-
     try {
       let photoUrl: string | undefined;
       if (photoFile) {
@@ -236,6 +222,11 @@ export default function AddPlacePage() {
       }
       const place = await submit({ ...data, photoUrl });
       if (place) {
+        setSubmittedPlace({
+          name: formName,
+          address: [formAddress, formCidade, formEstado].filter(Boolean).join(', '),
+          establishmentType: data.establishmentType as EstablishmentType,
+        });
         setSubmitted(true);
       }
     } finally {
@@ -243,103 +234,162 @@ export default function AddPlacePage() {
     }
   }
 
+  async function handleNext() {
+    const fields = STEP_FIELDS[step];
+    const valid = fields.length === 0 || (await trigger(fields));
+    if (valid) setStep((s) => s + 1);
+  }
+
+  function handleReset() {
+    reset(createPlaceInitialValues);
+    setSelectedAddress(null);
+    setPhotoFile(null);
+    setSubmitted(false);
+    setSubmittedPlace(null);
+    setStep(0);
+  }
+
+  /* ── Success screen ─────────────────────────────────────────────── */
+  if (submitted && submittedPlace) {
+    const meta = ESTABLISHMENT_TYPE_META[submittedPlace.establishmentType];
+    return (
+      <div className="flex flex-col">
+        {/* Success content */}
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+          {/* Check icon */}
+          <div
+            className="flex h-18 w-18 items-center justify-center rounded-full"
+            style={{ backgroundColor: 'var(--color-success-bg)' }}
+          >
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-success)"
+              strokeWidth="2.5"
+              aria-hidden
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+
+          <h1 className="text-[22px] font-bold tracking-tight text-text-primary">Mandou bem! 🎉</h1>
+          <p className="max-w-70 text-sm leading-relaxed text-text-secondary">
+            O lugar vai aparecer no mapa assim que um moderador confirmar. Costuma levar menos de
+            24h.
+          </p>
+
+          {/* Place card */}
+          <div className="flex w-full items-center gap-3 rounded-md bg-bg-subtle px-4 py-3.5 text-left">
+            <span className="text-[32px] leading-none">{meta.icon}</span>
+            <div>
+              <p className="text-[15px] font-semibold text-text-primary">{submittedPlace.name}</p>
+              <p className="mt-0.5 text-[13px] text-text-secondary">{submittedPlace.address}</p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-2 flex w-full flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="w-full rounded-full bg-brand py-3.75 text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover"
+            >
+              Ver no mapa
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="w-full rounded-full border border-border py-3.25 text-[14px] font-medium text-text-secondary transition-all hover:border-brand hover:text-brand"
+            >
+              Cadastrar outro lugar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Progress bar ───────────────────────────────────────────────── */
+  const progressBar = (
+    <div className="px-5 pt-4">
+      <div className="flex gap-1.5">
+        <div
+          className={`h-1 flex-1 rounded-full transition-all ${step >= 1 ? 'bg-brand' : 'bg-brand opacity-50'}`}
+        />
+        <div
+          className={`h-1 flex-1 rounded-full transition-all ${step >= 2 ? 'bg-brand' : step === 1 ? 'bg-brand opacity-50' : 'bg-border'}`}
+        />
+        <div
+          className={`h-1 flex-1 rounded-full transition-all ${step === 2 ? 'bg-brand opacity-50' : 'bg-border'}`}
+        />
+      </div>
+      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
+        Passo {step + 1} de 3 — {STEP_LABELS[step]}
+      </p>
+    </div>
+  );
+
   return (
     <div>
-      <SubHeaderPortal>
-        <div className="bg-bg px-(--spacing-page-x) py-3">
-          <ProgressSteps currentStep={step} totalSteps={STEPS.length} labels={STEPS} />
-        </div>
-      </SubHeaderPortal>
-      <PageContent className="mx-auto w-full max-w-lg pb-28">
-        <form id="add-place-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      {progressBar}
+
+      <PageContent className="mx-auto w-full max-w-lg pb-28 pt-4">
+        <form id="add-place-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           {step === 0 && (
-            <>
-              <Input label="Nome do lugar" error={errors.name?.message} {...register('name')} />
-              <Textarea
-                label="Descrição"
-                placeholder="Conte um pouco sobre o lugar, o que o torna especial..."
-                helperText="Opcional · máx. 500 caracteres"
-                rows={3}
-                error={errors.description?.message}
-                {...register('description')}
-              />
-              <StepLocation
-                selected={selectedAddress}
-                onSelect={handleAddressSelect}
-                onClear={() => setSelectedAddress(null)}
-                onGpsClick={geo.request}
-                geoLoading={geo.loading}
-                geocoding={geocoding}
-                geoError={geo.error ?? undefined}
-                formLat={formLat}
-                formLng={formLng}
-                onLocationChange={handleLocationChange}
-                locationError={errors.lat?.message ?? errors.lng?.message}
-              />
-              {formLat && formLng && (
-                <Input
-                  label="Número"
-                  placeholder="ex: 123, s/n"
-                  error={errors.numero?.message}
-                  {...register('numero')}
-                  onChange={(e) => {
-                    void register('numero').onChange(e);
-                    if (numeroDebounceRef.current) clearTimeout(numeroDebounceRef.current);
-                    numeroDebounceRef.current = setTimeout(
-                      () => void geocodeWithNumero(e.target.value),
-                      600,
-                    );
-                  }}
-                />
-              )}
-            </>
-          )}
-
-          {step === 1 && (
-            <StepMealTypes
-              value={mealTypes}
-              onChange={(v) => setValue('mealTypes', v as MealType[])}
-              error={(errors.mealTypes as { message?: string } | undefined)?.message}
+            <StepBasic
+              nameError={errors.name?.message}
+              nameRegisterProps={register('name')}
+              establishmentType={establishmentType}
+              onEstablishmentTypeChange={(v) =>
+                setValue('establishmentType', v, { shouldValidate: true })
+              }
+              establishmentTypeError={errors.establishmentType?.message}
+              selectedAddress={selectedAddress}
+              onAddressSelect={handleAddressSelect}
+              onAddressClear={() => setSelectedAddress(null)}
+              onGpsClick={geo.request}
+              geoLoading={geo.loading}
+              geocoding={geocoding}
+              geoError={geo.error ?? undefined}
+              formLat={formLat}
+              formLng={formLng}
+              onLocationChange={handleLocationChange}
+              locationError={errors.lat?.message ?? errors.lng?.message}
+              numeroError={errors.numero?.message}
+              numeroRegisterProps={register('numero')}
+              onNumeroChange={(e) => {
+                void register('numero').onChange(e);
+                if (numeroDebounceRef.current) clearTimeout(numeroDebounceRef.current);
+                numeroDebounceRef.current = setTimeout(
+                  () => void geocodeWithNumero(e.target.value),
+                  600,
+                );
+              }}
             />
           )}
 
-          {step === 2 && (
-            <StepEstablishment
-              value={watch('establishmentType')}
-              onChange={(v) => setValue('establishmentType', v)}
-              error={errors.establishmentType?.message}
+          {step === 1 && establishmentType && (
+            <StepDetails
+              establishmentType={establishmentType}
+              attributes={attributes}
+              onAttributeChange={handleAttributeChange}
+              periods={periods}
+              onPeriodsChange={(v) => setValue('periods', v, { shouldValidate: true })}
+              periodsError={(errors.periods as { message?: string } | undefined)?.message}
             />
           )}
 
-          {step === 3 && (
-            <StepCuisine
-              value={cuisineTypes}
-              onChange={(v) => setValue('cuisineTypes', v as CuisineType[])}
-              error={(errors.cuisineTypes as { message?: string } | undefined)?.message}
-            />
-          )}
-
-          {step === 4 && (
-            <StepFoodType
-              value={foodTypes}
-              onChange={(v) => setValue('foodTypes', v as FoodType[])}
-              error={(errors.foodTypes as { message?: string } | undefined)?.message}
-            />
-          )}
-
-          {step === 5 && (
-            <StepPrice
-              value={watch('priceBucket')}
-              onChange={(v) => setValue('priceBucket', v as PriceBucket)}
-            />
-          )}
-
-          {step === 6 && (
-            <StepPhoto
+          {step === 2 && establishmentType && (
+            <StepEnrichment
+              establishmentType={establishmentType}
+              priceBucket={priceBucket}
+              onPriceBucketChange={(v) => setValue('priceBucket', v, { shouldValidate: true })}
+              descriptionRegisterProps={register('description')}
+              descriptionError={errors.description?.message}
               photoFile={photoFile}
               onPhotoChange={setPhotoFile}
-              submitted={submitted}
-              onViewMyPlaces={() => router.push('/profile')}
             />
           )}
 
@@ -347,34 +397,44 @@ export default function AddPlacePage() {
         </form>
       </PageContent>
 
-      {!submitted && (
-        <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-border bg-bg px-(--spacing-page-x) py-4">
-          <div className="mx-auto max-w-lg">
-            {step < STEPS.length - 1 ? (
-              <Button
-                type="button"
-                className="w-full"
-                onClick={async () => {
-                  const fields = STEP_FIELDS[step];
-                  const valid = fields.length === 0 || (await trigger(fields));
-                  if (valid) setStep(step + 1);
-                }}
-              >
-                Próximo
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                form="add-place-form"
-                className="w-full"
-                disabled={loading || submitted}
-              >
-                {loading ? 'Cadastrando...' : 'Cadastrar lugar'}
-              </Button>
-            )}
-          </div>
+      {/* Bottom bar */}
+      <div
+        className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom,0))]"
+        style={{ zIndex: 'var(--z-sticky)' }}
+      >
+        <div className="mx-auto flex max-w-lg flex-col gap-2.5">
+          {/* Primary button */}
+          {step < TOTAL_STEPS - 1 ? (
+            <button
+              type="button"
+              onClick={handleNext}
+              className="w-full rounded-full bg-brand py-3.75 text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover"
+            >
+              Continuar →
+            </button>
+          ) : (
+            <button
+              type="submit"
+              form="add-place-form"
+              disabled={loading || submitted}
+              className="w-full rounded-full bg-brand py-3.75 text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? 'Cadastrando...' : 'Cadastrar lugar ✓'}
+            </button>
+          )}
+
+          {/* Back button */}
+          {step > 0 && (
+            <button
+              type="button"
+              onClick={() => setStep((s) => s - 1)}
+              className="w-full rounded-full border border-border py-3.25 text-[14px] font-medium text-text-secondary transition-all hover:border-brand hover:text-brand"
+            >
+              ← Voltar
+            </button>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -48,11 +48,9 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
           lat: geo.lat,
           lng: geo.lng,
           radiusMeters: filters.radiusMeters,
-          mealType: filters.mealType,
-          cuisine: filters.cuisine,
-          foodType: filters.foodType,
+          period: filters.period,
           maxPrice: filters.priceBucket
-            ? { up_to_15: 15, '15_25': 25, '25_40': 40, '40_70': 70, '70_plus': undefined }[
+            ? { up_to_25: 25, '25_to_45': 45, '45_to_80': 80, above_80: undefined }[
                 filters.priceBucket
               ]
             : undefined,

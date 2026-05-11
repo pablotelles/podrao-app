@@ -1,4 +1,3 @@
-import type { MealType } from '../value-objects/MealType';
 import type { ReviewScore } from './ReviewScore';
 
 export interface Review {
@@ -9,7 +8,6 @@ export interface Review {
   scores?: ReviewScore[];
   photos?: string[]; // URLs
   comment?: string;
-  mealType?: MealType;
   amountPaidPerPerson?: number;
   createdAt: Date;
   // Populated via JOIN with profiles when fetching for display

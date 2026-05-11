@@ -1,6 +1,4 @@
-import type { CuisineType } from '../value-objects/CuisineType';
-import type { FoodType } from '../value-objects/FoodType';
-import type { MealType } from '../value-objects/MealType';
+import type { OperatingPeriod } from '../value-objects/OperatingPeriod';
 import type { PriceBucket } from '../value-objects/PriceBucket';
 
 export type PlaceStatus = 'pending' | 'approved' | 'rejected';
@@ -17,9 +15,12 @@ export interface Place {
   lat: number;
   lng: number;
   establishmentType: string;
-  cuisineTypes: CuisineType[];
-  mealTypes: MealType[];
-  foodTypes: FoodType[];
+  /** Operating periods (when the place is open/relevant) */
+  periods: OperatingPeriod[];
+  /** Adaptive key-value attributes by establishment type.
+   *  Keys: service_type, bar_focus, has_happy_hour, opens_early,
+   *        food_tags, drink_tags, specialty_tags, payment_methods */
+  attributes: Record<string, string[]>;
   priceBucket: PriceBucket;
   description?: string;
   rejectionReason?: string;

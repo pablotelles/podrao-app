@@ -1,4 +1,3 @@
-import type { MealType } from '@/domain/value-objects/MealType';
 import type { ReviewScore } from '@/domain/entities/ReviewScore';
 
 export interface SubmitReviewDTO {
@@ -8,6 +7,5 @@ export interface SubmitReviewDTO {
   scores?: ReviewScore[];
   photoUrls?: string[];
   comment?: string;
-  mealType?: MealType;
   amountPaidPerPerson?: number;
 }

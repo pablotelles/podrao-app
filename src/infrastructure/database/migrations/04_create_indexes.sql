@@ -14,11 +14,12 @@ CREATE INDEX idx_places_created_by ON places(created_by);
 CREATE INDEX idx_places_embedding ON places USING ivfflat (embedding vector_cosine_ops)
   WHERE embedding IS NOT NULL;
 
--- ─── place_cuisines indexes ─────────────────────────────────────────────────
-CREATE INDEX idx_place_cuisines_cuisine ON place_cuisines(cuisine_type);
+-- ─── place_periods indexes ───────────────────────────────────────────────────
+CREATE INDEX idx_place_periods_period ON place_periods(period);
 
--- ─── place_meals indexes ────────────────────────────────────────────────────
-CREATE INDEX idx_place_meals_meal ON place_meals(meal_type);
+-- ─── place_attributes indexes ────────────────────────────────────────────────
+CREATE INDEX idx_place_attributes_key ON place_attributes(key);
+CREATE INDEX idx_place_attributes_key_value ON place_attributes(key, value);
 
 -- ─── place_photos indexes ───────────────────────────────────────────────────
 CREATE INDEX idx_place_photos_place_id ON place_photos(place_id);

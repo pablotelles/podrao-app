@@ -11,6 +11,7 @@ interface ToggleGroupSingleProps<T extends string> {
   onChange: (value: T | undefined) => void;
   renderLabel?: (option: T) => ReactNode;
   className?: string;
+  variant?: 'default' | 'card';
 }
 
 // ─── Multi-select ────────────────────────────────────────────────────────────
@@ -22,24 +23,29 @@ interface ToggleGroupMultiProps<T extends string> {
   onChange: (value: T[]) => void;
   renderLabel?: (option: T) => ReactNode;
   className?: string;
+  variant?: 'default' | 'card';
+  min?: number;
+  max?: number;
 }
 
 type ToggleGroupProps<T extends string> = ToggleGroupSingleProps<T> | ToggleGroupMultiProps<T>;
 
 /**
  * Pill toggle group — single or multi select.
+ * variant="card" renders larger card-style buttons.
  *
  * Usage (single):
- *   <ToggleGroup mode="single" options={MEAL_TYPES} value={val} onChange={setVal} />
+ *   <ToggleGroup mode="single" options={TYPES} value={val} onChange={setVal} />
  *
- * Usage (multi):
- *   <ToggleGroup mode="multi" options={CUISINE_TYPES} value={arr} onChange={setArr} />
+ * Usage (multi with limits):
+ *   <ToggleGroup mode="multi" options={TAGS} value={arr} onChange={setArr} min={1} max={3} />
  */
 export function ToggleGroup<T extends string>({
   mode,
   options,
   renderLabel,
   className = '',
+  variant = 'default',
   ...rest
 }: ToggleGroupProps<T>) {
   function isSelected(option: T): boolean {
@@ -50,16 +56,27 @@ export function ToggleGroup<T extends string>({
   function handleClick(option: T) {
     if (mode === 'single') {
       const { value, onChange } = rest as ToggleGroupSingleProps<T>;
-      // clicking the same value deselects
       onChange(value === option ? undefined : option);
     } else {
-      const { value, onChange } = rest as ToggleGroupMultiProps<T>;
-      onChange(value.includes(option) ? value.filter((v) => v !== option) : [...value, option]);
+      const { value, onChange, min, max } = rest as ToggleGroupMultiProps<T>;
+      const already = value.includes(option);
+      if (already) {
+        if (min !== undefined && value.length <= min) return;
+        onChange(value.filter((v) => v !== option));
+      } else {
+        if (max !== undefined && value.length >= max) return;
+        onChange([...value, option]);
+      }
     }
   }
 
+  const isCard = variant === 'card';
+
   return (
-    <div role="group" className={['flex flex-wrap gap-2', className].join(' ')}>
+    <div
+      role="group"
+      className={[isCard ? 'flex flex-col gap-2' : 'flex flex-wrap gap-2', className].join(' ')}
+    >
       {options.map((option) => {
         const selected = isSelected(option);
         return (
@@ -70,11 +87,20 @@ export function ToggleGroup<T extends string>({
             aria-checked={selected}
             onClick={() => handleClick(option)}
             className={[
-              'rounded-full border px-4 py-1.5 text-sm transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
-              selected
-                ? 'border-brand bg-brand-subtle text-brand font-medium'
-                : 'border-border text-text-secondary hover:border-brand/50 hover:text-text-primary',
+              'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+              isCard
+                ? [
+                    'w-full rounded-md border px-4 py-3 text-left text-sm font-medium',
+                    selected
+                      ? 'border-brand bg-brand-subtle text-brand'
+                      : 'border-border text-text-primary hover:border-brand/50',
+                  ].join(' ')
+                : [
+                    'rounded-full border px-4 py-1.5 text-sm',
+                    selected
+                      ? 'border-brand bg-brand-subtle text-brand font-medium'
+                      : 'border-border text-text-secondary hover:border-brand/50 hover:text-text-primary',
+                  ].join(' '),
             ].join(' ')}
           >
             {renderLabel ? renderLabel(option) : option}

@@ -83,11 +83,8 @@ export default async function PlaceDetailPage({ params }: Props) {
           {/* Badges */}
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="brand">{PRICE_BUCKET_LABELS[place.priceBucket]}</Badge>
-            {place.mealTypes.map((m) => (
-              <Badge key={m}>{m}</Badge>
-            ))}
-            {place.cuisineTypes.map((c) => (
-              <Badge key={c}>{c}</Badge>
+            {place.periods.map((p) => (
+              <Badge key={p}>{p}</Badge>
             ))}
           </div>
 

@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS review_scores CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS place_stats CASCADE;
 DROP TABLE IF EXISTS place_photos CASCADE;
+DROP TABLE IF EXISTS place_attributes CASCADE;
+DROP TABLE IF EXISTS place_periods CASCADE;
 DROP TABLE IF EXISTS place_food_types CASCADE;
 DROP TABLE IF EXISTS place_meals CASCADE;
 DROP TABLE IF EXISTS place_cuisines CASCADE;
@@ -28,18 +30,18 @@ CREATE TABLE places (
   bairro             TEXT,
   cidade             TEXT NOT NULL,
   estado             TEXT NOT NULL,
-  
+
   -- Geography uses spherical coordinates (real meters) - better than geometry for global distances
   location           GEOGRAPHY(POINT, 4326) NOT NULL,
-  
+
   -- Intentional redundancy: numeric lat/lng for simple queries without PostGIS
   lat                NUMERIC(10, 7) NOT NULL,
   lng                NUMERIC(10, 7) NOT NULL,
-  
+
   establishment_type establishment_type_enum NOT NULL,
   price_bucket       price_bucket_enum NOT NULL,
   status             TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
-  
+
   description        TEXT,
 
   -- Column for semantic search (post-MVP) - NULL during MVP
@@ -57,27 +59,25 @@ CREATE TABLE places (
   )
 );
 
--- ─── place_cuisines ──────────────────────────────────────────────────────────
--- Normalized pivot table replacing places.cuisine_types TEXT[]
-CREATE TABLE place_cuisines (
-  place_id     UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
-  cuisine_type cuisine_type_enum NOT NULL,
-  PRIMARY KEY (place_id, cuisine_type)
+-- ─── place_periods ────────────────────────────────────────────────────────────
+-- Normalized pivot table: when the place operates / is relevant (replaces meal_types)
+CREATE TABLE place_periods (
+  place_id UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  period   operating_period_enum NOT NULL,
+  PRIMARY KEY (place_id, period)
 );
 
--- ─── place_meals ─────────────────────────────────────────────────────────────
--- Normalized pivot table replacing places.meal_types TEXT[]
-CREATE TABLE place_meals (
-  place_id  UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
-  meal_type meal_type_enum NOT NULL,
-  PRIMARY KEY (place_id, meal_type)
+-- ─── place_attributes ────────────────────────────────────────────────────────
+-- Key-value store for adaptive fields per establishment type.
+-- Keys: service_type, bar_focus, has_happy_hour, opens_early,
+--       food_tags, drink_tags, specialty_tags, payment_methods
+CREATE TABLE place_attributes (
+  place_id UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  key      TEXT NOT NULL,
+  value    TEXT NOT NULL,
+  PRIMARY KEY (place_id, key, value)
 );
--- ─── place_food_types ──────────────────────────────────────────────────────────────
-CREATE TABLE place_food_types (
-  place_id  UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
-  food_type food_type_enum NOT NULL,
-  PRIMARY KEY (place_id, food_type)
-);
+
 -- ─── place_photos ────────────────────────────────────────────────────────────
 -- Supports logo, cover image, and gallery photos
 CREATE TABLE place_photos (
@@ -108,10 +108,9 @@ CREATE TABLE reviews (
   user_id      UUID NOT NULL REFERENCES auth.users(id),
   rating       SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
   amount_paid  NUMERIC(8, 2) CHECK (amount_paid IS NULL OR (amount_paid > 0 AND amount_paid < 2000)),
-  meal_type    meal_type_enum,
   comment      TEXT,
   created_at   TIMESTAMPTZ DEFAULT NOW(),
-  
+
   -- Enforce one review per user per place
   UNIQUE(place_id, user_id)
 );

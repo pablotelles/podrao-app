@@ -52,7 +52,7 @@ export class SubmitReview {
     const already = await this.reviewRepo.existsForUser(dto.placeId, dto.userId);
     if (already) throw new ConflictError('Você já avaliou este lugar');
 
-    // Create review with all new fields
+    // Create review with all fields
     return this.reviewRepo.create({
       placeId: dto.placeId,
       userId: dto.userId,
@@ -60,7 +60,6 @@ export class SubmitReview {
       scores: dto.scores,
       photoUrls: dto.photoUrls,
       comment: dto.comment,
-      mealType: dto.mealType,
       amountPaidPerPerson: dto.amountPaidPerPerson,
     });
   }
