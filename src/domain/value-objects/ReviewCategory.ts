@@ -1,4 +1,4 @@
-export const REVIEW_CATEGORIES = ['food', 'service', 'ambience', 'value', 'cleanliness'] as const;
+export const REVIEW_CATEGORIES = ['food', 'service', 'value'] as const;
 
 export type ReviewCategory = (typeof REVIEW_CATEGORIES)[number];
 
@@ -9,26 +9,16 @@ export const REVIEW_CATEGORY_META: Record<
   food: {
     label: 'Comida',
     icon: '🍽️',
-    description: 'Sabor, apresentação e qualidade dos pratos',
+    description: 'Sabor, quantidade e qualidade do que veio',
   },
   service: {
     label: 'Atendimento',
     icon: '👥',
-    description: 'Cortesia, agilidade e atenção da equipe',
-  },
-  ambience: {
-    label: 'Ambiente',
-    icon: '🏠',
-    description: 'Decoração, conforto e atmosfera do lugar',
+    description: 'Agilidade e simpatia de quem te atendeu',
   },
   value: {
     label: 'Custo-benefício',
     icon: '💰',
-    description: 'Relação entre qualidade e preço cobrado',
-  },
-  cleanliness: {
-    label: 'Limpeza',
-    icon: '✨',
-    description: 'Higiene e organização do ambiente',
+    description: 'Valeu o que você pagou?',
   },
 };

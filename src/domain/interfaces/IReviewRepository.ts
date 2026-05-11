@@ -1,5 +1,6 @@
 import type { Review } from '../entities/Review';
 import type { ReviewScore } from '../entities/ReviewScore';
+import type { PriceBucket } from '../value-objects/PriceBucket';
 
 export interface CreateReviewData {
   placeId: string;
@@ -8,7 +9,7 @@ export interface CreateReviewData {
   scores?: ReviewScore[];
   photoUrls?: string[];
   comment?: string;
-  amountPaidPerPerson?: number;
+  priceBucket?: PriceBucket;
 }
 
 export interface IReviewRepository {

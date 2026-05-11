@@ -97,7 +97,6 @@ CREATE TABLE place_stats (
   rating          NUMERIC(3, 2) NOT NULL DEFAULT 0,
   reviews_count   INTEGER NOT NULL DEFAULT 0,
   thumbs_up_count INTEGER NOT NULL DEFAULT 0,
-  median_price    NUMERIC(8, 2),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -107,7 +106,7 @@ CREATE TABLE reviews (
   place_id     UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
   user_id      UUID NOT NULL REFERENCES auth.users(id),
   rating       SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  amount_paid  NUMERIC(8, 2) CHECK (amount_paid IS NULL OR (amount_paid > 0 AND amount_paid < 2000)),
+  price_bucket price_bucket_enum NULL,
   comment      TEXT,
   created_at   TIMESTAMPTZ DEFAULT NOW(),
 
@@ -116,10 +115,10 @@ CREATE TABLE reviews (
 );
 
 -- ─── review_scores ───────────────────────────────────────────────────────────
--- Detailed category ratings (food, service, ambience, value, cleanliness)
+-- Detailed category ratings (food, service, value)
 CREATE TABLE review_scores (
   review_id UUID NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
-  category  TEXT NOT NULL CHECK (category IN ('food', 'service', 'ambience', 'value', 'cleanliness')),
+  category  TEXT NOT NULL CHECK (category IN ('food', 'service', 'value')),
   score     SMALLINT NOT NULL CHECK (score BETWEEN 1 AND 5),
   PRIMARY KEY (review_id, category)
 );

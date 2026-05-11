@@ -5,7 +5,7 @@ import { mutate } from 'swr';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { submitReviewSchema, type SubmitReviewInput } from '@/presentation/lib/forms/review/schema';
 import { submitReviewInitialValues } from '@/presentation/lib/forms/review/initialValues';
-import { Button, Input, Textarea, StarRating } from '@/presentation/components/ui';
+import { Button, Textarea, StarRating } from '@/presentation/components/ui';
 import { useToast } from '@/presentation/hooks/useToast';
 
 interface ReviewFormProps {
@@ -44,7 +44,6 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
         const body = (await res.json()) as { error: string };
         throw new Error(body.error);
       }
-      // Revalidar stats do usuário
       mutate('/api/me/stats');
       showToast({
         type: 'success',
@@ -73,21 +72,10 @@ export function ReviewForm({ placeId, onSuccess }: ReviewFormProps) {
         />
       </div>
 
-      <Input
-        label="Quanto você gastou por pessoa? (R$)"
-        type="number"
-        step="0.01"
-        min="0.01"
-        max="1999"
-        placeholder="Ex: 32.50"
-        error={errors.amountPaidPerPerson?.message}
-        {...register('amountPaidPerPerson', { valueAsNumber: true })}
-      />
-
       <Textarea
         label="Comentário (opcional)"
-        maxLength={500}
-        helperText="Máximo 500 caracteres"
+        maxLength={1500}
+        helperText="Máximo 1500 caracteres"
         error={errors.comment?.message}
         {...register('comment')}
       />

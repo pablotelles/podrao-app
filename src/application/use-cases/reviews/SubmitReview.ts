@@ -2,6 +2,7 @@ import type { Review } from '@/domain/entities/Review';
 import type { IReviewRepository } from '@/domain/interfaces/IReviewRepository';
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
 import type { SubmitReviewDTO } from '@/application/dtos/SubmitReviewDTO';
+import { PRICE_BUCKETS } from '@/domain/value-objects/PriceBucket';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { ConflictError } from '@/application/errors/ConflictError';
 import { ValidationError } from '@/application/errors/ValidationError';
@@ -18,16 +19,14 @@ export class SubmitReview {
       throw new ValidationError('Nota deve estar entre 1 e 5');
     }
 
-    // Validate amount paid per person
-    if (dto.amountPaidPerPerson !== undefined) {
-      if (dto.amountPaidPerPerson <= 0 || dto.amountPaidPerPerson >= 2000) {
-        throw new ValidationError('Valor por pessoa deve estar entre R$0,01 e R$1.999,99');
-      }
+    // Validate price bucket if provided
+    if (dto.priceBucket !== undefined && !PRICE_BUCKETS.includes(dto.priceBucket)) {
+      throw new ValidationError('Faixa de preço inválida');
     }
 
     // Validate comment length
-    if (dto.comment && dto.comment.length > 500) {
-      throw new ValidationError('Comentário não pode ter mais de 500 caracteres');
+    if (dto.comment && dto.comment.length > 1500) {
+      throw new ValidationError('Comentário não pode ter mais de 1.500 caracteres');
     }
 
     // Validate category scores if provided
@@ -60,7 +59,7 @@ export class SubmitReview {
       scores: dto.scores,
       photoUrls: dto.photoUrls,
       comment: dto.comment,
-      amountPaidPerPerson: dto.amountPaidPerPerson,
+      priceBucket: dto.priceBucket,
     });
   }
 }

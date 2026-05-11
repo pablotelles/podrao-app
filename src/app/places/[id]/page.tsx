@@ -75,7 +75,6 @@ export default async function PlaceDetailPage({ params }: Props) {
             reviewsCount={place.reviewsCount}
             rating={place.rating}
             description={place.description}
-            medianPrice={place.medianPrice}
             recommendPct={recommendPct}
             logoUrl={place.logoUrl}
           />

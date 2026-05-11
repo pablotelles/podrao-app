@@ -5,5 +5,5 @@ export const submitReviewInitialValues: Partial<SubmitReviewInput> = {
   scores: undefined,
   photoUrls: undefined,
   comment: undefined,
-  amountPaidPerPerson: undefined,
+  priceBucket: undefined,
 };

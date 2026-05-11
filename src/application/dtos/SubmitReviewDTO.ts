@@ -1,4 +1,5 @@
 import type { ReviewScore } from '@/domain/entities/ReviewScore';
+import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 
 export interface SubmitReviewDTO {
   placeId: string;
@@ -7,5 +8,5 @@ export interface SubmitReviewDTO {
   scores?: ReviewScore[];
   photoUrls?: string[];
   comment?: string;
-  amountPaidPerPerson?: number;
+  priceBucket?: PriceBucket;
 }

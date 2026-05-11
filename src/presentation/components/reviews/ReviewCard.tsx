@@ -100,11 +100,6 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
             <span className="text-sm font-semibold text-text-primary">
               {isOwnReview ? 'Você' : (review.authorNickname ?? 'Avaliador')}
             </span>
-            {review.amountPaidPerPerson !== undefined && (
-              <p className="text-xs text-text-secondary">
-                Pagou ~R${review.amountPaidPerPerson.toFixed(0)}/pessoa
-              </p>
-            )}
           </div>
         </div>
 

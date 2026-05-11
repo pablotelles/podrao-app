@@ -1,5 +1,7 @@
 'use client';
 
+import { Star } from 'lucide-react';
+
 interface StarRatingProps {
   value: number; // 0 = não avaliado, 1-5
   onChange: (value: number) => void;
@@ -8,16 +10,12 @@ interface StarRatingProps {
   error?: string;
 }
 
-const SIZE_CLASSES = {
-  sm: 'text-base', // 16px
-  md: 'text-xl', // 20px
-  lg: 'text-3xl', // 30px
+const ICON_SIZE = {
+  sm: 16,
+  md: 20,
+  lg: 32,
 };
 
-/**
- * Star rating component (1-5 stars).
- * Used for review ratings and category scores.
- */
 export function StarRating({
   value,
   onChange,
@@ -25,11 +23,7 @@ export function StarRating({
   readonly = false,
   error,
 }: StarRatingProps) {
-  const handleClick = (rating: number) => {
-    if (!readonly) {
-      onChange(rating);
-    }
-  };
+  const px = ICON_SIZE[size];
 
   return (
     <div>
@@ -45,10 +39,9 @@ export function StarRating({
             type="button"
             role={readonly ? undefined : 'radio'}
             aria-checked={readonly ? undefined : value === star}
-            onClick={() => handleClick(star)}
+            onClick={() => !readonly && onChange(star)}
             disabled={readonly}
             className={[
-              SIZE_CLASSES[size],
               'transition-all',
               !readonly &&
                 'cursor-pointer hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded',
@@ -58,7 +51,11 @@ export function StarRating({
               .join(' ')}
             aria-label={`${star} ${star === 1 ? 'estrela' : 'estrelas'}`}
           >
-            <span className={star <= value ? 'text-yellow-500' : 'text-gray-300'}>★</span>
+            <Star
+              width={px}
+              height={px}
+              className={star <= value ? 'fill-warning text-warning' : 'text-text-disabled'}
+            />
           </button>
         ))}
       </div>

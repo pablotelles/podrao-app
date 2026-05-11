@@ -30,8 +30,8 @@ export function sortPlaces(places: Place[], option: SortOption): Place[] {
         return da - db;
       }
       case 'cheapest': {
-        const pa = a.medianPrice ?? (PRICE_BUCKET_ORDER[a.priceBucket] ?? Infinity) * 100;
-        const pb = b.medianPrice ?? (PRICE_BUCKET_ORDER[b.priceBucket] ?? Infinity) * 100;
+        const pa = PRICE_BUCKET_ORDER[a.priceBucket] ?? Infinity;
+        const pb = PRICE_BUCKET_ORDER[b.priceBucket] ?? Infinity;
         return pa - pb;
       }
       case 'top_rated':

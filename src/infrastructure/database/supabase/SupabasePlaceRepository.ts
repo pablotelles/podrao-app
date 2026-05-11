@@ -30,8 +30,8 @@ interface PlaceRowWithRelations {
   created_at: string;
   updated_at: string;
   place_stats:
-    | { rating: number; reviews_count: number; median_price: number | null }[]
-    | { rating: number; reviews_count: number; median_price: number | null }
+    | { rating: number; reviews_count: number }[]
+    | { rating: number; reviews_count: number }
     | null;
   place_periods: { period: string }[] | null;
   place_attributes: { key: string; value: string }[] | null;
@@ -58,9 +58,7 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): num
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function getStats(
-  row: PlaceRowWithRelations,
-): { rating: number; reviews_count: number; median_price: number | null } | null {
+function getStats(row: PlaceRowWithRelations): { rating: number; reviews_count: number } | null {
   return Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
 }
 
@@ -75,7 +73,7 @@ function groupAttributes(rows: { key: string; value: string }[] | null): Record<
 }
 
 const PLACE_SELECT = `*,
-  place_stats ( rating, reviews_count, median_price ),
+  place_stats ( rating, reviews_count ),
   place_periods ( period ),
   place_attributes ( key, value ),
   place_photos ( url, type, position )`;
@@ -362,8 +360,9 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   // ─── helpers ──────────────────────────────────────────────────────────────
 
   private rowWithRelationsToDomain(row: PlaceRowWithRelations): Place {
-    const stats: { rating: number; reviews_count: number; median_price: number | null } | null =
-      Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
+    const stats: { rating: number; reviews_count: number } | null = Array.isArray(row.place_stats)
+      ? (row.place_stats[0] ?? null)
+      : (row.place_stats ?? null);
 
     const periods =
       (row.place_periods as { period: string }[] | null)?.map((p) => p.period as OperatingPeriod) ??
@@ -392,7 +391,6 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       periods,
       attributes,
       priceBucket: row.price_bucket as PriceBucket,
-      medianPrice: stats?.median_price ?? undefined,
       rejectionReason: row.rejection_reason ?? undefined,
       logoUrl: logo?.url ?? undefined,
       rating: Number(stats?.rating ?? 0),

@@ -20,7 +20,6 @@ interface PlaceInfoProps {
   reviewsCount: number;
   rating: number;
   description?: string;
-  medianPrice?: number;
   recommendPct?: number;
   logoUrl?: string;
 }
@@ -37,7 +36,6 @@ export function PlaceInfo({
   reviewsCount,
   rating,
   description,
-  medianPrice,
   recommendPct,
   logoUrl,
 }: PlaceInfoProps) {
@@ -88,13 +86,6 @@ export function PlaceInfo({
                 </span>
               </>
             )}
-          </>
-        )}
-
-        {medianPrice !== undefined && reviewsCount > 0 && (
-          <>
-            <span className="h-0.5 w-0.5 rounded-full bg-text-disabled" />
-            <span>Mediana R${medianPrice.toFixed(2)}</span>
           </>
         )}
       </div>

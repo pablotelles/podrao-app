@@ -1,4 +1,5 @@
 import type { ReviewScore } from './ReviewScore';
+import type { PriceBucket } from '../value-objects/PriceBucket';
 
 export interface Review {
   id: string;
@@ -8,7 +9,7 @@ export interface Review {
   scores?: ReviewScore[];
   photos?: string[]; // URLs
   comment?: string;
-  amountPaidPerPerson?: number;
+  priceBucket?: PriceBucket;
   createdAt: Date;
   // Populated via JOIN with profiles when fetching for display
   authorNickname?: string;

@@ -6,31 +6,27 @@
 CREATE OR REPLACE FUNCTION update_place_stats()
 RETURNS TRIGGER AS $$
 DECLARE
-  v_place_id     UUID;
-  v_rating       NUMERIC(3, 2);
-  v_count        INTEGER;
-  v_thumbs_up    INTEGER;
-  v_median       NUMERIC(8, 2);
+  v_place_id  UUID;
+  v_rating    NUMERIC(3, 2);
+  v_count     INTEGER;
+  v_thumbs_up INTEGER;
 BEGIN
   v_place_id := COALESCE(NEW.place_id, OLD.place_id);
 
   SELECT
     COALESCE(ROUND(AVG(rating::NUMERIC), 2), 0),
     COUNT(*)::INTEGER,
-    COUNT(*) FILTER (WHERE rating >= 4)::INTEGER,
-    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY amount_paid)
-      FILTER (WHERE amount_paid IS NOT NULL)
-  INTO v_rating, v_count, v_thumbs_up, v_median
+    COUNT(*) FILTER (WHERE rating >= 4)::INTEGER
+  INTO v_rating, v_count, v_thumbs_up
   FROM reviews
   WHERE place_id = v_place_id;
 
-  INSERT INTO place_stats (place_id, rating, reviews_count, thumbs_up_count, median_price)
-  VALUES (v_place_id, v_rating, v_count, v_thumbs_up, v_median)
+  INSERT INTO place_stats (place_id, rating, reviews_count, thumbs_up_count)
+  VALUES (v_place_id, v_rating, v_count, v_thumbs_up)
   ON CONFLICT (place_id) DO UPDATE SET
     rating          = EXCLUDED.rating,
     reviews_count   = EXCLUDED.reviews_count,
     thumbs_up_count = EXCLUDED.thumbs_up_count,
-    median_price    = EXCLUDED.median_price,
     updated_at      = NOW();
 
   RETURN NEW;
