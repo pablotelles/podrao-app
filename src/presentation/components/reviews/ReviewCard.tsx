@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useReactionGroup } from '@/presentation/hooks/useReactionGroup';
 import { StarRating } from '@/presentation/components/ui/StarRating';
+import { Text } from '@/presentation/components/ui/Text';
 import type { Review } from '@/domain/entities/Review';
 import { REVIEW_COMMENT_MAX_CHARS } from './reviewConfig';
 type SerializedReview = Omit<Review, 'createdAt'> & { createdAt: string | Date };
@@ -97,14 +98,16 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
             )}
           </div>
           <div>
-            <span className="text-sm font-semibold text-text-primary">
+            <Text as="span" variant="label">
               {isOwnReview ? 'Você' : (review.authorNickname ?? 'Avaliador')}
-            </span>
+            </Text>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-text-secondary">{relativeDate(review.createdAt)}</span>
+          <Text as="span" variant="caption" textColor="secondary">
+            {relativeDate(review.createdAt)}
+          </Text>
           <div className="relative">
             <button
               onClick={() => setMenuOpen((v) => !v)}
@@ -166,9 +169,9 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
       {/* Rating */}
       <div className="mt-3 flex items-center gap-2">
         <StarRating value={review.rating} onChange={() => {}} readonly size="sm" />
-        <span className="text-sm font-semibold text-text-primary">
+        <Text as="span" variant="label">
           {review.rating.toFixed(1).replace('.', ',')}
-        </span>
+        </Text>
       </div>
 
       {/* Comentário */}
@@ -181,13 +184,14 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
               : review.comment;
           return (
             <div className="mt-2">
-              <p className="text-sm leading-relaxed text-text-primary">{displayed}</p>
+              <Text as="p" variant="body">
+                {displayed}
+              </Text>
               {isTruncatable && (
-                <button
-                  onClick={() => setCommentExpanded((v) => !v)}
-                  className="mt-0.5 text-xs font-medium text-brand"
-                >
-                  {commentExpanded ? 'Ver menos' : 'Ver mais'}
+                <button onClick={() => setCommentExpanded((v) => !v)} className="mt-0.5">
+                  <Text as="span" variant="label" textColor="brand">
+                    {commentExpanded ? 'Ver menos' : 'Ver mais'}
+                  </Text>
                 </button>
               )}
             </div>
@@ -267,12 +271,13 @@ export function ReviewCard({ review, placeId, isOwnReview }: ReviewCardProps) {
             >
               {icon}
               {count > 0 && (
-                <span
-                  className="text-xs font-medium"
+                <Text
+                  as="span"
+                  variant="caption"
                   style={{ color: isActive ? activeColor : 'var(--color-text-secondary)' }}
                 >
                   {count}
-                </span>
+                </Text>
               )}
             </button>
           );

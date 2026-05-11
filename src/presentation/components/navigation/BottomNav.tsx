@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Compass, PlusCircle, List, UserCircle } from 'lucide-react';
 import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
+import { Text } from '@/presentation/components/ui/Text';
 
 const TABS = [
   { href: '/', label: 'Explorar', Icon: Compass },
@@ -43,12 +44,14 @@ export function BottomNav() {
             key={href}
             href={href}
             className={[
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors',
+              'flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors',
               active ? 'text-brand' : 'text-text-secondary',
             ].join(' ')}
           >
             <Icon size={24} strokeWidth={active ? 2.5 : 1.8} />
-            {label}
+            <Text as="span" variant="caption" textColor={active ? 'brand' : 'secondary'}>
+              {label}
+            </Text>
           </Link>
         );
       })}

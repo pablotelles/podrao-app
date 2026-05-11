@@ -1,6 +1,6 @@
 'use client';
 
-import { Input } from '@/presentation/components/ui';
+import { Input, Text } from '@/presentation/components/ui';
 import { StepLocation } from './StepLocation';
 import {
   ESTABLISHMENT_TYPES,
@@ -57,10 +57,12 @@ export function StepBasic({
     <div className="flex flex-col gap-5">
       {/* Section header */}
       <div>
-        <h1 className="text-[18px] font-bold leading-snug tracking-tight text-text-primary">
+        <Text variant="heading" as="h1" className="leading-snug tracking-tight">
           Qual lugar é esse?
-        </h1>
-        <p className="mt-1 text-sm text-text-secondary">Informações para encontrarem no mapa.</p>
+        </Text>
+        <Text as="p" variant="body" textColor="secondary" className="mt-1">
+          Informações para encontrarem no mapa.
+        </Text>
       </div>
 
       {/* Nome */}
@@ -94,9 +96,9 @@ export function StepBasic({
 
       {/* Tipo de estabelecimento — grid 3 colunas */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-semibold text-text-primary">
+        <Text as="label" variant="label">
           Tipo de estabelecimento
-        </label>
+        </Text>
         <div className="grid grid-cols-3 gap-2">
           {ESTABLISHMENT_TYPES.map((type) => (
             <button
@@ -111,18 +113,22 @@ export function StepBasic({
               ].join(' ')}
             >
               <span className="text-2xl leading-none">{ESTABLISHMENT_TYPE_META[type].icon}</span>
-              <span
-                className={[
-                  'text-center text-[11px] font-semibold leading-tight',
-                  establishmentType === type ? 'text-brand' : 'text-text-primary',
-                ].join(' ')}
+              <Text
+                as="span"
+                variant="caption"
+                textColor={establishmentType === type ? 'brand' : 'primary'}
+                className="text-center leading-tight"
               >
                 {ESTABLISHMENT_TYPE_META[type].label}
-              </span>
+              </Text>
             </button>
           ))}
         </div>
-        {establishmentTypeError && <p className="text-xs text-error">{establishmentTypeError}</p>}
+        {establishmentTypeError && (
+          <Text as="p" variant="caption" textColor="error">
+            {establishmentTypeError}
+          </Text>
+        )}
       </div>
     </div>
   );

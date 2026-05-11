@@ -1,4 +1,5 @@
 import { Globe, Lock, Calendar, User } from 'lucide-react';
+import { Text } from '@/presentation/components/ui/Text';
 
 interface ListMetadataProps {
   isPublic: boolean;
@@ -15,7 +16,12 @@ export function ListMetadata({ isPublic, createdAt, ownerName, isOwner }: ListMe
   }).format(createdAt);
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
+    <Text
+      as="div"
+      variant="body"
+      textColor="secondary"
+      className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"
+    >
       <span className="flex items-center gap-1">
         {isPublic ? (
           <>
@@ -39,6 +45,6 @@ export function ListMetadata({ isPublic, createdAt, ownerName, isOwner }: ListMe
         <User className="h-3.5 w-3.5" />
         {isOwner ? 'Por você' : ownerName}
       </span>
-    </div>
+    </Text>
   );
 }

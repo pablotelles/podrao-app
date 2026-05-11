@@ -3,6 +3,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from './Button';
+import { Text } from './Text';
 
 export interface PageHeaderAction {
   label: string;
@@ -74,7 +75,9 @@ export function PageHeader({
               <ArrowLeft size={20} className="text-text-primary" />
             </button>
           )}
-          <h1 className="text-base font-bold text-text-primary">{title}</h1>
+          <Text variant="heading" as="h1">
+            {title}
+          </Text>
         </div>
         {actions && actions.length > 0 && (
           <div className="flex items-center gap-2">

@@ -1,6 +1,7 @@
 'use client';
 
 import type { InputHTMLAttributes } from 'react';
+import { Text } from './Text';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -11,9 +12,9 @@ export function Input({ label, error, className = '', id, ...props }: InputProps
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-text-primary">
+        <Text as="label" variant="label" htmlFor={id}>
           {label}
-        </label>
+        </Text>
       )}
       <input
         id={id}
@@ -28,7 +29,11 @@ export function Input({ label, error, className = '', id, ...props }: InputProps
         ].join(' ')}
         {...props}
       />
-      {error && <p className="text-xs text-error">{error}</p>}
+      {error && (
+        <Text as="p" variant="caption" textColor="error">
+          {error}
+        </Text>
+      )}
     </div>
   );
 }

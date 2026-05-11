@@ -1,25 +1,32 @@
-import { cva, type VariantProps } from 'class-variance-authority';
+import { Text } from '@/presentation/components/ui/Text';
 
-const headlineVariants = cva('text-text-primary leading-relaxed font-normal', {
-  variants: {
-    size: {
-      sm: 'text-sm',
-      md: 'text-base',
-      lg: 'text-lg',
-    },
-    clamp: {
-      none: '',
-      2: 'line-clamp-2',
-      3: 'line-clamp-3',
-    },
-  },
-  defaultVariants: { size: 'md', clamp: 'none' },
-});
+const sizeToVariant = {
+  sm: 'label',
+  md: 'body',
+  lg: 'subheading',
+} as const;
 
-interface UserHeadlineProps extends VariantProps<typeof headlineVariants> {
+const clampClass = {
+  none: '',
+  2: 'line-clamp-2',
+  3: 'line-clamp-3',
+} as const;
+
+type Size = keyof typeof sizeToVariant;
+type Clamp = keyof typeof clampClass;
+
+interface UserHeadlineProps {
   headline: string;
+  size?: Size;
+  clamp?: Clamp;
 }
 
 export function UserHeadline({ headline, size, clamp }: UserHeadlineProps) {
-  return <p className={headlineVariants({ size, clamp })}>{headline}</p>;
+  const variant = sizeToVariant[size ?? 'md'];
+  const clampClassName = clampClass[clamp ?? 'none'];
+  return (
+    <Text as="p" variant={variant} className={clampClassName || undefined}>
+      {headline}
+    </Text>
+  );
 }

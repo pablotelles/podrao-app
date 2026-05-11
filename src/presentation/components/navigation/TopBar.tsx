@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Search, Bell } from 'lucide-react';
 import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
 import { useUser } from '@/presentation/contexts/UserContext';
+import { Text } from '@/presentation/components/ui/Text';
 import type { User } from '@/domain/entities/User';
 
 const HIDDEN_ON = ['/login'];
@@ -23,14 +24,16 @@ function Avatar({ user }: { user: User | null }) {
   return (
     <button
       onClick={() => router.push('/profile')}
-      className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-xs font-bold text-brand"
+      className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-brand"
       aria-label="Ir para perfil"
     >
       {user?.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={user.avatarUrl} alt={initials} className="h-full w-full object-cover" />
       ) : (
-        initials
+        <Text as="span" variant="caption" className="font-bold text-brand">
+          {initials}
+        </Text>
       )}
     </button>
   );
@@ -52,9 +55,14 @@ export function TopBar() {
       <Avatar user={user} />
 
       {/* Título */}
-      <h1 className="absolute left-1/2 -translate-x-1/2 max-w-[55%] truncate text-base font-bold text-text-inverse">
+      <Text
+        variant="heading"
+        textColor="inverse"
+        as="h1"
+        className="absolute left-1/2 -translate-x-1/2 max-w-[55%] truncate"
+      >
         {title}
-      </h1>
+      </Text>
 
       {/* Ações */}
       <div className="flex items-center gap-1">

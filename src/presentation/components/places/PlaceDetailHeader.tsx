@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Share2, BookmarkPlus, Heart, Globe, Lock } from 'lucide-react';
+import { Text } from '@/presentation/components/ui/Text';
 import { useDistance } from '@/presentation/hooks/useDistance';
 import { useFavorites } from '@/presentation/hooks/useFavorites';
 import { useLists } from '@/presentation/hooks/useLists';
@@ -93,7 +94,7 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
 
   return (
     <>
-      <div className="relative h-[150px] w-full overflow-hidden">
+      <div className="relative h-37.5 w-full overflow-hidden">
         <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
 
         {/* Distância - canto inferior esquerdo */}
@@ -114,7 +115,9 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <span className="text-xs font-semibold">{distanceText} de você</span>
+              <Text as="span" variant="label" textColor="brand">
+                {distanceText} de você
+              </Text>
             </div>
           </div>
         )}
@@ -148,9 +151,14 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
           href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-4 right-4 z-1000 flex items-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105"
+          className="absolute bottom-4 right-4 z-1000 flex items-center gap-2 rounded-full bg-brand px-4 py-2.5 shadow-lg transition-transform hover:scale-105"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-4 w-4 text-text-inverse"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -158,7 +166,9 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
               d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
             />
           </svg>
-          Como chegar
+          <Text as="span" variant="body" textColor="inverse">
+            Como chegar
+          </Text>
         </a>
       </div>
 
@@ -170,7 +180,9 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
       >
         <div className="space-y-2">
           {isLoadingLists || loadingListsWithPlace ? (
-            <p className="text-sm text-text-secondary">Carregando...</p>
+            <Text as="p" variant="body" textColor="secondary">
+              Carregando...
+            </Text>
           ) : lists && lists.length > 0 ? (
             lists.map((list) => {
               const alreadyAdded = listsWithPlace.has(list.id);
@@ -181,13 +193,25 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
                   disabled={addingToListId === list.id || alreadyAdded}
                   className="w-full rounded-lg border border-border bg-bg p-3 text-left transition-colors hover:bg-bg-subtle disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <p className="font-medium text-text-primary">
+                  <Text as="p" variant="label">
                     {list.name}
                     {alreadyAdded && (
-                      <span className="ml-2 text-xs font-normal text-success">✓ Adicionado</span>
+                      <Text
+                        as="span"
+                        variant="caption"
+                        textColor="success"
+                        className="ml-2 font-normal"
+                      >
+                        ✓ Adicionado
+                      </Text>
                     )}
-                  </p>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-text-secondary">
+                  </Text>
+                  <Text
+                    as="p"
+                    variant="caption"
+                    textColor="secondary"
+                    className="mt-1 flex items-center gap-1.5"
+                  >
                     <span>
                       {list.placesCount === 0
                         ? '0 lugares'
@@ -209,12 +233,14 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
                         </>
                       )}
                     </span>
-                  </p>
+                  </Text>
                 </button>
               );
             })
           ) : (
-            <p className="text-sm text-text-secondary">Você ainda não tem listas.</p>
+            <Text as="p" variant="body" textColor="secondary">
+              Você ainda não tem listas.
+            </Text>
           )}
         </div>
       </Sheet>

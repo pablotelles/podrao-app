@@ -1,4 +1,5 @@
 import { forwardRef, useId, type TextareaHTMLAttributes } from 'react';
+import { Text } from './Text';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -14,14 +15,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="flex flex-col gap-1">
         {label && (
-          <label htmlFor={fieldId} className="text-sm font-medium text-text-primary">
+          <Text as="label" variant="label" htmlFor={fieldId}>
             {label}
             {props.required && (
               <span className="ml-1 text-error" aria-hidden="true">
                 *
               </span>
             )}
-          </label>
+          </Text>
         )}
         <textarea
           ref={ref}
@@ -43,14 +44,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error && (
-          <p id={`${fieldId}-error`} className="text-xs text-error" role="alert">
+          <Text as="p" variant="caption" textColor="error" id={`${fieldId}-error`} role="alert">
             {error}
-          </p>
+          </Text>
         )}
         {!error && helperText && (
-          <p id={`${fieldId}-helper`} className="text-xs text-text-secondary">
+          <Text as="p" variant="caption" textColor="secondary" id={`${fieldId}-helper`}>
             {helperText}
-          </p>
+          </Text>
         )}
       </div>
     );

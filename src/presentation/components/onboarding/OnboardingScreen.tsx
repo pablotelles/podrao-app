@@ -5,6 +5,7 @@ import { MapPin, Star, ListCollapse, Loader2 } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/Button';
 import { Card } from '@/presentation/components/ui/Card';
 import { AddressAutocomplete } from '@/presentation/components/ui/AddressAutocomplete';
+import { Text } from '@/presentation/components/ui/Text';
 import { useHideBottomNav, useHideTopBar } from '@/presentation/contexts/TopBarContext';
 import type { AutocompleteResult } from '@/domain/interfaces/IMapProvider';
 
@@ -122,15 +123,19 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         </span>
 
         {/* Floating card — place */}
-        <div className="absolute left-5 top-7.5 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-text-primary shadow-(--shadow-modal)">
+        <div className="absolute left-5 top-7.5 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 shadow-(--shadow-modal)">
           <span className="h-2 w-2 shrink-0 rounded-full bg-success" />
-          Caldeirão da Vó · 0,3 km
+          <Text as="span" variant="label">
+            Caldeirão da Vó · 0,3 km
+          </Text>
         </div>
 
         {/* Floating card — rating */}
-        <div className="absolute right-4 top-45 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-text-primary shadow-(--shadow-modal)">
+        <div className="absolute right-4 top-45 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 shadow-(--shadow-modal)">
           <span className="text-warning">★</span>
-          4.8 · 142 avaliações
+          <Text as="span" variant="label">
+            4.8 · 142 avaliações
+          </Text>
         </div>
 
         {/* Hero content */}
@@ -138,12 +143,22 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           <span className="animate-bounce text-5xl" role="img" aria-label="comida">
             🍽️
           </span>
-          <h1 className="max-w-65 text-[1.75rem] font-extrabold leading-tight tracking-tight text-white">
+          <Text
+            as="h1"
+            variant="display"
+            className="max-w-65 text-(--font-size-display-lg) leading-tight tracking-tight"
+            style={{ color: 'white' }}
+          >
             Comida boa, perto de você
-          </h1>
-          <p className="max-w-60 text-sm leading-snug text-white/85">
+          </Text>
+          <Text
+            as="p"
+            variant="body"
+            className="max-w-60 leading-snug"
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+          >
             Recomendações da comunidade. Preços reais. Sem papo furado.
-          </p>
+          </Text>
         </div>
       </div>
 
@@ -157,8 +172,12 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <Icon size={20} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-text-primary">{title}</p>
-                <p className="text-xs text-text-secondary">{subtitle}</p>
+                <Text as="p" variant="label">
+                  {title}
+                </Text>
+                <Text as="p" variant="caption" textColor="secondary">
+                  {subtitle}
+                </Text>
               </div>
             </Card>
           ))}
@@ -184,16 +203,16 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             )}
           </Button>
           {gpsDenied && (
-            <p className="text-center text-sm text-warning">
+            <Text as="p" variant="body" textColor="warning" className="text-center">
               Permissão negada. Busque seu bairro ou cidade abaixo.
-            </p>
+            </Text>
           )}
         </div>
 
         {/* Divider */}
-        <p className="text-center text-sm font-medium text-text-secondary">
+        <Text as="p" variant="label" textColor="secondary" className="text-center">
           Ou busque seu bairro ou cidade
-        </p>
+        </Text>
 
         {/* Address search */}
         <AddressAutocomplete
@@ -203,7 +222,9 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           placeholder="São Paulo, Vila Madalena, etc..."
         />
 
-        <p className="mt-auto pt-4 text-center text-xs text-text-secondary">Podrao &copy; 2026</p>
+        <Text as="p" variant="caption" textColor="secondary" className="mt-auto pt-4 text-center">
+          Podrao &copy; 2026
+        </Text>
       </div>
     </div>
   );

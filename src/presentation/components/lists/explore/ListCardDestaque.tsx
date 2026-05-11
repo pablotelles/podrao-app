@@ -3,6 +3,7 @@
 import { List, MapPin } from 'lucide-react';
 import type { ListSummaryDTO } from '@/application/dtos/ListDTO';
 import { savesTextLong, priceText } from '@/presentation/lib/listFormatters';
+import { Text } from '@/presentation/components/ui/Text';
 
 interface ListCardDestaqueProps {
   list: ListSummaryDTO;
@@ -37,36 +38,47 @@ export function ListCardDestaque({ list }: ListCardDestaqueProps) {
             }}
           />
         )}
-        <p
-          className="absolute bottom-2.5 left-3 right-3 text-[0.9375rem] font-bold leading-snug"
+        <Text
+          as="p"
+          variant="body-strong"
+          className="absolute bottom-2.5 left-3 right-3 leading-snug"
           style={{
             color: list.coverUrl ? 'var(--color-text-inverse)' : 'var(--color-text-primary)',
           }}
         >
           {list.title}
-        </p>
+        </Text>
       </div>
 
       <div className="px-3 pb-3 pt-2.5">
         <div className="flex flex-wrap items-center gap-2">
           {list.bairro && (
-            <span className="flex items-center gap-1 text-xs text-text-secondary">
+            <Text
+              as="span"
+              variant="caption"
+              textColor="secondary"
+              className="flex items-center gap-1"
+            >
               <MapPin size={12} strokeWidth={1.8} />
               {list.bairro}
-            </span>
+            </Text>
           )}
           {list.bairro && <span className="h-0.75 w-0.75 rounded-full bg-text-disabled" />}
-          <span className="text-xs text-text-secondary">{placesLabel}</span>
+          <Text as="span" variant="caption" textColor="secondary">
+            {placesLabel}
+          </Text>
           {price && (
             <>
               <span className="h-0.75 w-0.75 rounded-full bg-text-disabled" />
-              <span className="text-xs font-medium text-success">{price}</span>
+              <Text as="span" variant="label" textColor="success">
+                {price}
+              </Text>
             </>
           )}
         </div>
-        <p className="mt-1 text-[0.6875rem] text-text-secondary">
+        <Text as="p" variant="caption" textColor="secondary" className="mt-1">
           {savesTextLong(list.savesCount)}
-        </p>
+        </Text>
       </div>
     </a>
   );

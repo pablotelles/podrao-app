@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/presentation/components/ui/Badge';
+import { Text } from '@/presentation/components/ui/Text';
 import type { UserList } from '@/domain/entities/List';
 
 interface ListCardProps {
@@ -42,10 +43,16 @@ export function ListCard({ list, onMenuClick }: ListCardProps) {
       >
         <ListThumb list={list} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-text-primary">{list.name}</p>
-          <div className="mt-0.5 flex items-center gap-1 text-xs text-text-secondary">
-            <span>{placesText}</span>
-            <span>·</span>
+          <Text as="p" variant="label" className="truncate">
+            {list.name}
+          </Text>
+          <div className="mt-0.5 flex items-center gap-1">
+            <Text as="span" variant="caption" textColor="secondary">
+              {placesText}
+            </Text>
+            <Text as="span" variant="caption" textColor="secondary">
+              ·
+            </Text>
             <Badge variant={list.isPublic ? 'success' : 'default'}>
               {list.isPublic ? 'Pública' : 'Privada'}
             </Badge>

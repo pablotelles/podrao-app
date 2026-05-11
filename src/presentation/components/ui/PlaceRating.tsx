@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react';
+import { Text } from './Text';
 
 function formatCount(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1).replace('.', ',')}k`;
@@ -23,14 +24,16 @@ export function PlaceRating({
   if (reviewsCount === 0) return null;
 
   return (
-    <span className={`flex items-center gap-1 text-xs text-text-secondary ${className ?? ''}`}>
-      <span className="font-bold text-md text-black">{rating.toFixed(1).replace('.', ',')}</span>
+    <span className={`flex items-center gap-1 ${className ?? ''}`}>
+      <Text as="span" variant="label" className="font-bold text-text-primary">
+        {rating.toFixed(1).replace('.', ',')}
+      </Text>
       <Star className="h-3 w-3 fill-warning text-warning" />
       {showCount && (
-        <span className="text-text-disabled">
+        <Text as="span" variant="caption" textColor="disabled">
           ({formatCount(reviewsCount)}
           {showLabel && ' avaliações'})
-        </span>
+        </Text>
       )}
     </span>
   );

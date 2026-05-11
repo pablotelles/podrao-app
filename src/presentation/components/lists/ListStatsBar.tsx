@@ -1,6 +1,7 @@
 'use client';
 
 import { MapPin, Bookmark, Eye, ThumbsUp, DollarSign } from 'lucide-react';
+import { Text } from '@/presentation/components/ui/Text';
 
 interface ListStatsBarProps {
   placesCount: number;
@@ -25,8 +26,12 @@ function StatItem({ icon, value, label }: StatItemProps) {
   return (
     <div className="flex flex-1 flex-col items-center gap-1 py-3">
       {icon}
-      <span className="text-lg font-bold text-text-primary leading-none">{value}</span>
-      <span className="text-[10px] text-text-secondary">{label}</span>
+      <Text as="span" variant="heading" className="leading-none">
+        {value}
+      </Text>
+      <Text as="span" variant="caption" textColor="secondary">
+        {label}
+      </Text>
     </div>
   );
 }

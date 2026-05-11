@@ -1,5 +1,7 @@
 'use client';
 
+import { Text } from './Text';
+
 interface RadioListItemProps {
   icon?: string;
   label: string;
@@ -30,14 +32,14 @@ export function RadioListItem({
     >
       {icon && <span className="text-xl leading-none">{icon}</span>}
       <div className="flex-1 min-w-0">
-        <p
-          className={['text-sm font-medium', selected ? 'text-brand' : 'text-text-primary'].join(
-            ' ',
-          )}
-        >
+        <Text as="p" variant="label" textColor={selected ? 'brand' : 'primary'}>
           {label}
-        </p>
-        {description && <p className="text-xs text-text-secondary">{description}</p>}
+        </Text>
+        {description && (
+          <Text as="p" variant="caption" textColor="secondary">
+            {description}
+          </Text>
+        )}
       </div>
       <span
         className={[

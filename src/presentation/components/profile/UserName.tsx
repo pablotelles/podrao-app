@@ -1,22 +1,27 @@
-import type { ReactNode } from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
+import type { ElementType } from 'react';
+import { Text } from '@/presentation/components/ui/Text';
 
-const nameVariants = cva('font-bold text-text-primary leading-tight', {
-  variants: {
-    size: {
-      sm: 'text-base',
-      md: 'text-lg',
-      lg: 'text-xl',
-      xl: 'text-2xl',
-    },
-  },
-  defaultVariants: { size: 'md' },
-});
+const sizeToVariant = {
+  sm: 'subheading',
+  md: 'heading',
+  lg: 'display',
+  xl: 'display',
+} as const;
 
-interface UserNameProps extends VariantProps<typeof nameVariants> {
+type Size = keyof typeof sizeToVariant;
+
+interface UserNameProps {
   name: string;
+  size?: Size;
+  as?: ElementType;
 }
 
-export function UserName({ name, size }: UserNameProps) {
-  return <h2 className={nameVariants({ size })}>{name}</h2>;
+export function UserName({ name, size = 'md', as = 'h2' }: UserNameProps) {
+  const variant = sizeToVariant[size];
+  const extraClass = size === 'xl' ? 'text-(--font-size-display-lg)' : undefined;
+  return (
+    <Text as={as} variant={variant} className={extraClass}>
+      {name}
+    </Text>
+  );
 }

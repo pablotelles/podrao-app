@@ -7,6 +7,7 @@ import { ChevronRight, MapPin, MoreHorizontal } from 'lucide-react';
 import type { Place } from '@/domain/entities/Place';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 import { useDistance } from '@/presentation/hooks/useDistance';
+import { Text } from '@/presentation/components/ui/Text';
 
 interface PlaceCardProps {
   place: Place;
@@ -55,21 +56,26 @@ export function PlaceCard({
           </div>
         )}
         {rank !== undefined && (
-          <span className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold leading-none text-text-inverse shadow-(--shadow-card)">
+          <Text
+            as="span"
+            variant="caption"
+            textColor="inverse"
+            className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand leading-none shadow-(--shadow-card)"
+          >
             {rank}
-          </span>
+          </Text>
         )}
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate text-[0.9375rem] font-semibold leading-snug text-text-primary">
+        <Text as="span" variant="body-strong" className="truncate">
           {place.name}
-        </span>
+        </Text>
 
         {variant === 'expanded' && place.description && (
-          <span className="line-clamp-2 text-[0.8125rem] leading-[1.45] text-text-secondary">
+          <Text as="span" variant="label" textColor="secondary" className="line-clamp-2">
             {place.description}
-          </span>
+          </Text>
         )}
 
         <div
@@ -79,12 +85,15 @@ export function PlaceCard({
               : 'flex items-center'
           }
         >
-          <span className="min-w-0 truncate text-[0.8125rem] text-text-secondary">
+          <Text as="span" variant="label" textColor="secondary" className="min-w-0 truncate">
             {meta}
             {hasUserLocation && (
-              <span className="font-medium text-text-primary"> · {distanceText}</span>
+              <Text as="span" variant="label" textColor="primary">
+                {' '}
+                · {distanceText}
+              </Text>
             )}
-          </span>
+          </Text>
           {variant === 'expanded' && badge && (
             <div className="flex shrink-0 items-center">{badge}</div>
           )}

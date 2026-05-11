@@ -1,26 +1,25 @@
-import { cva, type VariantProps } from 'class-variance-authority';
+import { Text } from '@/presentation/components/ui/Text';
 
-const nicknameVariants = cva('text-text-secondary', {
-  variants: {
-    size: {
-      sm: 'text-xs',
-      md: 'text-sm',
-      lg: 'text-base',
-    },
-  },
-  defaultVariants: { size: 'md' },
-});
+const sizeToVariant = {
+  sm: 'caption',
+  md: 'label',
+  lg: 'body',
+} as const;
 
-interface UserNicknameProps extends VariantProps<typeof nicknameVariants> {
+type Size = keyof typeof sizeToVariant;
+
+interface UserNicknameProps {
   nickname: string;
   showAt?: boolean;
+  size?: Size;
 }
 
 export function UserNickname({ nickname, showAt = true, size }: UserNicknameProps) {
+  const variant = sizeToVariant[size ?? 'md'];
   return (
-    <p className={nicknameVariants({ size })}>
+    <Text as="p" variant={variant} textColor="secondary">
       {showAt ? '@' : ''}
       {nickname}
-    </p>
+    </Text>
   );
 }

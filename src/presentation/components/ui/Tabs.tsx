@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Text } from './Text';
 
 export interface TabItem<T extends string = string> {
   id: T;
@@ -27,19 +28,20 @@ export function Tabs<T extends string = string>({
     <div className={className}>
       <div className="flex overflow-x-auto border-b border-border bg-bg">
         {tabs.map((tab) => (
-          <button
+          <Text
+            as="button"
             key={tab.id}
+            variant="label"
+            textColor={active === tab.id ? 'brand' : 'secondary'}
             onClick={() => setActive(tab.id)}
             className={[
-              'flex flex-1 min-w-0 items-center justify-center gap-1.5 px-3 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-              active === tab.id
-                ? 'text-brand border-b-2 border-brand'
-                : 'text-text-secondary border-b-2 border-transparent hover:text-text-primary',
+              'flex flex-1 min-w-0 items-center justify-center gap-1.5 px-3 py-3 transition-colors whitespace-nowrap border-b-2',
+              active === tab.id ? 'border-brand' : 'border-transparent hover:text-text-primary',
             ].join(' ')}
           >
             {tab.icon}
             {tab.label}
-          </button>
+          </Text>
         ))}
       </div>
       <div>{children(active)}</div>

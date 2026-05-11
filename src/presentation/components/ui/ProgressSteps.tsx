@@ -1,3 +1,5 @@
+import { Text } from './Text';
+
 interface ProgressStepsProps {
   currentStep: number; // 0-based
   totalSteps: number;
@@ -31,10 +33,10 @@ export function ProgressSteps({ currentStep, totalSteps, labels }: ProgressSteps
         ))}
       </div>
       {labels && (
-        <p className="text-xs text-text-secondary">
+        <Text as="p" variant="caption" textColor="secondary">
           Passo {currentStep + 1} de {totalSteps}
           {labels[currentStep] ? ` — ${labels[currentStep]}` : ''}
-        </p>
+        </Text>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Text } from './Text';
 
 interface ExpandableTextProps {
   text: string;
@@ -12,18 +13,22 @@ export function ExpandableText({ text, maxLines = 2 }: ExpandableTextProps) {
 
   return (
     <div>
-      <p
-        className={`text-sm text-text-secondary leading-relaxed ${!expanded ? `line-clamp-${maxLines}` : ''}`}
+      <Text
+        as="p"
+        variant="body"
+        textColor="secondary"
+        className={`leading-relaxed ${!expanded ? `line-clamp-${maxLines}` : ''}`}
       >
         {text}
-      </p>
+      </Text>
       {text.length > 80 && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-1 flex items-center gap-0.5 text-sm font-medium text-brand"
-        >
-          {expanded ? 'Ver menos' : 'Ver mais'}
-          <span className="text-xs">{expanded ? '↑' : '↓'}</span>
+        <button onClick={() => setExpanded((v) => !v)} className="mt-1 flex items-center gap-0.5">
+          <Text as="span" variant="label" textColor="brand">
+            {expanded ? 'Ver menos' : 'Ver mais'}
+          </Text>
+          <Text as="span" variant="caption">
+            {expanded ? '↑' : '↓'}
+          </Text>
         </button>
       )}
     </div>

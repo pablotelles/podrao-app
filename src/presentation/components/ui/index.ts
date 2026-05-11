@@ -32,3 +32,5 @@ export { Toast } from './Toast';
 export type { ToastProps } from './Toast';
 export { ToastProvider } from './ToastProvider';
 export { PhotoUpload } from './PhotoUpload';
+export { Text } from './Text';
+export type { TextProps } from './Text';
