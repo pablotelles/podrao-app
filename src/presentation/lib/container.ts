@@ -14,6 +14,8 @@ import { NullCacheProvider } from '@/infrastructure/cache/NullCacheProvider';
 import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
 import { SupabaseStorageProvider } from '@/infrastructure/storage/SupabaseStorageProvider';
 import { LocationIQMapProvider } from '@/infrastructure/maps/LocationIQMapProvider';
+import { GoogleMapsMapProvider } from '@/infrastructure/maps/GoogleMapsMapProvider';
+import type { IMapProvider } from '@/domain/interfaces/IMapProvider';
 import { OpenAIEmbeddingProvider } from '@/infrastructure/ai/OpenAIEmbeddingProvider';
 import { NullEmbeddingProvider } from '@/infrastructure/ai/NullEmbeddingProvider';
 import type { IEmbeddingProvider } from '@/domain/interfaces/IEmbeddingProvider';
@@ -94,9 +96,13 @@ export const cacheProvider: ICacheProvider = lazySingleton(() =>
     : new NullCacheProvider(),
 );
 const storageProvider = lazySingleton(() => new SupabaseStorageProvider());
-const mapProvider = lazySingleton(
-  () => new LocationIQMapProvider(requireEnv('LOCATIONIQ_API_KEY')),
-);
+const mapProvider: IMapProvider = lazySingleton(() => {
+  const provider = process.env.MAP_PROVIDER ?? 'locationiq';
+  if (provider === 'google') {
+    return new GoogleMapsMapProvider(requireEnv('GOOGLE_MAPS_API_KEY'));
+  }
+  return new LocationIQMapProvider(requireEnv('LOCATIONIQ_API_KEY'));
+});
 // Embedding desativado no MVP — ativa quando OPENAI_API_KEY estiver configurada
 const embeddingProvider: IEmbeddingProvider = lazySingleton(() =>
   process.env.OPENAI_API_KEY
