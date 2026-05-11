@@ -3,6 +3,7 @@ import type { Place } from '@/domain/entities/Place';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { ConflictError } from '@/application/errors/ConflictError';
 import { ValidationError } from '@/application/errors/ValidationError';
+import type { SendPlaceLifecycleEmail } from '@/application/use-cases/email/SendPlaceLifecycleEmail';
 
 export interface RejectPlaceDTO {
   placeId: string;
@@ -11,7 +12,10 @@ export interface RejectPlaceDTO {
 }
 
 export class RejectPlace {
-  constructor(private readonly placeRepo: IPlaceRepository) {}
+  constructor(
+    private readonly placeRepo: IPlaceRepository,
+    private readonly sendLifecycleEmail?: SendPlaceLifecycleEmail,
+  ) {}
 
   async execute(dto: RejectPlaceDTO): Promise<Place> {
     if (dto.reason.trim().length < 5 || dto.reason.trim().length > 255) {
@@ -27,7 +31,14 @@ export class RejectPlace {
 
     await this.placeRepo.updateStatus(dto.placeId, 'rejected', dto.reason.trim());
 
-    // TODO: disparar email de rejeição ao criador do lugar
+    // Envia email de rejeição — fail-soft, não bloqueia a operação
+    if (this.sendLifecycleEmail) {
+      void this.sendLifecycleEmail.execute({
+        placeId: dto.placeId,
+        event: 'rejected',
+        rejectionReason: dto.reason.trim(),
+      });
+    }
 
     const updated = await this.placeRepo.findById(dto.placeId);
     return updated!;

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchNearbyPlaces, cacheProvider } from '@/presentation/lib/container';
+import {
+  searchNearbyPlaces,
+  sendPlaceLifecycleEmail,
+  cacheProvider,
+} from '@/presentation/lib/container';
 import { searchPlacesSchema, createPlaceSchema } from '@/presentation/lib/schemas/placeSchema';
 import { createRouteSupabaseClient, errorResponse } from '@/presentation/lib/api-helpers';
 import { UnauthorizedError } from '@/application/errors/UnauthorizedError';
@@ -51,7 +55,7 @@ export async function POST(req: NextRequest) {
     // 2. Usar admin client para bypass de RLS (seguro pois já validamos auth)
     const adminClient = createAdminClient();
     const placeRepository = new SupabasePlaceRepository(adminClient);
-    const createPlace = new CreatePlace(placeRepository, cacheProvider);
+    const createPlace = new CreatePlace(placeRepository, cacheProvider, sendPlaceLifecycleEmail);
 
     const body = await req.json();
     const parsed = createPlaceSchema.safeParse(body);

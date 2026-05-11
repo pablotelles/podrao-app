@@ -85,6 +85,12 @@
     --topbar-height: 56px;
     --subheader-height: 0px;
 
+    /* Email tokens — usados apenas em templates de email (server-side HTML inline)
+       Não entram no @theme pois emails não usam Tailwind */
+    --color-email-accent: #e84040;
+    --color-email-accent-hover: #c73232;
+    --color-email-accent-subtle: #fef2f2;
+
     /* Z-index hierarchy — evita conflitos de sobreposição */
     --z-base: 0;
     --z-dropdown: 10;

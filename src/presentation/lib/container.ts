@@ -7,6 +7,8 @@ import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/Sup
 import { SupabaseReactionRepository } from '@/infrastructure/database/supabase/SupabaseReactionRepository';
 import { SupabaseFavoriteRepository } from '@/infrastructure/database/supabase/SupabaseFavoriteRepository';
 import { SupabaseListRepository } from '@/infrastructure/database/supabase/SupabaseListRepository';
+import { SupabaseUserRepository } from '@/infrastructure/database/supabase/SupabaseUserRepository';
+import { createAdminClient } from '@/infrastructure/database/supabase/client';
 import { UpstashCacheProvider } from '@/infrastructure/cache/UpstashCacheProvider';
 import { NullCacheProvider } from '@/infrastructure/cache/NullCacheProvider';
 import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
@@ -15,6 +17,10 @@ import { LocationIQMapProvider } from '@/infrastructure/maps/LocationIQMapProvid
 import { OpenAIEmbeddingProvider } from '@/infrastructure/ai/OpenAIEmbeddingProvider';
 import { NullEmbeddingProvider } from '@/infrastructure/ai/NullEmbeddingProvider';
 import type { IEmbeddingProvider } from '@/domain/interfaces/IEmbeddingProvider';
+import { ResendEmailProvider } from '@/infrastructure/email/ResendEmailProvider';
+import { NullEmailProvider } from '@/infrastructure/email/NullEmailProvider';
+import type { IEmailProvider } from '@/domain/interfaces/IEmailProvider';
+import { ResendEmailTemplateProvider } from '@/infrastructure/email/ResendEmailTemplateProvider';
 
 import { SearchNearbyPlaces } from '@/application/use-cases/places/SearchNearbyPlaces';
 import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
@@ -22,6 +28,7 @@ import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
 import { ApprovePlace } from '@/application/use-cases/places/ApprovePlace';
 import { GetPendingPlaces } from '@/application/use-cases/places/GetPendingPlaces';
 import { RejectPlace } from '@/application/use-cases/places/RejectPlace';
+import { SendPlaceLifecycleEmail } from '@/application/use-cases/email/SendPlaceLifecycleEmail';
 import { GeneratePlaceEmbedding } from '@/application/use-cases/places/GeneratePlaceEmbedding';
 import { GetMyPlaces } from '@/application/use-cases/places/GetMyPlaces';
 import { GetFavoritePlaces } from '@/application/use-cases/places/GetFavoritePlaces';
@@ -79,6 +86,8 @@ const reactionRepository = lazySingleton(() => new SupabaseReactionRepository())
 const reviewRepository = lazySingleton(() => new SupabaseReviewRepository());
 const favoriteRepository = lazySingleton(() => new SupabaseFavoriteRepository());
 const listRepository = lazySingleton(() => new SupabaseListRepository());
+// Admin client: bypassa RLS para leitura de perfis server-side (ex: lookup de email para envio de email)
+const userRepository = lazySingleton(() => new SupabaseUserRepository(createAdminClient()));
 export const cacheProvider: ICacheProvider = lazySingleton(() =>
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
     ? new UpstashCacheProvider()
@@ -94,16 +103,44 @@ const embeddingProvider: IEmbeddingProvider = lazySingleton(() =>
     ? new OpenAIEmbeddingProvider(process.env.OPENAI_API_KEY)
     : new NullEmbeddingProvider(),
 );
+// Email — ativa quando RESEND_API_KEY estiver configurada
+const emailProvider: IEmailProvider = lazySingleton(() =>
+  process.env.RESEND_API_KEY
+    ? new ResendEmailProvider(
+        process.env.RESEND_API_KEY,
+        process.env.EMAIL_FROM ?? 'noreply@podrao.com.br',
+        process.env.EMAIL_DEV_OVERRIDE,
+      )
+    : new NullEmailProvider(),
+);
+const emailTemplateProvider = lazySingleton(() => new ResendEmailTemplateProvider());
 
 // --- Use Cases ---
+export const sendPlaceLifecycleEmail = lazySingleton(
+  () =>
+    new SendPlaceLifecycleEmail(
+      placeRepository,
+      userRepository,
+      emailProvider,
+      emailTemplateProvider,
+      process.env.NEXT_PUBLIC_APP_URL ?? '',
+    ),
+);
+
 export const searchNearbyPlaces = lazySingleton(
   () => new SearchNearbyPlaces(placeRepository, cacheProvider),
 );
-export const createPlace = lazySingleton(() => new CreatePlace(placeRepository, cacheProvider));
+export const createPlace = lazySingleton(
+  () => new CreatePlace(placeRepository, cacheProvider, sendPlaceLifecycleEmail),
+);
 export const getPlaceById = lazySingleton(() => new GetPlaceById(placeRepository));
-export const approvePlace = lazySingleton(() => new ApprovePlace(placeRepository, cacheProvider));
+export const approvePlace = lazySingleton(
+  () => new ApprovePlace(placeRepository, cacheProvider, sendPlaceLifecycleEmail),
+);
 export const getPendingPlaces = lazySingleton(() => new GetPendingPlaces(placeRepository));
-export const rejectPlace = lazySingleton(() => new RejectPlace(placeRepository));
+export const rejectPlace = lazySingleton(
+  () => new RejectPlace(placeRepository, sendPlaceLifecycleEmail),
+);
 export const getMyPlaces = lazySingleton(() => new GetMyPlaces(placeRepository));
 export const getFavoritePlaces = lazySingleton(() => new GetFavoritePlaces(placeRepository));
 export const generatePlaceEmbedding = lazySingleton(

@@ -3,11 +3,13 @@ import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
 import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
 import type { CreatePlaceDTO } from '@/application/dtos/CreatePlaceDTO';
 import { ValidationError } from '@/application/errors/ValidationError';
+import type { SendPlaceLifecycleEmail } from '@/application/use-cases/email/SendPlaceLifecycleEmail';
 
 export class CreatePlace {
   constructor(
     private readonly placeRepo: IPlaceRepository,
     private readonly cache: ICacheProvider,
+    private readonly sendLifecycleEmail?: SendPlaceLifecycleEmail,
   ) {}
 
   async execute(dto: CreatePlaceDTO): Promise<Place> {
@@ -38,6 +40,11 @@ export class CreatePlace {
     const lat = Math.round(dto.lat * 1000) / 1000;
     const lng = Math.round(dto.lng * 1000) / 1000;
     await this.cache.deletePattern(`places:${lat}:${lng}:*`);
+
+    // Envia email de confirmação — fail-soft, não bloqueia a operação
+    if (this.sendLifecycleEmail) {
+      void this.sendLifecycleEmail.execute({ placeId: place.id, event: 'submitted' });
+    }
 
     return place;
   }

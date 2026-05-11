@@ -39,8 +39,21 @@ export class SupabaseUserRepository implements IUserRepository {
       .eq('id', id)
       .single();
 
-    if (error || !data) return null;
-    return toDomain(data as ProfileRow);
+    if (!error && data) return toDomain(data as ProfileRow);
+
+    // Profile row doesn't exist yet (created lazily on first profile update).
+    // Fall back to auth.users to get at least the email.
+    const admin = createAdminClient();
+    const { data: authData } = await admin.auth.admin.getUserById(id);
+    if (!authData.user?.email) return null;
+
+    return {
+      id,
+      email: authData.user.email,
+      nickname: authData.user.email.split('@')[0],
+      role: 'user',
+      createdAt: new Date(authData.user.created_at),
+    };
   }
 
   async findByEmail(email: string): Promise<User | null> {
