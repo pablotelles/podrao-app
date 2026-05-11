@@ -7,9 +7,11 @@ import { Text } from '@/presentation/components/ui/Text';
 
 interface ListCardDestaqueProps {
   list: ListSummaryDTO;
+  /** When provided, renders "por {curatorName}" below the metadata row */
+  curatorName?: string;
 }
 
-export function ListCardDestaque({ list }: ListCardDestaqueProps) {
+export function ListCardDestaque({ list, curatorName }: ListCardDestaqueProps) {
   const price = priceText(list.priceRangeMin, list.priceRangeMax);
   const placesLabel = `${list.lugaresCount} lugar${list.lugaresCount !== 1 ? 'es' : ''}`;
 
@@ -77,7 +79,7 @@ export function ListCardDestaque({ list }: ListCardDestaqueProps) {
           )}
         </div>
         <Text as="p" variant="caption" textColor="secondary" className="mt-1">
-          {savesTextLong(list.savesCount)}
+          {curatorName ? `por ${curatorName}` : savesTextLong(list.savesCount)}
         </Text>
       </div>
     </a>

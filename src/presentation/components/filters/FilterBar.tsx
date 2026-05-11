@@ -21,7 +21,11 @@ interface FilterBarProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const RADIUS_OPTIONS = [500, 1000, 2000, 3000, 5000] as const;
+import { RADIUS_MIN, RADIUS_MAX, RADIUS_STEP } from '@/presentation/hooks/useSearchRadius';
+
+function formatRadius(m: number): string {
+  return m < 1000 ? `${m}m` : `${m / 1000}km`;
+}
 
 export function FilterBar({ values, onChange, open: openProp, onOpenChange }: FilterBarProps) {
   const [openInternal, setOpenInternal] = useState(false);
@@ -80,17 +84,31 @@ export function FilterBar({ values, onChange, open: openProp, onOpenChange }: Fi
             labels={PRICE_BUCKET_LABELS as unknown as Record<string, string>}
             onSelect={(v) => onChange({ ...values, priceBucket: v as PriceBucket | undefined })}
           />
-          <FilterSection
-            label="Raio de busca"
-            options={RADIUS_OPTIONS.map(String)}
-            selected={values.radiusMeters !== undefined ? String(values.radiusMeters) : undefined}
-            labels={Object.fromEntries(
-              RADIUS_OPTIONS.map((r) => [String(r), r < 1000 ? `${r}m` : `${r / 1000}km`]),
-            )}
-            onSelect={(v) =>
-              onChange({ ...values, radiusMeters: v !== undefined ? Number(v) : undefined })
-            }
-          />
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-medium text-text-primary">Raio de busca</p>
+              <span className="text-sm font-semibold text-brand">
+                {formatRadius(values.radiusMeters ?? RADIUS_MIN)}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={RADIUS_MIN}
+              max={RADIUS_MAX}
+              step={RADIUS_STEP}
+              value={values.radiusMeters ?? RADIUS_MIN}
+              onChange={(e) => onChange({ ...values, radiusMeters: Number(e.target.value) })}
+              className="w-full accent-brand"
+            />
+            <div className="mt-1 flex justify-between">
+              <span className="text-text-disabled" style={{ fontSize: 'var(--font-size-caption)' }}>
+                500m
+              </span>
+              <span className="text-text-disabled" style={{ fontSize: 'var(--font-size-caption)' }}>
+                50km
+              </span>
+            </div>
+          </div>
 
           <Button
             onClick={() => {

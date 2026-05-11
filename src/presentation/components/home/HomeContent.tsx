@@ -2,177 +2,285 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPinPlus, SlidersHorizontal, Map, List } from 'lucide-react';
+import { Map } from 'lucide-react';
+import useSWR from 'swr';
 import { useGeolocation } from '@/presentation/hooks/useGeolocation';
 import { useNearbyPlaces } from '@/presentation/hooks/useNearbyPlaces';
+import { useFeaturedLists } from '@/presentation/hooks/useFeaturedLists';
+import { useLists } from '@/presentation/hooks/useLists';
 import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
+import { LocationBar } from '@/presentation/components/home/LocationBar';
+import { PlaceCardHome } from '@/presentation/components/home/PlaceCardHome';
+import { PlaceCardContribute } from '@/presentation/components/home/PlaceCardContribute';
+import { PlaceCardSparseInvite } from '@/presentation/components/home/PlaceCardSparseInvite';
 import { FilterBar, type FilterValues } from '@/presentation/components/filters/FilterBar';
-import { PlaceList } from '@/presentation/components/places/PlaceList';
-import { LocationSearch } from '@/presentation/components/location/LocationSearch';
+import { useSearchRadius } from '@/presentation/hooks/useSearchRadius';
+import { ContributeBlock } from '@/presentation/components/home/ContributeBlock';
+import { ListCardDestaque } from '@/presentation/components/lists/explore/ListCardDestaque';
+import { SectionHeader } from '@/presentation/components/lists/explore/SectionHeader';
 import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
-import { DynamicPlaceMap } from '@/presentation/components/maps/dynamic';
-import { Button } from '@/presentation/components/ui';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
-import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
-import type { Place } from '@/domain/entities/Place';
-
-type ViewMode = 'list' | 'map';
 
 interface HomeContentProps {
   initialLat?: number | null;
   initialLng?: number | null;
 }
 
+const SPARSE_THRESHOLD = 3;
+
+type ReverseGeocodeResult = {
+  displayName: string;
+  address?: { road?: string; neighbourhood?: string; city?: string; state?: string };
+};
+
+async function reverseGeocodeFetcher(url: string): Promise<ReverseGeocodeResult> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Reverse geocode failed');
+  return res.json() as Promise<ReverseGeocodeResult>;
+}
+
+function buildReverseUrl(lat: number | null, lng: number | null): string | null {
+  if (lat == null || lng == null) return null;
+  return `/api/geocode/reverse?lat=${lat}&lng=${lng}`;
+}
+
 export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
-  usePageTitle('Explorar');
+  usePageTitle('Inicio');
+  // Never show a subheader on the new home
+  useSubHeaderHeight(0);
+
   const geo = useGeolocation();
   const router = useRouter();
-  const [filters, setFilters] = useState<FilterValues>({});
-  const [view, setView] = useState<ViewMode>('map');
-  const [filterOpen, setFilterOpen] = useState(false);
+
+  const { radius, setRadius } = useSearchRadius();
+  const [filters, setFilters] = useState<Omit<FilterValues, 'radiusMeters'>>({});
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+
+  const filterValues: FilterValues = { ...filters, radiusMeters: radius };
+
+  function handleFiltersChange(next: FilterValues) {
+    const { radiusMeters, ...rest } = next;
+    if (radiusMeters !== undefined) setRadius(radiusMeters);
+    setFilters(rest);
+  }
+
   const hasLocation = geo.lat != null && geo.lng != null;
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
-  useSubHeaderHeight(hasLocation ? 44 : 0);
-
-  // Apply initial location from onboarding (city-search path) once geo finishes initializing
+  // Apply initial location from onboarding (city-search path)
   useEffect(() => {
     if (!geo.initializing && geo.lat == null && initialLat != null && initialLng != null) {
       geo.setLocation(initialLat, initialLng);
     }
   }, [geo.initializing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { places, isLoading, error } = useNearbyPlaces(
-    geo.lat && geo.lng
+  // Reverse geocode for LocationBar label
+  const { data: reverseData } = useSWR<ReverseGeocodeResult>(
+    buildReverseUrl(geo.lat, geo.lng),
+    reverseGeocodeFetcher,
+    { revalidateOnFocus: false },
+  );
+
+  const locationLabel: string | null = reverseData
+    ? [reverseData.address?.road, reverseData.address?.neighbourhood, reverseData.address?.city]
+        .filter(Boolean)
+        .join(', ') || reverseData.displayName
+    : null;
+
+  const radiusLabel = radius < 1000 ? `${radius}m` : `${radius / 1000}km`;
+
+  // Nearby places — Zona B
+  const maxPrice = filters.priceBucket
+    ? (
+        { up_to_25: 25, '25_to_45': 45, '45_to_80': 80, above_80: undefined } as Record<
+          string,
+          number | undefined
+        >
+      )[filters.priceBucket]
+    : undefined;
+
+  const { places, isLoading: placesLoading } = useNearbyPlaces(
+    hasLocation
       ? {
-          lat: geo.lat,
-          lng: geo.lng,
-          radiusMeters: filters.radiusMeters,
+          lat: geo.lat!,
+          lng: geo.lng!,
+          radiusMeters: radius,
           period: filters.period,
-          maxPrice: filters.priceBucket
-            ? { up_to_25: 25, '25_to_45': 45, '45_to_80': 80, above_80: undefined }[
-                filters.priceBucket
-              ]
-            : undefined,
+          maxPrice,
         }
       : null,
   );
 
-  function handlePlaceClick(place: Place) {
-    router.push('/places/' + place.id);
-  }
+  const isSparse = !placesLoading && places.length < SPARSE_THRESHOLD;
+
+  // Zona C — featured community lists
+  const { items: featuredLists } = useFeaturedLists();
+
+  // Zona D — user's own lists (only when authenticated, useLists returns [] when not)
+  const { lists: myLists } = useLists();
 
   return (
-    <div
-      className="flex flex-col"
-      style={{ height: 'calc(100dvh - var(--topbar-height) - var(--subheader-height))' }}
-    >
-      {hasLocation && (
-        <SubHeaderPortal>
-          <div className="grid grid-cols-3 items-center border-b border-border bg-bg px-(--spacing-page-x) h-[44px]">
-            <div className="flex items-center">
-              <button
-                onClick={() => setFilterOpen(true)}
-                className="relative flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-bg-subtle text-text-secondary"
-                aria-label="Filtros"
-              >
-                <SlidersHorizontal size={18} />
-                {activeFilterCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-text-inverse">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            <div className="flex items-center justify-center gap-1">
-              <button
-                onClick={() => setView('map')}
-                className={
-                  'flex h-8 w-8 items-center justify-center rounded-full transition-colors ' +
-                  (view === 'map'
-                    ? 'bg-brand text-text-inverse'
-                    : 'text-text-secondary hover:bg-bg-subtle')
-                }
-                aria-label="Mapa"
-              >
-                <Map size={18} />
-              </button>
-              <button
-                onClick={() => setView('list')}
-                className={
-                  'flex h-8 w-8 items-center justify-center rounded-full transition-colors ' +
-                  (view === 'list'
-                    ? 'bg-brand text-text-inverse'
-                    : 'text-text-secondary hover:bg-bg-subtle')
-                }
-                aria-label="Lista"
-              >
-                <List size={18} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-end">
-              <Button size="sm" onClick={() => router.push('/add-place')}>
-                <MapPinPlus size={16} />
-                Adicionar
-              </Button>
-            </div>
-          </div>
-        </SubHeaderPortal>
+    <>
+      {/* Full-height skeleton while geolocation initializes */}
+      {geo.initializing && (
+        <div style={{ height: 'calc(100dvh - var(--topbar-height))' }}>
+          <MapSkeleton />
+        </div>
       )}
 
-      {hasLocation && (
-        <FilterBar
-          values={filters}
-          onChange={setFilters}
-          open={filterOpen}
-          onOpenChange={setFilterOpen}
-        />
-      )}
-
-      <main className="flex flex-1 flex-col overflow-hidden pb-16">
-        {geo.initializing && (
-          <div className="flex-1">
-            <MapSkeleton />
-          </div>
-        )}
-
-        {!geo.initializing && !hasLocation && (
-          <>
-            <LocationSearch
-              onLocation={(lat, lng) => geo.setLocation(lat, lng)}
-              onRetry={geo.request}
-              retrying={geo.loading}
+      {!geo.initializing && (
+        <div
+          className="overflow-y-auto pb-20"
+          style={{ minHeight: 'calc(100dvh - var(--topbar-height))' }}
+        >
+          {/* ── ZONA A — Location context ── */}
+          <div className="bg-bg">
+            <LocationBar
+              locationLabel={locationLabel}
+              loading={geo.loading}
+              currentLat={geo.lat}
+              currentLng={geo.lng}
+              onLocationSearch={(lat, lng) => geo.setLocation(lat, lng)}
+              onRetryGps={geo.request}
             />
-            <div className="flex-1 bg-bg-subtle" />
-          </>
-        )}
+          </div>
 
-        {!geo.initializing && hasLocation && (
-          <div className="flex-1 overflow-auto" style={{ isolation: 'isolate' }}>
-            {view === 'list' ? (
-              <div className="mx-auto max-w-2xl px-(--spacing-page-x) py-4 pb-8">
-                <PlaceList
-                  places={places}
-                  isLoading={isLoading}
-                  error={error}
-                  variant="expanded"
-                  display="cards"
-                />
+          {/* ── ZONA B — Nearby places (conditional on location) ── */}
+          {hasLocation && (
+            <section aria-label="Lugares próximos" className="mt-5">
+              <SectionHeader
+                title="Perto de você"
+                badge={radiusLabel}
+                onFilterClick={() => setFilterSheetOpen(true)}
+              />
+
+              <div
+                className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
+                style={{
+                  scrollSnapType: 'x mandatory',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                }}
+                role="list"
+              >
+                {places.map((place) => (
+                  <PlaceCardHome key={place.id} place={place} />
+                ))}
+
+                {isSparse && <PlaceCardSparseInvite />}
+                {!isSparse && <PlaceCardContribute />}
+              </div>
+
+              {/* CTA — see all on map */}
+              <a
+                href="/map"
+                className="flex items-center gap-1.5 px-(--spacing-page-x) pt-2.5"
+                style={{ fontSize: 'var(--font-size-label)' }}
+                aria-label="Ver todos os lugares no mapa"
+              >
+                <Map size={14} className="text-brand" />
+                <span className="font-medium text-brand">Ver todos no mapa</span>
+              </a>
+            </section>
+          )}
+
+          {/* Divider */}
+          <div className="mx-(--spacing-page-x) mt-5 h-px bg-border opacity-50" />
+
+          {/* ── ZONA C — Community lists ── */}
+          <section aria-label="Listas da comunidade">
+            <SectionHeader
+              title="Listas da comunidade"
+              cta={{ label: 'Ver todas', href: '/lists' }}
+            />
+            {featuredLists.length > 0 ? (
+              <div
+                className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
+                style={{
+                  scrollSnapType: 'x mandatory',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                }}
+                role="list"
+              >
+                {featuredLists.map((list) => (
+                  <ListCardDestaque key={list.id} list={list} />
+                ))}
               </div>
             ) : (
-              <DynamicPlaceMap
-                places={places}
-                userLat={geo.lat}
-                userLng={geo.lng}
-                height="100%"
-                onPlaceClick={handlePlaceClick}
-              />
+              <p
+                className="px-(--spacing-page-x) text-text-secondary"
+                style={{ fontSize: 'var(--font-size-label)' }}
+              >
+                Nenhuma lista em destaque ainda.
+              </p>
             )}
-          </div>
-        )}
-      </main>
-    </div>
+          </section>
+
+          {/* ── ZONA D — My saved lists (conditional: user authenticated with lists) ── */}
+          {myLists.length > 0 && (
+            <>
+              <div className="mx-(--spacing-page-x) mt-5 h-px bg-border opacity-50" />
+              <section aria-label="Minhas listas">
+                <SectionHeader
+                  title="Minhas listas"
+                  cta={{ label: 'Ver todas', onClick: () => router.push('/lists?tab=salvas') }}
+                />
+                <div
+                  className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
+                  style={{
+                    scrollSnapType: 'x mandatory',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollbarWidth: 'none',
+                  }}
+                  role="list"
+                >
+                  {myLists
+                    .slice()
+                    .sort(
+                      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+                    )
+                    .map((list) => (
+                      <ListCardDestaque
+                        key={list.id}
+                        list={{
+                          id: list.id,
+                          title: list.name,
+                          coverUrl: list.coverUrl ?? null,
+                          bairro: list.bairro ?? '',
+                          lugaresCount: list.placesCount ?? 0,
+                          savesCount: list.savesCount,
+                          priceRangeMin: list.priceRangeMin ?? null,
+                          priceRangeMax: list.priceRangeMax ?? null,
+                          createdAt:
+                            list.createdAt instanceof Date
+                              ? list.createdAt.toISOString()
+                              : String(list.createdAt),
+                          updatedAt:
+                            list.updatedAt instanceof Date
+                              ? list.updatedAt.toISOString()
+                              : String(list.updatedAt),
+                        }}
+                      />
+                    ))}
+                </div>
+              </section>
+            </>
+          )}
+
+          {/* ── ZONA E — Contribution invite ── */}
+          <ContributeBlock />
+
+          <div style={{ height: '1.5rem' }} />
+        </div>
+      )}
+
+      {/* Filter Sheet */}
+      <FilterBar
+        open={filterSheetOpen}
+        onOpenChange={setFilterSheetOpen}
+        values={filterValues}
+        onChange={handleFiltersChange}
+      />
+    </>
   );
 }

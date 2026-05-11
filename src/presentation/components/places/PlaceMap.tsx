@@ -55,6 +55,8 @@ export default function PlaceMap({
         markers={markers}
         config={{ center: markers.length > 1 ? undefined : center, zoom: 14 }}
         height="100%"
+        userLat={userLat}
+        userLng={userLng}
       />
 
       {selectedPlace && (
