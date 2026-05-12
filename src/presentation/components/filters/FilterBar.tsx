@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Badge } from '@/presentation/components/ui';
+import { Sheet } from '@/presentation/components/ui/Sheet';
 import { OPERATING_PERIODS, OPERATING_PERIOD_META } from '@/domain/value-objects/OperatingPeriod';
 import { PRICE_BUCKETS, PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
@@ -197,216 +198,27 @@ export function FilterBar({ values, onChange, open: openProp, onOpenChange }: Fi
   }
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        onClick={() => setOpen(false)}
-        aria-hidden="true"
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-        style={{ zIndex: 'var(--z-overlay)' }}
-      />
-
-      {/* Sheet */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Filtros"
-        className="fixed bottom-0 left-0 right-0 rounded-t-lg bg-bg"
-        style={{
-          zIndex: 'var(--z-modal)',
-          boxShadow: 'var(--shadow-modal)',
-          maxHeight: '85dvh',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {/* Handle + title — fixed at top */}
-        <div
-          style={{
-            flexShrink: 0,
-            padding: '0 var(--spacing-page-x) 0.75rem',
-          }}
-        >
-          <div
-            style={{
-              width: '36px',
-              height: '4px',
-              background: 'var(--color-border)',
-              borderRadius: 'var(--radius-full)',
-              margin: '0.75rem auto 0',
-            }}
-          />
-          <h2
-            style={{
-              fontSize: 'var(--font-size-subheading)',
-              fontWeight: 'var(--font-weight-semibold)',
-              color: 'var(--color-text-primary)',
-              letterSpacing: 'var(--letter-spacing-snug)',
-              marginTop: '0.875rem',
-            }}
-          >
-            Filtros
-          </h2>
-        </div>
-
-        {/* Scrollable area */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '0 var(--spacing-page-x)',
-            paddingBottom: '1rem',
-            overscrollBehavior: 'contain',
-          }}
-        >
-          {/* (1) Tipo de estabelecimento */}
-          <div style={{ marginTop: '0.75rem' }}>
-            <FilterGroupLabel>Tipo de estabelecimento</FilterGroupLabel>
-            <TypeSelector
-              value={draft.establishmentType ?? null}
-              onChange={(v) => {
-                // Clear contextual when type changes
-                setDraft({
-                  ...draft,
-                  establishmentType: v ?? undefined,
-                  contextual: {},
-                });
-              }}
-            />
-          </div>
-
-          {/* (2) Período de funcionamento */}
-          <div style={{ marginTop: '1.25rem' }}>
-            <FilterGroupLabel>Período de funcionamento</FilterGroupLabel>
-            <PillGroup
-              options={OPERATING_PERIODS}
-              selected={draft.period}
-              labels={Object.fromEntries(
-                OPERATING_PERIODS.map((p) => [
-                  p,
-                  `${OPERATING_PERIOD_META[p].emoji} ${OPERATING_PERIOD_META[p].label}`,
-                ]),
-              )}
-              onToggle={togglePeriod}
-            />
-          </div>
-
-          {/* (3) Faixa de preço */}
-          <div style={{ marginTop: '1.25rem' }}>
-            <FilterGroupLabel>Faixa de preço</FilterGroupLabel>
-            <PillGroup
-              options={PRICE_BUCKETS}
-              selected={draft.priceBucket}
-              labels={PRICE_BUCKET_LABELS as unknown as Record<string, string>}
-              onToggle={togglePrice}
-            />
-          </div>
-
-          {/* (4) Raio de busca */}
-          <div style={{ marginTop: '1.25rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <FilterGroupLabel>Raio de busca</FilterGroupLabel>
-              <span
-                style={{
-                  fontSize: 'var(--font-size-label)',
-                  fontWeight: 'var(--font-weight-semibold)',
-                  color: 'var(--color-brand)',
-                }}
-              >
-                {formatRadius(draft.radiusMeters ?? RADIUS_MIN)}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={RADIUS_MIN}
-              max={RADIUS_MAX}
-              step={RADIUS_STEP}
-              value={draft.radiusMeters ?? RADIUS_MIN}
-              onChange={(e) => setDraft({ ...draft, radiusMeters: Number(e.target.value) })}
-              className="w-full accent-brand"
-            />
-            <div
-              style={{
-                marginTop: '0.25rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span className="text-text-disabled" style={{ fontSize: 'var(--font-size-caption)' }}>
-                500m
-              </span>
-              <span className="text-text-disabled" style={{ fontSize: 'var(--font-size-caption)' }}>
-                50km
-              </span>
-            </div>
-          </div>
-
-          {/* (5) Seção Contextual — animada */}
-          <ContextualFilters
-            establishmentType={draft.establishmentType ?? null}
-            values={draft.contextual ?? {}}
-            onChange={(ctx) => setDraft({ ...draft, contextual: ctx })}
-          />
-
-          <div style={{ height: '0.5rem' }} />
-        </div>
-
-        {/* Fixed footer */}
-        <div
-          style={{
-            flexShrink: 0,
-            padding: '0.75rem var(--spacing-page-x)',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            background: 'var(--color-bg)',
-          }}
-        >
+    <Sheet
+      open={open}
+      onClose={() => setOpen(false)}
+      title="Filtros"
+      footer={
+        <div className="flex items-center gap-3 border-t border-border bg-bg px-(--spacing-page-x) py-3">
           <button
             type="button"
             onClick={handleClear}
-            style={{
-              flex: 1,
-              height: '42px',
-              borderRadius: 'var(--radius-full)',
-              border: '1.5px solid var(--color-border)',
-              background: 'transparent',
-              color: 'var(--color-text-secondary)',
-              fontSize: 'var(--font-size-label)',
-              fontWeight: 'var(--font-weight-medium)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="flex h-10.5 flex-1 items-center justify-center rounded-full border border-border text-text-secondary"
+            style={{ fontSize: 'var(--font-size-label)', fontWeight: 'var(--font-weight-medium)' }}
           >
             Limpar filtros
           </button>
           <button
             type="button"
             onClick={handleApply}
+            className="flex h-10.5 flex-2 items-center justify-center gap-1.5 rounded-full bg-brand text-text-inverse"
             style={{
-              flex: 2,
-              height: '42px',
-              borderRadius: 'var(--radius-full)',
-              border: 'none',
-              background: 'var(--color-brand)',
-              color: 'var(--color-text-inverse)',
               fontSize: 'var(--font-size-label)',
               fontWeight: 'var(--font-weight-semibold)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.375rem',
             }}
           >
             <svg
@@ -424,7 +236,85 @@ export function FilterBar({ values, onChange, open: openProp, onOpenChange }: Fi
             Aplicar
           </button>
         </div>
+      }
+    >
+      {/* (1) Tipo de estabelecimento */}
+      <div style={{ marginTop: '0.75rem' }}>
+        <FilterGroupLabel>Tipo de estabelecimento</FilterGroupLabel>
+        <TypeSelector
+          value={draft.establishmentType ?? null}
+          onChange={(v) =>
+            setDraft({ ...draft, establishmentType: v ?? undefined, contextual: {} })
+          }
+        />
       </div>
-    </>
+
+      {/* (2) Período de funcionamento */}
+      <div style={{ marginTop: '1.25rem' }}>
+        <FilterGroupLabel>Período de funcionamento</FilterGroupLabel>
+        <PillGroup
+          options={OPERATING_PERIODS}
+          selected={draft.period}
+          labels={Object.fromEntries(
+            OPERATING_PERIODS.map((p) => [
+              p,
+              `${OPERATING_PERIOD_META[p].emoji} ${OPERATING_PERIOD_META[p].label}`,
+            ]),
+          )}
+          onToggle={togglePeriod}
+        />
+      </div>
+
+      {/* (3) Faixa de preço */}
+      <div style={{ marginTop: '1.25rem' }}>
+        <FilterGroupLabel>Faixa de preço</FilterGroupLabel>
+        <PillGroup
+          options={PRICE_BUCKETS}
+          selected={draft.priceBucket}
+          labels={PRICE_BUCKET_LABELS as unknown as Record<string, string>}
+          onToggle={togglePrice}
+        />
+      </div>
+
+      {/* (4) Raio de busca */}
+      <div style={{ marginTop: '1.25rem' }}>
+        <div className="mb-2 flex items-center justify-between">
+          <FilterGroupLabel>Raio de busca</FilterGroupLabel>
+          <span
+            className="text-brand"
+            style={{
+              fontSize: 'var(--font-size-label)',
+              fontWeight: 'var(--font-weight-semibold)',
+            }}
+          >
+            {formatRadius(draft.radiusMeters ?? RADIUS_MIN)}
+          </span>
+        </div>
+        <input
+          type="range"
+          min={RADIUS_MIN}
+          max={RADIUS_MAX}
+          step={RADIUS_STEP}
+          value={draft.radiusMeters ?? RADIUS_MIN}
+          onChange={(e) => setDraft({ ...draft, radiusMeters: Number(e.target.value) })}
+          className="w-full accent-brand"
+        />
+        <div className="mt-1 flex justify-between">
+          <span className="text-text-disabled" style={{ fontSize: 'var(--font-size-caption)' }}>
+            500m
+          </span>
+          <span className="text-text-disabled" style={{ fontSize: 'var(--font-size-caption)' }}>
+            50km
+          </span>
+        </div>
+      </div>
+
+      {/* (5) Seção Contextual */}
+      <ContextualFilters
+        establishmentType={draft.establishmentType ?? null}
+        values={draft.contextual ?? {}}
+        onChange={(ctx) => setDraft({ ...draft, contextual: ctx })}
+      />
+    </Sheet>
   );
 }

@@ -8,7 +8,7 @@ const toggleVariants = cva(
     variants: {
       checked: {
         true: 'bg-brand',
-        false: 'bg-surface-tertiary',
+        false: 'bg-border',
       },
       disabled: {
         true: 'cursor-not-allowed opacity-50',

@@ -34,9 +34,9 @@ export function Sheet({ open, onClose, children, title, header, footer, ariaLabe
 
     return () => {
       window.removeEventListener('popstate', handlePop);
-      // If the sheet closes without the back button (e.g. backdrop click),
-      // pop the history entry we pushed so the stack stays clean.
-      if (history.state?.sheet) history.back();
+      // Do NOT call history.back() here — it fires popstate which Next.js
+      // intercepts as a navigation event, causing the sheet to flash.
+      // The extra history entry is harmless.
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
