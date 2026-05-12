@@ -40,7 +40,7 @@ export function PlaceCard({
     : `flex ${align} gap-3 border-b border-bg-subtle py-3 last:border-b-0`;
 
   return (
-    <Link href={`/places/${place.id}`} className={className}>
+    <Link href={place.slug ? `/p/${place.slug}` : `/places/${place.id}`} className={className}>
       <div className={`relative ${thumbSize} shrink-0 overflow-hidden rounded-md bg-bg-subtle`}>
         {place.logoUrl ? (
           <Image

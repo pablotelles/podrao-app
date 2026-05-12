@@ -5,6 +5,8 @@ export interface UserList {
   description?: string;
   isPublic: boolean;
   coverUrl?: string;
+  /** SEO-friendly slug — null for private lists */
+  slug?: string | null;
   /** Agregado para exibição — preenchido na query */
   placesCount?: number;
   /** Contadores denormalizados — atualizados via toggles */

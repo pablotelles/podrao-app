@@ -34,5 +34,6 @@ export interface CreatePlaceData {
   priceBucket: PriceBucket;
   description?: string;
   photoUrl?: string;
+  slug?: string;
   createdBy: string;
 }

@@ -20,6 +20,7 @@ export interface CreateListData {
   description?: string;
   isPublic?: boolean;
   coverUrl?: string;
+  slug?: string | null;
 }
 
 export interface UpdateListData {
@@ -27,10 +28,13 @@ export interface UpdateListData {
   description?: string;
   isPublic?: boolean;
   coverUrl?: string;
+  slug?: string | null;
 }
 
 export interface IListRepository {
   findById(id: string): Promise<UserList | null>;
+  findBySlug(slug: string): Promise<UserList | null>;
+  searchPublicByText(q: string, limit?: number): Promise<UserList[]>;
   findByOwner(userId: string): Promise<UserList[]>;
   findPublic(limit?: number, offset?: number): Promise<UserList[]>;
   /** Listas em destaque — as mais salvas/favoritadas (sem filtro geo) */

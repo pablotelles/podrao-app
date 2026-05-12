@@ -1,4 +1,5 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { PageContent } from '@/presentation/components/ui';
 import { PageTitle } from '@/presentation/contexts/TopBarContext';
@@ -12,9 +13,23 @@ import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/Supa
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
 import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
 import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
+import { buildPlaceMetadata } from '@/presentation/lib/seo';
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const supabase = await createServerSupabaseClient();
+    const repo = new SupabasePlaceRepository(supabase);
+    const useCase = new GetPlaceById(repo);
+    const place = await useCase.execute(id);
+    return buildPlaceMetadata(place);
+  } catch {
+    return {};
+  }
 }
 
 export default async function PlaceDetailPage({ params }: Props) {
@@ -34,10 +49,14 @@ export default async function PlaceDetailPage({ params }: Props) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const [place, reviews] = await Promise.all([
-      getPlaceById.execute(id),
-      getPlaceReviews.execute(id, user?.id),
-    ]);
+    const place = await getPlaceById.execute(id);
+
+    // Redirect to canonical SEO URL when slug is available
+    if (place.slug) {
+      permanentRedirect(`/p/${place.slug}`);
+    }
+
+    const reviews = await getPlaceReviews.execute(id, user?.id);
 
     // Serialize reviews for Client Component (convert Date to string)
     const serializedReviews = reviews.map((r) => ({
@@ -58,7 +77,13 @@ export default async function PlaceDetailPage({ params }: Props) {
       <div className="pb-20">
         <PageTitle title={place.name} />
         {/* Cover: Mapa da localização */}
-        <PlaceDetailHeader lat={place.lat} lng={place.lng} name={place.name} placeId={place.id} />
+        <PlaceDetailHeader
+          lat={place.lat}
+          lng={place.lng}
+          name={place.name}
+          placeId={place.id}
+          slug={place.slug}
+        />
 
         <PageContent centered>
           <PlaceInfo

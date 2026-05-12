@@ -25,6 +25,7 @@ interface PlaceRowWithRelations {
   price_bucket: string;
   description: string | null;
   rejection_reason: string | null;
+  slug: string | null;
   status: string;
   created_by: string | null;
   created_at: string;
@@ -88,6 +89,30 @@ export class SupabasePlaceRepository implements IPlaceRepository {
 
     if (error || !data) return null;
     return this.rowWithRelationsToDomain(data as PlaceRowWithRelations);
+  }
+
+  async findBySlug(slug: string): Promise<Place | null> {
+    const { data, error } = await this.db
+      .from('places')
+      .select(PLACE_SELECT)
+      .eq('slug', slug)
+      .eq('status', 'approved')
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return this.rowWithRelationsToDomain(data as PlaceRowWithRelations);
+  }
+
+  async searchByText(q: string, limit = 20): Promise<Place[]> {
+    const { data, error } = await this.db
+      .from('places')
+      .select(PLACE_SELECT)
+      .eq('status', 'approved')
+      .or(`name.ilike.%${q}%,bairro.ilike.%${q}%`)
+      .limit(limit);
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => this.rowWithRelationsToDomain(row as PlaceRowWithRelations));
   }
 
   async searchNearby(params: SearchPlacesParams): Promise<Place[]> {
@@ -206,6 +231,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
         establishment_type: data.establishmentType,
         price_bucket: data.priceBucket,
         description: data.description ?? null,
+        slug: data.slug ?? null,
         created_by: data.createdBy,
         status: 'pending',
       })
@@ -409,6 +435,7 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       priceBucket: row.price_bucket as PriceBucket,
       rejectionReason: row.rejection_reason ?? undefined,
       description: row.description ?? undefined,
+      slug: row.slug ?? null,
       logoUrl: logo?.url ?? undefined,
       rating: Number(stats?.rating ?? 0),
       reviewsCount: Number(stats?.reviews_count ?? 0),

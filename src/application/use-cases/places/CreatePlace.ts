@@ -4,6 +4,22 @@ import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
 import type { CreatePlaceDTO } from '@/application/dtos/CreatePlaceDTO';
 import { ValidationError } from '@/application/errors/ValidationError';
 import type { SendPlaceLifecycleEmail } from '@/application/use-cases/email/SendPlaceLifecycleEmail';
+import { buildSlug } from '@/domain/value-objects/Slug';
+
+async function generateUniqueSlug(base: string, repo: IPlaceRepository): Promise<string> {
+  const existing = await repo.findBySlug(base);
+  if (!existing) return base;
+
+  let counter = 2;
+  while (counter < 100) {
+    const candidate = `${base}-${counter}`;
+    const found = await repo.findBySlug(candidate);
+    if (!found) return candidate;
+    counter++;
+  }
+  // Fallback: append timestamp suffix
+  return `${base}-${Date.now()}`;
+}
 
 export class CreatePlace {
   constructor(
@@ -16,6 +32,9 @@ export class CreatePlace {
     if (!dto.name.trim()) throw new ValidationError('Nome do lugar é obrigatório');
     if (!dto.periods.length)
       throw new ValidationError('Selecione ao menos um período de funcionamento');
+
+    const baseSlug = buildSlug(dto.name.trim(), dto.cidade);
+    const slug = await generateUniqueSlug(baseSlug, this.placeRepo);
 
     const place = await this.placeRepo.create({
       name: dto.name.trim(),
@@ -33,6 +52,7 @@ export class CreatePlace {
       priceBucket: dto.priceBucket,
       description: dto.description,
       photoUrl: dto.photoUrl,
+      slug,
       createdBy: dto.userId, // Use Case define created_by a partir do userId autenticado
     });
 

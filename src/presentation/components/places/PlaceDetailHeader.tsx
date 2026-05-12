@@ -16,9 +16,10 @@ interface PlaceDetailHeaderProps {
   lng: number;
   name: string;
   placeId: string;
+  slug?: string | null;
 }
 
-export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeaderProps) {
+export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetailHeaderProps) {
   const { distanceText, hasUserLocation } = useDistance(lat, lng);
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   const { isFavorited, toggle: toggleFavorite, isLoading: isFavLoading } = useFavorites();
@@ -28,6 +29,16 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
   const [addingToListId, setAddingToListId] = useState<string | null>(null);
   const [listsWithPlace, setListsWithPlace] = useState<Set<string>>(new Set());
   const [loadingListsWithPlace, setLoadingListsWithPlace] = useState(false);
+
+  const handleShare = async () => {
+    const path = slug ? `/p/${slug}` : `/places/${placeId}`;
+    const url = `${window.location.origin}${path}`;
+    if (navigator.share) {
+      await navigator.share({ title: name, url });
+    } else {
+      await navigator.clipboard.writeText(url);
+    }
+  };
 
   const favorited = isFavorited(placeId);
 
@@ -124,7 +135,12 @@ export function PlaceDetailHeader({ lat, lng, name, placeId }: PlaceDetailHeader
 
         {/* Ações - topo direito */}
         <div className="absolute right-3 top-3 z-900 flex gap-2">
-          <OverlayIconButton icon={Share2} variant="dark" aria-label="Compartilhar" />
+          <OverlayIconButton
+            icon={Share2}
+            variant="dark"
+            onClick={handleShare}
+            aria-label="Compartilhar"
+          />
 
           <OverlayIconButton
             icon={BookmarkPlus}

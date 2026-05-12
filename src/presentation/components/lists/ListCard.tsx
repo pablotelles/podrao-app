@@ -39,7 +39,7 @@ export function ListCard({ list, onMenuClick }: ListCardProps) {
       <button
         type="button"
         className="flex flex-1 items-center gap-3 text-left"
-        onClick={() => router.push(`/lists/${list.id}`)}
+        onClick={() => router.push(list.slug ? `/lists/${list.slug}` : `/lists/${list.id}`)}
       >
         <ListThumb list={list} />
         <div className="min-w-0 flex-1">

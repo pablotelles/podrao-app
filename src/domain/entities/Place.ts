@@ -32,6 +32,8 @@ export interface Place {
   createdBy?: string;
   createdAt: Date;
   updatedAt: Date;
+  /** SEO-friendly slug — immutable after first assignment; null for rejected places */
+  slug?: string | null;
   /** Distância em metros — preenchida nas buscas geográficas */
   distanceM?: number;
 }

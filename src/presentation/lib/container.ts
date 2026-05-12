@@ -57,6 +57,9 @@ import { GetRecentLists } from '@/application/use-cases/lists/GetRecentLists';
 import { ReorderListPlaces } from '@/application/use-cases/lists/ReorderListPlaces';
 import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
 import { GetMyReviews } from '@/application/use-cases/reviews/GetMyReviews';
+import { SearchAll } from '@/application/use-cases/search/SearchAll';
+import { GetPlaceBySlug } from '@/application/use-cases/places/GetPlaceBySlug';
+import { GetListBySlug } from '@/application/use-cases/lists/GetListBySlug';
 
 function lazySingleton<T extends object>(factory: () => T): T {
   let instance: T | undefined;
@@ -192,6 +195,11 @@ export const getUserStats = lazySingleton(
 export const getMyReviews = lazySingleton(
   () => new GetMyReviews(reviewRepository, placeRepository),
 );
+
+// Search
+export const searchAll = lazySingleton(() => new SearchAll(placeRepository, listRepository));
+export const getPlaceBySlug = lazySingleton(() => new GetPlaceBySlug(placeRepository));
+export const getListBySlug = lazySingleton(() => new GetListBySlug(listRepository));
 
 // --- Providers exportados para uso direto em routes ---
 // Nota: UserRepository agora é instanciado com cliente autenticado em cada route

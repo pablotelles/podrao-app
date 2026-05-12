@@ -21,6 +21,7 @@ interface ListRow {
   description: string | null;
   is_public: boolean;
   cover_url: string | null;
+  slug: string | null;
   view_count: number;
   favorites_count: number;
   saves_count: number;
@@ -48,6 +49,7 @@ function listToDomain(row: ListRow, placesCount?: number): UserList {
     description: row.description ?? undefined,
     isPublic: row.is_public,
     coverUrl: row.cover_url ?? undefined,
+    slug: row.slug ?? null,
     placesCount,
     viewCount: row.view_count ?? 0,
     favoritesCount: row.favorites_count ?? 0,
@@ -87,6 +89,37 @@ export class SupabaseListRepository implements IListRepository {
     return listToDomain(row, placesCount);
   }
 
+  async findBySlug(slug: string): Promise<UserList | null> {
+    const { data, error } = await this.db
+      .from('lists')
+      .select('*, list_places(count)')
+      .eq('slug', slug)
+      .eq('is_public', true)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    const row = data as ListWithCountRow;
+    const placesCount = row.list_places?.[0]?.count ?? 0;
+    return listToDomain(row, placesCount);
+  }
+
+  async searchPublicByText(q: string, limit = 20): Promise<UserList[]> {
+    const { data, error } = await this.db
+      .from('lists')
+      .select('*, list_places(count)')
+      .eq('is_public', true)
+      .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
+      .limit(limit);
+
+    if (error) throw new Error(error.message);
+
+    return (data as ListWithCountRow[]).map((row) => {
+      const placesCount = row.list_places?.[0]?.count ?? 0;
+      return listToDomain(row, placesCount);
+    });
+  }
+
   async findByOwner(userId: string): Promise<UserList[]> {
     const { data, error } = await this.db
       .from('lists')
@@ -111,6 +144,7 @@ export class SupabaseListRepository implements IListRepository {
         description: data.description,
         is_public: data.isPublic ?? true,
         cover_url: data.coverUrl,
+        slug: data.slug ?? null,
       })
       .select()
       .single();
@@ -125,6 +159,7 @@ export class SupabaseListRepository implements IListRepository {
     if (data.description !== undefined) updateData.description = data.description;
     if (data.isPublic !== undefined) updateData.is_public = data.isPublic;
     if (data.coverUrl !== undefined) updateData.cover_url = data.coverUrl;
+    if (data.slug !== undefined) updateData.slug = data.slug;
 
     const { error } = await this.db.from('lists').update(updateData).eq('id', id).select().single();
 
