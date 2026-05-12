@@ -24,6 +24,24 @@ import { NullEmailProvider } from '@/infrastructure/email/NullEmailProvider';
 import type { IEmailProvider } from '@/domain/interfaces/IEmailProvider';
 import { ResendEmailTemplateProvider } from '@/infrastructure/email/ResendEmailTemplateProvider';
 
+import { SupabasePlaceEditRepository } from '@/infrastructure/database/supabase/SupabasePlaceEditRepository';
+import { SupabaseEditVoteRepository } from '@/infrastructure/database/supabase/SupabaseEditVoteRepository';
+import { SupabaseEditApplier } from '@/infrastructure/database/supabase/SupabaseEditApplier';
+import { ResendEditEmailTemplateProvider } from '@/infrastructure/email/ResendEditEmailTemplateProvider';
+
+import { SendEditOutcomeEmail } from '@/application/use-cases/email/SendEditOutcomeEmail';
+import { ProposeEdit } from '@/application/use-cases/edits/ProposeEdit';
+import { VoteOnEdit } from '@/application/use-cases/edits/VoteOnEdit';
+import { EvaluateEditThreshold } from '@/application/use-cases/edits/EvaluateEditThreshold';
+import { ApplyApprovedEdit } from '@/application/use-cases/edits/ApplyApprovedEdit';
+import { RejectEdit } from '@/application/use-cases/edits/RejectEdit';
+import { ApproveEditByAdmin } from '@/application/use-cases/edits/ApproveEditByAdmin';
+import { RejectEditByAdmin } from '@/application/use-cases/edits/RejectEditByAdmin';
+import { ListPendingEditsForPlace } from '@/application/use-cases/edits/ListPendingEditsForPlace';
+import { ListExpiredEditsQueue } from '@/application/use-cases/edits/ListExpiredEditsQueue';
+import { ListLevel2PendingEdits } from '@/application/use-cases/edits/ListLevel2PendingEdits';
+import { ExpireOldEdits } from '@/application/use-cases/edits/ExpireOldEdits';
+
 import { SearchNearbyPlaces } from '@/application/use-cases/places/SearchNearbyPlaces';
 import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
 import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
@@ -86,6 +104,9 @@ function requireEnv(name: string): string {
 }
 
 // --- Infra ---
+const placeEditRepository = lazySingleton(() => new SupabasePlaceEditRepository());
+const editVoteRepository = lazySingleton(() => new SupabaseEditVoteRepository());
+const editApplier = lazySingleton(() => new SupabaseEditApplier(createAdminClient()));
 const placeRepository = lazySingleton(() => new SupabasePlaceRepository());
 const reactionRepository = lazySingleton(() => new SupabaseReactionRepository());
 const reviewRepository = lazySingleton(() => new SupabaseReviewRepository());
@@ -200,6 +221,68 @@ export const getMyReviews = lazySingleton(
 export const searchAll = lazySingleton(() => new SearchAll(placeRepository, listRepository));
 export const getPlaceBySlug = lazySingleton(() => new GetPlaceBySlug(placeRepository));
 export const getListBySlug = lazySingleton(() => new GetListBySlug(listRepository));
+
+// --- Edit system ---
+const editEmailTemplateProvider = lazySingleton(() => new ResendEditEmailTemplateProvider());
+
+const sendEditOutcomeEmail = lazySingleton(
+  () =>
+    new SendEditOutcomeEmail(
+      placeEditRepository,
+      userRepository,
+      emailProvider,
+      editEmailTemplateProvider,
+      process.env.NEXT_PUBLIC_APP_URL ?? '',
+    ),
+);
+
+const applyApprovedEdit = lazySingleton(
+  () => new ApplyApprovedEdit(editApplier, cacheProvider, sendEditOutcomeEmail),
+);
+
+const rejectEdit = lazySingleton(() => new RejectEdit(placeEditRepository, sendEditOutcomeEmail));
+
+const evaluateEditThreshold = lazySingleton(
+  () =>
+    new EvaluateEditThreshold(
+      placeEditRepository,
+      editVoteRepository,
+      applyApprovedEdit,
+      rejectEdit,
+    ),
+);
+
+export const proposeEdit = lazySingleton(
+  () => new ProposeEdit(placeEditRepository, placeRepository),
+);
+
+export const voteOnEdit = lazySingleton(
+  () => new VoteOnEdit(placeEditRepository, editVoteRepository, evaluateEditThreshold),
+);
+
+export const approveEditByAdmin = lazySingleton(
+  () => new ApproveEditByAdmin(placeEditRepository, applyApprovedEdit),
+);
+
+export const rejectEditByAdmin = lazySingleton(
+  () => new RejectEditByAdmin(placeEditRepository, rejectEdit),
+);
+
+export const listPendingEditsForPlace = lazySingleton(
+  () => new ListPendingEditsForPlace(placeEditRepository),
+);
+
+export const listExpiredEditsQueue = lazySingleton(
+  () => new ListExpiredEditsQueue(placeEditRepository),
+);
+
+export const listLevel2PendingEdits = lazySingleton(
+  () => new ListLevel2PendingEdits(placeEditRepository),
+);
+
+export const expireOldEdits = lazySingleton(
+  () => new ExpireOldEdits(placeEditRepository, sendEditOutcomeEmail),
+);
 
 // --- Providers exportados para uso direto em routes ---
 // Nota: UserRepository agora é instanciado com cliente autenticado em cada route

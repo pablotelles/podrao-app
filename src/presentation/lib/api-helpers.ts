@@ -5,6 +5,13 @@ import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { UnauthorizedError } from '@/application/errors/UnauthorizedError';
 import { ValidationError } from '@/application/errors/ValidationError';
 import { ConflictError } from '@/application/errors/ConflictError';
+import { EditConflictError } from '@/application/errors/EditConflictError';
+import { EditRateLimitError } from '@/application/errors/EditRateLimitError';
+import { EditFieldNotEditableError } from '@/application/errors/EditFieldNotEditableError';
+import { EditSelfVoteError } from '@/application/errors/EditSelfVoteError';
+import { EditDuplicateVoteError } from '@/application/errors/EditDuplicateVoteError';
+import { EditNotFoundError } from '@/application/errors/EditNotFoundError';
+import { EditNotPendingError } from '@/application/errors/EditNotPendingError';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 function requireEnv(name: string): string {
@@ -35,6 +42,20 @@ export function errorResponse(err: unknown): NextResponse {
     return NextResponse.json({ error: err.message, code: err.code }, { status: 409 });
   if (err instanceof PlaceNotFoundError)
     return NextResponse.json({ error: err.message, code: err.code }, { status: 404 });
+  if (err instanceof EditFieldNotEditableError)
+    return NextResponse.json({ error: err.message, code: err.code }, { status: 422 });
+  if (err instanceof EditRateLimitError)
+    return NextResponse.json({ error: err.message, code: err.code }, { status: 429 });
+  if (err instanceof EditSelfVoteError)
+    return NextResponse.json({ error: err.message, code: err.code }, { status: 403 });
+  if (err instanceof EditDuplicateVoteError)
+    return NextResponse.json({ error: err.message, code: err.code }, { status: 409 });
+  if (err instanceof EditConflictError)
+    return NextResponse.json({ error: err.message, code: err.code }, { status: 409 });
+  if (err instanceof EditNotFoundError)
+    return NextResponse.json({ error: err.message, code: err.code }, { status: 404 });
+  if (err instanceof EditNotPendingError)
+    return NextResponse.json({ error: err.message, code: err.code }, { status: 409 });
 
   console.error(err);
   return NextResponse.json({ error: 'Erro interno', code: 'INTERNAL_ERROR' }, { status: 500 });
