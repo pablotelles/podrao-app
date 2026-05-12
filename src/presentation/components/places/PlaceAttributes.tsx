@@ -72,54 +72,44 @@ export function PlaceAttributes({ place, description }: PlaceAttributesProps) {
           <div className="flex flex-col gap-3">
             {/* Formas de pagamento */}
             {paymentMethods.length > 0 && (
-              <div className="flex items-start gap-2.5">
+              <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-bg-subtle text-base">
                   💳
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-text-secondary">
-                    Formas de pagamento
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {paymentMethods.map((method) =>
-                      VR_METHODS.has(method) ? (
-                        <span
-                          key={method}
-                          className="inline-flex items-center gap-1 rounded-full border border-vr-border bg-vr-bg px-2.5 py-0.5 text-[13px] font-semibold text-vr-text"
-                        >
-                          ✓ {method}
-                        </span>
-                      ) : (
-                        <Badge key={method} variant="default">
-                          {method}
-                        </Badge>
-                      ),
-                    )}
-                  </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {paymentMethods.map((method) =>
+                    VR_METHODS.has(method) ? (
+                      <span
+                        key={method}
+                        className="inline-flex items-center gap-1 rounded-full border border-vr-border bg-vr-bg px-2.5 py-0.5 text-[13px] font-semibold text-vr-text"
+                      >
+                        ✓ {method}
+                      </span>
+                    ) : (
+                      <Badge key={method} variant="default">
+                        {method}
+                      </Badge>
+                    ),
+                  )}
                 </div>
               </div>
             )}
 
             {/* Funciona (períodos) */}
             {periods.length > 0 && (
-              <div className="flex items-start gap-2.5">
+              <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-bg-subtle text-base">
                   🕐
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-text-secondary">
-                    Funciona
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {periods.map((p) => {
-                      const meta = OPERATING_PERIOD_META[p];
-                      return (
-                        <Badge key={p} variant="brand">
-                          {meta ? `${meta.emoji} ${meta.label}` : p}
-                        </Badge>
-                      );
-                    })}
-                  </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {periods.map((p) => {
+                    const meta = OPERATING_PERIOD_META[p];
+                    return (
+                      <Badge key={p} variant="brand">
+                        {meta ? `${meta.emoji} ${meta.label}` : p}
+                      </Badge>
+                    );
+                  })}
                 </div>
               </div>
             )}

@@ -3,7 +3,6 @@ import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
 import { PageContent } from '@/presentation/components/ui';
 import { PageTitle } from '@/presentation/contexts/TopBarContext';
 import { PlaceReviewList } from '@/presentation/components/reviews/PlaceReviewList';
-import { PhotoUploadButton } from '@/presentation/components/places/PhotoUploadButton';
 import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
 import { PlaceInfo } from '@/presentation/components/places/PlaceInfo';
 import { PlaceAttributes } from '@/presentation/components/places/PlaceAttributes';
@@ -76,14 +75,9 @@ export default async function PlaceDetailPage({ params }: Props) {
             rating={place.rating}
             recommendPct={recommendPct}
             logoUrl={place.logoUrl}
+            isOwner={isOwner}
+            placeId={place.id}
           />
-
-          {/* Botão para o criador adicionar/editar foto */}
-          {isOwner && (
-            <div className="mt-4">
-              <PhotoUploadButton placeId={place.id} hasPhoto={!!place.logoUrl} />
-            </div>
-          )}
 
           {/* Atributos contextuais por tipo de estabelecimento + descrição */}
           <PlaceAttributes place={place} description={place.description} />

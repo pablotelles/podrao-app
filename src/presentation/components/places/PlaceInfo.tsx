@@ -6,6 +6,7 @@ import {
 } from '@/domain/value-objects/EstablishmentType';
 import type { PlaceStatus } from '@/domain/entities/Place';
 import { PlaceRating, ExpandableText } from '@/presentation/components/ui';
+import { EditablePlaceLogo } from './EditablePlaceLogo';
 
 interface PlaceInfoProps {
   name: string;
@@ -22,6 +23,8 @@ interface PlaceInfoProps {
   description?: string;
   recommendPct?: number;
   logoUrl?: string;
+  isOwner?: boolean;
+  placeId?: string;
 }
 
 export function PlaceInfo({
@@ -38,20 +41,26 @@ export function PlaceInfo({
   description,
   recommendPct,
   logoUrl,
+  isOwner,
+  placeId,
 }: PlaceInfoProps) {
   return (
     <div className="flex flex-col gap-2">
       {/* Linha 1: nome + endereço (esquerda) | logo (direita) */}
       <div className="flex items-start justify-between gap-4">
-        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border">
-          {logoUrl ? (
-            <Image src={logoUrl} alt={name} fill className="object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-brand-subtle">
-              <UtensilsCrossed className="h-7 w-7 text-brand" fill="currentColor" />
-            </div>
-          )}
-        </div>
+        {isOwner && placeId ? (
+          <EditablePlaceLogo placeId={placeId} logoUrl={logoUrl} name={name} />
+        ) : (
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border">
+            {logoUrl ? (
+              <Image src={logoUrl} alt={name} fill className="object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-brand-subtle">
+                <UtensilsCrossed className="h-7 w-7 text-brand" fill="currentColor" />
+              </div>
+            )}
+          </div>
+        )}
         <div className="flex-1">
           <div className="flex items-center gap-1.5">
             <h1 className="text-xl font-bold leading-tight text-text-primary">{name}</h1>
