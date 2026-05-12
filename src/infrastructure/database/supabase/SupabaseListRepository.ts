@@ -400,7 +400,7 @@ export class SupabaseListRepository implements IListRepository {
 
     const { data: placeData, error: placeErr } = await this.db
       .from('list_places')
-      .select('list_id, position, places(bairro, place_stats(median_price))')
+      .select('list_id, position, places(bairro)')
       .in('list_id', ids)
       .order('position', { ascending: true });
 
@@ -409,48 +409,28 @@ export class SupabaseListRepository implements IListRepository {
     type PlaceDataRow = {
       list_id: string;
       position: number;
-      places: { bairro: string | null; place_stats: { median_price: number | null }[] } | null;
+      places: { bairro: string | null } | null;
     };
 
     const placeRows = (placeData ?? []) as unknown as PlaceDataRow[];
 
     const bairroByList = new Map<string, string>();
-    const pricesByList = new Map<string, number[]>();
 
     for (const pr of placeRows) {
       if (!pr.places) continue;
-      const place = pr.places;
-
-      if (place.bairro && !bairroByList.has(pr.list_id)) {
-        bairroByList.set(pr.list_id, place.bairro);
-      }
-
-      const statsArr = Array.isArray(place.place_stats)
-        ? place.place_stats
-        : place.place_stats
-          ? [place.place_stats]
-          : [];
-      const median = statsArr[0]?.median_price ?? null;
-      if (median !== null) {
-        const existing = pricesByList.get(pr.list_id) ?? [];
-        existing.push(median);
-        pricesByList.set(pr.list_id, existing);
+      if (pr.places.bairro && !bairroByList.has(pr.list_id)) {
+        bairroByList.set(pr.list_id, pr.places.bairro);
       }
     }
 
     const listMap = new Map<string, UserList>(
       (listData as ListWithCountRow[]).map((row) => {
         const placesCount = row.list_places?.[0]?.count ?? 0;
-        const prices = pricesByList.get(row.id) ?? [];
-        const priceRangeMin = prices.length > 0 ? Math.min(...prices) : undefined;
-        const priceRangeMax = prices.length > 0 ? Math.max(...prices) : undefined;
         const bairro = bairroByList.get(row.id);
         return [
           row.id,
           {
             ...listToDomain(row, placesCount),
-            priceRangeMin,
-            priceRangeMax,
             bairro,
           },
         ];

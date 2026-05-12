@@ -18,9 +18,28 @@ interface SheetProps {
 
 export function Sheet({ open, onClose, children, title, header, footer, ariaLabel }: SheetProps) {
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Push a history entry when the sheet opens so the back button closes it.
+  useEffect(() => {
+    if (!open) return;
+
+    history.pushState({ sheet: true }, '');
+
+    const handlePop = () => onClose();
+    window.addEventListener('popstate', handlePop);
+
+    return () => {
+      window.removeEventListener('popstate', handlePop);
+      // If the sheet closes without the back button (e.g. backdrop click),
+      // pop the history entry we pushed so the stack stays clean.
+      if (history.state?.sheet) history.back();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   if (!open || !mounted) return null;
 
