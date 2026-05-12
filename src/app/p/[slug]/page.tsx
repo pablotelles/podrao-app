@@ -6,16 +6,17 @@ import {
   getPlaceBySlug,
   getPlaceReviews,
   listPendingEditsForPlace,
+  getPlaceVisitStats,
 } from '@/presentation/lib/container';
 import { buildPlaceMetadata } from '@/presentation/lib/seo';
 import { PageContent } from '@/presentation/components/ui';
-import { PageTitle } from '@/presentation/contexts/TopBarContext';
 import { PlaceReviewList } from '@/presentation/components/reviews/PlaceReviewList';
 import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailHeader';
 import { PlaceInfo } from '@/presentation/components/places/PlaceInfo';
 import { PlaceAttributes } from '@/presentation/components/places/PlaceAttributes';
-import { PlaceDetailStickyReviewCTA } from '@/presentation/components/places/PlaceDetailStickyReviewCTA';
 import { PlaceEditActions } from '@/presentation/components/places/PlaceEditActions';
+import { PlaceActionsFAB } from '@/presentation/components/places/PlaceActionsFAB';
+import { PlaceVisitorsCount } from '@/presentation/components/places/PlaceVisitorsCount';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -41,9 +42,10 @@ export default async function PlaceBySlugPage({ params }: Props) {
   const place = await fetchPlace(slug);
   if (!place) notFound();
 
-  const [reviews, pendingEdits] = await Promise.all([
+  const [reviews, pendingEdits, visitStats] = await Promise.all([
     getPlaceReviews.execute(place.id, user?.id),
     listPendingEditsForPlace.execute({ placeId: place.id, viewerUserId: user?.id }),
+    getPlaceVisitStats.execute({ placeId: place.id, userId: user?.id }),
   ]);
 
   const pendingEditsByField = Object.fromEntries(
@@ -56,17 +58,31 @@ export default async function PlaceBySlugPage({ params }: Props) {
   }));
 
   const isOwner = user?.id === place.createdBy;
-  const userReview = user ? reviews.find((r) => r.userId === user.id) : null;
-  const canReview = user && !userReview;
+  const userReviewCount = user ? reviews.filter((r) => r.userId === user.id).length : 0;
+  const canReview = user && userReviewCount < 1 + visitStats.viewerVisitCount;
 
   const recommendPct =
     reviews.length > 0
       ? Math.round((reviews.filter((r) => r.rating >= 3.8).length / reviews.length) * 100)
       : undefined;
 
+  const placeData = {
+    id: place.id,
+    name: place.name,
+    address: place.address,
+    numero: place.numero,
+    bairro: place.bairro,
+    cidade: place.cidade,
+    estado: place.estado,
+    establishmentType: place.establishmentType,
+    priceBucket: place.priceBucket,
+    description: place.description,
+    attributes: place.attributes,
+    periods: place.periods,
+  };
+
   return (
-    <div className="pb-20">
-      <PageTitle title={place.name} />
+    <div>
       <PlaceDetailHeader
         lat={place.lat}
         lng={place.lng}
@@ -120,7 +136,7 @@ export default async function PlaceBySlugPage({ params }: Props) {
 
         <hr className="my-6 border-border" />
 
-        <div className="mb-4">
+        <div className="mb-2">
           <h2 className="text-base font-semibold text-text-primary">
             Avaliações
             {reviews.length > 0 && (
@@ -129,10 +145,30 @@ export default async function PlaceBySlugPage({ params }: Props) {
           </h2>
         </div>
 
-        <PlaceReviewList reviews={serializedReviews} placeId={place.id} currentUserId={user?.id} />
+        {visitStats.distinctVisitors > 0 && (
+          <div className="mb-4">
+            <PlaceVisitorsCount count={visitStats.distinctVisitors} />
+          </div>
+        )}
+
+        <PlaceReviewList
+          reviews={serializedReviews}
+          placeId={place.id}
+          placeSlug={place.slug}
+          currentUserId={user?.id}
+        />
       </PageContent>
 
-      {canReview && <PlaceDetailStickyReviewCTA placeId={place.id} />}
+      <PlaceActionsFAB
+        placeId={place.id}
+        slug={place.slug}
+        isApproved={place.status === 'approved'}
+        canReview={!!canReview}
+        initialVisitCount={visitStats.viewerVisitCount}
+        initialVisitedToday={visitStats.viewerVisitedToday}
+        place={placeData}
+        pendingEditsByField={pendingEditsByField}
+      />
     </div>
   );
 }

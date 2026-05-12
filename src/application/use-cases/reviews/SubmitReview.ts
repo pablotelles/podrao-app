@@ -1,6 +1,7 @@
 import type { Review } from '@/domain/entities/Review';
 import type { IReviewRepository } from '@/domain/interfaces/IReviewRepository';
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
+import type { IPlaceVisitRepository } from '@/domain/interfaces/IPlaceVisitRepository';
 import type { SubmitReviewDTO } from '@/application/dtos/SubmitReviewDTO';
 import { PRICE_BUCKETS } from '@/domain/value-objects/PriceBucket';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
@@ -11,6 +12,7 @@ export class SubmitReview {
   constructor(
     private readonly reviewRepo: IReviewRepository,
     private readonly placeRepo: IPlaceRepository,
+    private readonly visitRepo?: IPlaceVisitRepository,
   ) {}
 
   async execute(dto: SubmitReviewDTO): Promise<Review> {
@@ -47,9 +49,18 @@ export class SubmitReview {
     const place = await this.placeRepo.findById(dto.placeId);
     if (!place) throw new PlaceNotFoundError(dto.placeId);
 
-    // Check if user already reviewed this place
-    const already = await this.reviewRepo.existsForUser(dto.placeId, dto.userId);
-    if (already) throw new ConflictError('Você já avaliou este lugar');
+    // Check review limit: 1 base review + 1 per visit
+    const [reviewCount, visitCount] = await Promise.all([
+      this.reviewRepo.countByUserForPlace(dto.placeId, dto.userId),
+      this.visitRepo
+        ? this.visitRepo.countByUserForPlace(dto.placeId, dto.userId)
+        : Promise.resolve(0),
+    ]);
+
+    const maxReviews = 1 + visitCount;
+    if (reviewCount >= maxReviews) {
+      throw new ConflictError('Você já avaliou este lugar');
+    }
 
     // Create review with all fields
     return this.reviewRepo.create({
@@ -60,6 +71,7 @@ export class SubmitReview {
       photoUrls: dto.photoUrls,
       comment: dto.comment,
       priceBucket: dto.priceBucket,
+      visitId: dto.visitId,
     });
   }
 }

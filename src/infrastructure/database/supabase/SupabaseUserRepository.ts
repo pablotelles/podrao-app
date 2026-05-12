@@ -12,11 +12,11 @@ interface ProfileRow {
   name: string | null;
   headline: string | null;
   avatar_url: string | null;
-  role: UserRole;
+  // role lives in auth.users.app_metadata, not in the profiles table
   created_at: string;
 }
 
-function toDomain(row: ProfileRow): User {
+function toDomain(row: ProfileRow, role: UserRole = 'user'): User {
   return {
     id: row.id,
     email: row.email,
@@ -24,7 +24,7 @@ function toDomain(row: ProfileRow): User {
     name: row.name ?? undefined,
     headline: row.headline ?? undefined,
     avatarUrl: row.avatar_url ?? undefined,
-    role: row.role,
+    role,
     createdAt: new Date(row.created_at),
   };
 }
@@ -35,7 +35,7 @@ export class SupabaseUserRepository implements IUserRepository {
   async findById(id: string): Promise<User | null> {
     const { data, error } = await this.db
       .from('profiles')
-      .select('id, email, nickname, name, headline, avatar_url, role, created_at')
+      .select('id, email, nickname, name, headline, avatar_url, created_at')
       .eq('id', id)
       .single();
 
@@ -59,7 +59,7 @@ export class SupabaseUserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const { data, error } = await this.db
       .from('profiles')
-      .select('id, email, nickname, name, headline, avatar_url, role, created_at')
+      .select('id, email, nickname, name, headline, avatar_url, created_at')
       .eq('email', email)
       .single();
 

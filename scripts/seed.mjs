@@ -15,7 +15,41 @@ import crypto from 'crypto';
 const { Client } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const USER_ID = '8e416f29-b049-4151-afeb-807d6d231f54';
+const USER_ID = 'f67fcf21-87c0-4335-9a77-784c77cd9061';
+
+// ---------------------------------------------------------------------------
+// Slug generation (mirrors src/domain/value-objects/Slug.ts)
+// ---------------------------------------------------------------------------
+function buildSlug(name, cidade) {
+  const normalize = (str) =>
+    str
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/[\s-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  const nameSlug = normalize(name);
+  const cidadeNorm = normalize(cidade).replace(/-/g, '');
+  const sigla = cidadeNorm.slice(0, 2);
+  return sigla ? `${nameSlug}-${sigla}` : nameSlug;
+}
+
+function generateSeededSlugs(places) {
+  const used = new Set();
+  return places.map((p) => {
+    let base = buildSlug(p.name, p.cidade);
+    let slug = base;
+    let counter = 2;
+    while (used.has(slug)) {
+      slug = `${base}-${counter++}`;
+    }
+    used.add(slug);
+    return slug;
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Env loader
@@ -1411,24 +1445,27 @@ async function main() {
   console.log('✅  Conectado ao banco de dados\n');
 
   const places = buildPlaces();
+  const slugs = generateSeededSlugs(places);
 
   // ── 1. Inserir lugares ──────────────────────────────────────────────────
   console.log(`📍  Inserindo ${places.length} lugares...`);
   let insertedPlaces = 0;
 
-  for (const place of places) {
+  for (let i = 0; i < places.length; i++) {
+    const place = places[i];
+    const slug = slugs[i];
     // place principal
     await client.query(
       `INSERT INTO places (
         id, name, address, numero, bairro, cidade, estado,
         location, lat, lng,
         establishment_type, price_bucket,
-        status, description, created_by
+        status, description, created_by, slug
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7,
         ST_GeogFromText($8), $9, $10,
         $11, $12,
-        $13, $14, $15
+        $13, $14, $15, $16
       ) ON CONFLICT (id) DO NOTHING`,
       [
         place.id,
@@ -1446,8 +1483,14 @@ async function main() {
         place.status,
         place.description ?? null,
         USER_ID,
+        slug,
       ],
     );
+    // backfill slug for existing places that don't have one yet
+    await client.query(`UPDATE places SET slug = $1 WHERE id = $2 AND slug IS NULL`, [
+      slug,
+      place.id,
+    ]);
 
     // períodos de operação
     for (const period of place.periods ?? []) {

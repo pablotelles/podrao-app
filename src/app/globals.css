@@ -55,6 +55,9 @@
     --color-verify-text: #c2410c;
     --color-verify-border: #fdba74;
 
+    /* Success border — check-in confirmed state */
+    --color-success-border: #bbf7d0;
+
     /* Espaçamento */
     --spacing-page-x: 1rem;
     --spacing-card-gap: 0.75rem;
@@ -174,6 +177,8 @@
   --color-verify-bg: var(--color-verify-bg);
   --color-verify-text: var(--color-verify-text);
   --color-verify-border: var(--color-verify-border);
+
+  --color-success-border: var(--color-success-border);
 
   --font-family-sans: var(--font-sans);
 

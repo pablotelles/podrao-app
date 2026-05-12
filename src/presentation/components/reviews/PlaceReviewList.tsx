@@ -25,10 +25,12 @@ function relativeDate(date: string | Date): string {
 function PlaceReviewItem({
   review,
   placeId,
+  placeSlug,
   isOwnReview,
 }: {
   review: SerializedReview;
   placeId: string;
+  placeSlug?: string | null;
   isOwnReview: boolean;
 }) {
   const router = useRouter();
@@ -54,7 +56,11 @@ function PlaceReviewItem({
       icon: <Star size={16} />,
       label: 'Editar avaliação',
       onClick: () => {
-        router.push(`/places/${placeId}/review?edit=${review.id}`);
+        router.push(
+          placeSlug
+            ? `/p/${placeSlug}/review?edit=${review.id}`
+            : `/places/${placeId}/review?edit=${review.id}`,
+        );
         setMenuOpen(false);
       },
     },
@@ -152,10 +158,16 @@ function PlaceReviewItem({
 interface PlaceReviewListProps {
   reviews: SerializedReview[];
   placeId: string;
+  placeSlug?: string | null;
   currentUserId?: string;
 }
 
-export function PlaceReviewList({ reviews, placeId, currentUserId }: PlaceReviewListProps) {
+export function PlaceReviewList({
+  reviews,
+  placeId,
+  placeSlug,
+  currentUserId,
+}: PlaceReviewListProps) {
   const [visibleCount, setVisibleCount] = useState(REVIEW_INITIAL_VISIBLE);
 
   if (!reviews.length) {
@@ -181,6 +193,7 @@ export function PlaceReviewList({ reviews, placeId, currentUserId }: PlaceReview
             key={r.id}
             review={r}
             placeId={placeId}
+            placeSlug={placeSlug}
             isOwnReview={!!currentUserId && r.userId === currentUserId}
           />
         ))}

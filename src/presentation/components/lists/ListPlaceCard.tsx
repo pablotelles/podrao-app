@@ -73,7 +73,7 @@ export function ListPlaceCard({ place, listId, isOwner }: ListPlaceCardProps) {
     {
       icon: <ExternalLink className="h-5 w-5" />,
       label: 'Ver detalhes do lugar',
-      onClick: () => router.push(`/places/${place.id}`),
+      onClick: () => router.push(place.slug ? `/p/${place.slug}` : `/places/${place.id}`),
     },
     {
       icon: <Map className="h-5 w-5" />,
@@ -101,7 +101,10 @@ export function ListPlaceCard({ place, listId, isOwner }: ListPlaceCardProps) {
     <>
       <div className="flex items-center gap-3 py-3">
         {/* Thumbnail */}
-        <Link href={`/places/${place.id}`} className="relative h-16 w-16 shrink-0">
+        <Link
+          href={place.slug ? `/p/${place.slug}` : `/places/${place.id}`}
+          className="relative h-16 w-16 shrink-0"
+        >
           <div className="h-full w-full overflow-hidden rounded-xl bg-bg-subtle">
             {place.logoUrl ? (
               <Image
@@ -120,7 +123,10 @@ export function ListPlaceCard({ place, listId, isOwner }: ListPlaceCardProps) {
         </Link>
 
         {/* Info */}
-        <Link href={`/places/${place.id}`} className="min-w-0 flex-1">
+        <Link
+          href={place.slug ? `/p/${place.slug}` : `/places/${place.id}`}
+          className="min-w-0 flex-1"
+        >
           <p className="truncate font-semibold text-text-primary leading-tight">{place.name}</p>
           {subtitle && <p className="mt-0.5 truncate text-xs text-text-secondary">{subtitle}</p>}
           <div className="mt-0.5 flex items-center gap-1">

@@ -8,16 +8,28 @@ interface PageContentProps {
   centered?: boolean;
   /** Classe CSS adicional */
   className?: string;
+  /**
+   * Override do padding inferior. Use quando há um sticky CTA acima do BottomNav.
+   * Padrão: 'pb-24' (96px = BottomNav 64px + buffer)
+   * Com sticky CTA de dois botões: 'pb-48' (192px = CTA ~128px + BottomNav 64px)
+   */
+  bottomPad?: string;
 }
 
 /**
  * Container padrão para conteúdo de páginas.
  * Adiciona padding-bottom automático para compensar o menu de navegação inferior fixo.
  * Use `centered` para aplicar max-width e centralização.
+ * Use `bottomPad` quando há um sticky CTA acima do BottomNav.
  */
-export function PageContent({ children, centered = false, className = '' }: PageContentProps) {
+export function PageContent({
+  children,
+  centered = false,
+  className = '',
+  bottomPad = 'pb-24',
+}: PageContentProps) {
   const contentClasses = [
-    'px-(--spacing-page-x) py-6 pb-24', // pb-24 = 96px (menu de 64px + espaço extra)
+    `px-(--spacing-page-x) py-6 ${bottomPad}`,
     centered && 'mx-auto max-w-2xl',
     className,
   ]

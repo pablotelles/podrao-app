@@ -18,6 +18,7 @@ interface ReviewRow {
   rating: number;
   price_bucket: string | null;
   comment: string | null;
+  visit_id: string | null;
   created_at: string;
 }
 
@@ -64,6 +65,7 @@ async function toDomain(row: ReviewRow, db: SupabaseClient): Promise<Review> {
     photos: photos && photos.length > 0 ? photos : undefined,
     comment: row.comment ?? undefined,
     priceBucket: (row.price_bucket as PriceBucket) ?? undefined,
+    visitId: row.visit_id ?? undefined,
     createdAt: new Date(row.created_at),
   };
 }
@@ -140,6 +142,7 @@ export class SupabaseReviewRepository implements IReviewRepository {
         photos: photosByReview.get(row.id),
         comment: row.comment ?? undefined,
         priceBucket: (row.price_bucket as PriceBucket) ?? undefined,
+        visitId: row.visit_id ?? undefined,
         createdAt: new Date(row.created_at),
         reactionCounts: reactionCounts.get(row.id) ?? {},
         viewerReactionType: viewerActiveTypes.get(row.id) ?? null,
@@ -174,6 +177,7 @@ export class SupabaseReviewRepository implements IReviewRepository {
         rating: data.rating,
         price_bucket: data.priceBucket ?? null,
         comment: data.comment,
+        visit_id: data.visitId ?? null,
       })
       .select()
       .single();
@@ -276,6 +280,17 @@ export class SupabaseReviewRepository implements IReviewRepository {
     const { count, error } = await this.db
       .from('reviews')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  }
+
+  async countByUserForPlace(placeId: string, userId: string): Promise<number> {
+    const { count, error } = await this.db
+      .from('reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('place_id', placeId)
       .eq('user_id', userId);
 
     if (error) throw new Error(error.message);

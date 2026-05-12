@@ -5,6 +5,7 @@ import useSWR from 'swr';
 export interface MyReview {
   id: string;
   placeId: string;
+  placeSlug?: string | null;
   placeName: string;
   rating: number;
   comment?: string;

@@ -20,7 +20,7 @@ export function PlaceCardHome({ place }: PlaceCardHomeProps) {
 
   return (
     <a
-      href={`/places/${place.id}`}
+      href={place.slug ? `/p/${place.slug}` : `/places/${place.id}`}
       aria-label={place.name}
       className="block flex-none overflow-hidden rounded-md bg-bg-card shadow-(--shadow-card) scroll-snap-start"
       style={{ width: '160px', scrollSnapAlign: 'start' }}

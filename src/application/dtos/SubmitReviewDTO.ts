@@ -9,4 +9,5 @@ export interface SubmitReviewDTO {
   photoUrls?: string[];
   comment?: string;
   priceBucket?: PriceBucket;
+  visitId?: string;
 }

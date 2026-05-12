@@ -67,12 +67,7 @@ export function TopBar() {
           {title}
         </Text>
       ) : (
-        <PodraoLogo
-          variant="white"
-          size={28}
-          withWordmark
-          className="absolute left-1/2 -translate-x-1/2"
-        />
+        <PodraoLogo variant="white" size={28} className="absolute left-1/2 -translate-x-1/2" />
       )}
 
       {/* Ações */}

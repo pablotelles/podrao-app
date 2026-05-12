@@ -63,6 +63,7 @@ export function usePageTitle(title: string) {
   const { setTitle } = useTopBarContext();
   useEffect(() => {
     setTitle(title);
+    return () => setTitle('');
   }, [title, setTitle]);
 }
 

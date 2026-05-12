@@ -24,6 +24,7 @@ import { NullEmailProvider } from '@/infrastructure/email/NullEmailProvider';
 import type { IEmailProvider } from '@/domain/interfaces/IEmailProvider';
 import { ResendEmailTemplateProvider } from '@/infrastructure/email/ResendEmailTemplateProvider';
 
+import { SupabasePlaceVisitRepository } from '@/infrastructure/database/supabase/SupabasePlaceVisitRepository';
 import { SupabasePlaceEditRepository } from '@/infrastructure/database/supabase/SupabasePlaceEditRepository';
 import { SupabaseEditVoteRepository } from '@/infrastructure/database/supabase/SupabaseEditVoteRepository';
 import { SupabaseEditApplier } from '@/infrastructure/database/supabase/SupabaseEditApplier';
@@ -80,6 +81,8 @@ import { GetMyReviews } from '@/application/use-cases/reviews/GetMyReviews';
 import { SearchAll } from '@/application/use-cases/search/SearchAll';
 import { GetPlaceBySlug } from '@/application/use-cases/places/GetPlaceBySlug';
 import { GetListBySlug } from '@/application/use-cases/lists/GetListBySlug';
+import { RegisterVisit } from '@/application/use-cases/visits/RegisterVisit';
+import { GetPlaceVisitStats } from '@/application/use-cases/visits/GetPlaceVisitStats';
 
 function lazySingleton<T extends object>(factory: () => T): T {
   let instance: T | undefined;
@@ -106,6 +109,9 @@ function requireEnv(name: string): string {
 }
 
 // --- Infra ---
+export const placeVisitRepository = lazySingleton(
+  () => new SupabasePlaceVisitRepository(createAdminClient()),
+);
 const placeEditRepository = lazySingleton(() => new SupabasePlaceEditRepository());
 const editVoteRepository = lazySingleton(() => new SupabaseEditVoteRepository());
 const editApplier = lazySingleton(() => new SupabaseEditApplier(createAdminClient()));
@@ -180,7 +186,7 @@ export const generatePlaceEmbedding = lazySingleton(
   () => new GeneratePlaceEmbedding(placeRepository, embeddingProvider),
 );
 export const submitReview = lazySingleton(
-  () => new SubmitReview(reviewRepository, placeRepository),
+  () => new SubmitReview(reviewRepository, placeRepository, placeVisitRepository),
 );
 export const getPlaceReviews = lazySingleton(
   () => new GetPlaceReviews(reviewRepository, placeRepository),
@@ -223,6 +229,12 @@ export const getMyReviews = lazySingleton(
 export const searchAll = lazySingleton(() => new SearchAll(placeRepository, listRepository));
 export const getPlaceBySlug = lazySingleton(() => new GetPlaceBySlug(placeRepository));
 export const getListBySlug = lazySingleton(() => new GetListBySlug(listRepository));
+
+// Visit use cases
+export const registerVisit = lazySingleton(
+  () => new RegisterVisit(placeRepository, placeVisitRepository),
+);
+export const getPlaceVisitStats = lazySingleton(() => new GetPlaceVisitStats(placeVisitRepository));
 
 // --- Edit system ---
 const editEmailTemplateProvider = lazySingleton(() => new ResendEditEmailTemplateProvider());

@@ -27,7 +27,7 @@ function ReviewItemWithDelete({ review, onDeleted }: { review: MyReview; onDelet
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <Link
-            href={`/places/${review.placeId}`}
+            href={review.placeSlug ? `/p/${review.placeSlug}` : `/places/${review.placeId}`}
             className="text-sm font-semibold text-brand hover:underline truncate block"
           >
             {review.placeName}

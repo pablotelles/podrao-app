@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Pencil, ChevronRight } from 'lucide-react';
-import { useTopBarAction } from '@/presentation/contexts/TopBarContext';
 import { SuggestEditSheet } from '@/presentation/components/place/SuggestEditSheet';
 import type { SuggestEditSheetProps } from '@/presentation/components/place/SuggestEditSheet';
 
@@ -11,20 +10,33 @@ export interface PlaceEditActionsProps {
   pendingEditsByField: Record<string, { id: string }>;
 }
 
+/** Botão inline do lápis — renderizado ao lado do nome do lugar. */
+export function PlaceEditNameButton({ place, pendingEditsByField }: PlaceEditActionsProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-0.5 shrink-0 rounded p-1 text-text-secondary transition-colors hover:text-text-primary"
+        aria-label="Sugerir correção"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+      <SuggestEditSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        place={place}
+        pendingEditsByField={pendingEditsByField}
+        placeId={place.id}
+      />
+    </>
+  );
+}
+
 export function PlaceEditActions({ place, pendingEditsByField }: PlaceEditActionsProps) {
   const [open, setOpen] = useState(false);
   const pendingCount = Object.keys(pendingEditsByField).length;
-
-  useTopBarAction(
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      className="flex h-8 w-8 items-center justify-center rounded-full text-text-inverse transition-colors hover:bg-brand-hover"
-      aria-label="Sugerir correção"
-    >
-      <Pencil className="h-4 w-4" />
-    </button>,
-  );
 
   return (
     <>

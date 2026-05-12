@@ -10,6 +10,7 @@ export interface Review {
   photos?: string[]; // URLs
   comment?: string;
   priceBucket?: PriceBucket;
+  visitId?: string; // link to place_visits row that unlocked this review, if any
   createdAt: Date;
   // Populated via JOIN with profiles when fetching for display
   authorNickname?: string;

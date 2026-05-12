@@ -9,6 +9,7 @@ export interface GetMyReviewsDTO {
 export interface MyReviewItem {
   id: string;
   placeId: string;
+  placeSlug?: string | null;
   placeName: string;
   rating: number;
   comment?: string;
@@ -37,6 +38,7 @@ export class GetMyReviews {
         return {
           id: review.id,
           placeId: review.placeId,
+          placeSlug: place?.slug,
           placeName: place?.name ?? 'Lugar desconhecido',
           rating: review.rating,
           comment: review.comment,

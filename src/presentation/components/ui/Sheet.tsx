@@ -1,5 +1,7 @@
 'use client';
 
+import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 interface SheetProps {
@@ -15,11 +17,16 @@ interface SheetProps {
 }
 
 export function Sheet({ open, onClose, children, title, header, footer, ariaLabel }: SheetProps) {
-  if (!open) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!open || !mounted) return null;
 
   const hasSplit = !!header || !!footer;
 
-  return (
+  const content = (
     <>
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm"
@@ -56,4 +63,6 @@ export function Sheet({ open, onClose, children, title, header, footer, ariaLabe
       </div>
     </>
   );
+
+  return createPortal(content, document.body);
 }

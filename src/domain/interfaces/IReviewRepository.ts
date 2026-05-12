@@ -10,6 +10,7 @@ export interface CreateReviewData {
   photoUrls?: string[];
   comment?: string;
   priceBucket?: PriceBucket;
+  visitId?: string; // optional link to the check-in that unlocked this review
 }
 
 export type UpdateReviewData = Partial<
@@ -25,4 +26,5 @@ export interface IReviewRepository {
   delete(reviewId: string): Promise<void>;
   existsForUser(placeId: string, userId: string): Promise<boolean>;
   countByUser(userId: string): Promise<number>;
+  countByUserForPlace(placeId: string, userId: string): Promise<number>;
 }

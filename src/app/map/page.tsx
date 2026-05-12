@@ -19,7 +19,7 @@ export default function MapPage() {
   );
 
   function handlePlaceClick(place: Place) {
-    router.push(`/places/${place.id}`);
+    router.push(place.slug ? `/p/${place.slug}` : `/places/${place.id}`);
   }
 
   // Reset subheader height — this page has no subheader

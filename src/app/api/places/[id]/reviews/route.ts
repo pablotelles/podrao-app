@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPlaceReviews } from '@/presentation/lib/container';
+import { getPlaceReviews, submitReview } from '@/presentation/lib/container';
 import { submitReviewSchema } from '@/presentation/lib/schemas/reviewSchema';
 import { errorResponse, createRouteSupabaseClient } from '@/presentation/lib/api-helpers';
 import { UnauthorizedError } from '@/application/errors/UnauthorizedError';
-import { createAdminClient } from '@/infrastructure/database/supabase/client';
-import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
-import { SupabasePlaceRepository } from '@/infrastructure/database/supabase/SupabasePlaceRepository';
-import { SubmitReview } from '@/application/use-cases/reviews/SubmitReview';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,12 +23,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       error: userError,
     } = await supabase.auth.getUser();
     if (userError || !user) throw new UnauthorizedError();
-
-    // 2. Usar admin client para bypass de RLS (seguro pois auth já validada)
-    const adminClient = createAdminClient();
-    const reviewRepository = new SupabaseReviewRepository(adminClient);
-    const placeRepository = new SupabasePlaceRepository(adminClient);
-    const submitReview = new SubmitReview(reviewRepository, placeRepository);
 
     const { id } = await params;
     const body = await req.json();

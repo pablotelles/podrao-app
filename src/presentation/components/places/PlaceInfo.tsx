@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { ThumbsUp, UtensilsCrossed } from 'lucide-react';
 import {
@@ -25,6 +26,7 @@ interface PlaceInfoProps {
   logoUrl?: string;
   isOwner?: boolean;
   placeId?: string;
+  editTrigger?: ReactNode;
 }
 
 export function PlaceInfo({
@@ -43,6 +45,7 @@ export function PlaceInfo({
   logoUrl,
   isOwner,
   placeId,
+  editTrigger,
 }: PlaceInfoProps) {
   return (
     <div className="flex flex-col gap-2">
@@ -62,7 +65,10 @@ export function PlaceInfo({
           </div>
         )}
         <div className="flex-1">
-          <h1 className="text-xl font-bold leading-tight text-text-primary">{name}</h1>
+          <div className="flex items-start gap-1.5">
+            <h1 className="flex-1 text-xl font-bold leading-tight text-text-primary">{name}</h1>
+            {editTrigger}
+          </div>
           <p className="mt-0.5 text-sm leading-snug text-text-secondary">
             {address}
             {numero && `, ${numero}`}
