@@ -1,8 +1,8 @@
 'use client';
 
-import { List, MapPin } from 'lucide-react';
+import { List, MapPin, Bookmark } from 'lucide-react';
 import type { ListSummaryDTO } from '@/application/dtos/ListDTO';
-import { savesTextLong, priceText } from '@/presentation/lib/listFormatters';
+import { priceText } from '@/presentation/lib/listFormatters';
 import { Text } from '@/presentation/components/ui/Text';
 
 interface ListCardDestaqueProps {
@@ -11,7 +11,7 @@ interface ListCardDestaqueProps {
   curatorName?: string;
 }
 
-export function ListCardDestaque({ list, curatorName }: ListCardDestaqueProps) {
+export function ListCardDestaque({ list }: ListCardDestaqueProps) {
   const price = priceText(list.priceRangeMin, list.priceRangeMax);
   const placesLabel = `${list.lugaresCount} lugar${list.lugaresCount !== 1 ? 'es' : ''}`;
 
@@ -66,8 +66,24 @@ export function ListCardDestaque({ list, curatorName }: ListCardDestaqueProps) {
             </Text>
           )}
           {list.bairro && <span className="h-0.75 w-0.75 rounded-full bg-text-disabled" />}
-          <Text as="span" variant="caption" textColor="secondary">
+          <Text
+            as="span"
+            variant="caption"
+            textColor="secondary"
+            className="flex items-center gap-1"
+          >
+            <MapPin size={11} strokeWidth={1.8} />
             {placesLabel}
+          </Text>
+          <span className="h-0.75 w-0.75 rounded-full bg-text-disabled" />
+          <Text
+            as="span"
+            variant="caption"
+            textColor="secondary"
+            className="flex items-center gap-1"
+          >
+            <Bookmark size={11} strokeWidth={1.8} />
+            {list.savesCount}
           </Text>
           {price && (
             <>
@@ -78,9 +94,6 @@ export function ListCardDestaque({ list, curatorName }: ListCardDestaqueProps) {
             </>
           )}
         </div>
-        <Text as="p" variant="caption" textColor="secondary" className="mt-1">
-          {curatorName ? `por ${curatorName}` : savesTextLong(list.savesCount)}
-        </Text>
       </div>
     </a>
   );
