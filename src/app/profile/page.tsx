@@ -11,6 +11,7 @@ import {
   FavoritesSection,
   RegisteredPlacesSection,
   ReviewsSection,
+  MyEditsSection,
 } from '@/presentation/components/profile';
 
 export default function ProfilePage() {
@@ -64,6 +65,7 @@ export default function ProfilePage() {
       />
       <RegisteredPlacesSection />
       <ReviewsSection />
+      <MyEditsSection />
 
       {/* Ações */}
       <div className="px-(--spacing-page-x) py-4 bg-bg-subtle">

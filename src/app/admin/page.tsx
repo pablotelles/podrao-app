@@ -6,6 +6,7 @@ import { Button, Badge, DataTable, EmptyState, Skeleton } from '@/presentation/c
 import { useToast } from '@/presentation/hooks/useToast';
 import { AdminFilters } from './AdminFilters';
 import { RejectModal } from './RejectModal';
+import { EditsQueue } from './EditsQueue';
 import { usePendingPlaces } from '@/presentation/hooks/usePendingPlaces';
 import type { PendingPlaceItem } from '@/domain/entities/PendingPlaceItem';
 
@@ -257,6 +258,8 @@ export default function AdminPage() {
           />
         )}
       </div>
+
+      <EditsQueue />
 
       {/* Reject Modal */}
       {selectedPlace && (

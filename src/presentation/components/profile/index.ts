@@ -12,3 +12,4 @@ export { FavoritesSection } from './FavoritesSection';
 export { RegisteredPlacesSection } from './RegisteredPlacesSection';
 export { ReviewsSection } from './ReviewsSection';
 export { DeleteReviewSheet } from './DeleteReviewSheet';
+export { MyEditsSection } from './MyEditsSection';
