@@ -15,7 +15,7 @@ import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
 import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
 import { buildPlaceMetadata } from '@/presentation/lib/seo';
 import { listPendingEditsForPlace } from '@/presentation/lib/container';
-import { PlaceSuggestEditButton } from '@/presentation/components/places/PlaceSuggestEditButton';
+import { PlaceEditActions } from '@/presentation/components/places/PlaceEditActions';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -122,7 +122,22 @@ export default async function PlaceDetailPage({ params }: Props) {
           />
 
           <div className="mt-4 flex justify-end">
-            <PlaceSuggestEditButton />
+            <PlaceEditActions
+              place={{
+                id: place.id,
+                name: place.name,
+                address: place.address,
+                numero: place.numero,
+                bairro: place.bairro,
+                cidade: place.cidade,
+                estado: place.estado,
+                establishmentType: place.establishmentType,
+                priceBucket: place.priceBucket,
+                attributes: place.attributes,
+                periods: place.periods,
+              }}
+              pendingEditsByField={pendingEditsByField}
+            />
           </div>
 
           <hr className="my-6 border-border" />

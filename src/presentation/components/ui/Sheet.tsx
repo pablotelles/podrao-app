@@ -7,10 +7,17 @@ interface SheetProps {
   onClose: () => void;
   children: ReactNode;
   title?: string;
+  /** Custom header node. When provided, replaces the built-in title heading. */
+  header?: ReactNode;
+  /** Sticky footer rendered outside the scroll area. Requires a split flex layout. */
+  footer?: ReactNode;
+  ariaLabel?: string;
 }
 
-export function Sheet({ open, onClose, children, title }: SheetProps) {
+export function Sheet({ open, onClose, children, title, header, footer, ariaLabel }: SheetProps) {
   if (!open) return null;
+
+  const hasSplit = !!header || !!footer;
 
   return (
     <>
@@ -23,13 +30,29 @@ export function Sheet({ open, onClose, children, title }: SheetProps) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={title}
-        className="fixed bottom-0 left-0 right-0 rounded-t-lg bg-bg shadow-(--shadow-modal) px-(--spacing-page-x) pb-8 pt-4 max-h-[85dvh] overflow-y-auto"
+        aria-label={ariaLabel ?? title}
+        className={
+          hasSplit
+            ? 'fixed bottom-0 left-0 right-0 flex flex-col rounded-t-lg bg-bg shadow-(--shadow-modal) max-h-[85dvh]'
+            : 'fixed bottom-0 left-0 right-0 rounded-t-lg bg-bg shadow-(--shadow-modal) px-(--spacing-page-x) pb-8 pt-4 max-h-[85dvh] overflow-y-auto'
+        }
         style={{ zIndex: 'var(--z-modal)' }}
       >
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
-        {title && <h2 className="mb-4 text-base font-semibold text-text-primary">{title}</h2>}
-        {children}
+        <div className="mx-auto mt-3 h-1 w-9 shrink-0 rounded-full bg-border" />
+        {hasSplit ? (
+          <>
+            {header && <div className="shrink-0">{header}</div>}
+            <div className="flex-1 overflow-y-auto px-(--spacing-page-x) py-4">{children}</div>
+            {footer && <div className="shrink-0">{footer}</div>}
+          </>
+        ) : (
+          <>
+            {title && (
+              <h2 className="mb-4 mt-3 text-base font-semibold text-text-primary">{title}</h2>
+            )}
+            {children}
+          </>
+        )}
       </div>
     </>
   );

@@ -33,6 +33,9 @@
     --color-success-bg: #f0fdf4;
     --color-warning-bg: #fef3c7;
     --color-error-bg: #fef2f2;
+    --color-warning-text: #92400e;
+    --color-warning-border: #fde68a;
+    --color-error-border: #fecaca;
 
     /* VR/VA badge tokens — vale-refeição / vale-alimentação destaque */
     --color-vr-bg: #ecfdf5;
@@ -150,6 +153,9 @@
   --color-success-bg: var(--color-success-bg);
   --color-warning-bg: var(--color-warning-bg);
   --color-error-bg: var(--color-error-bg);
+  --color-warning-text: var(--color-warning-text);
+  --color-warning-border: var(--color-warning-border);
+  --color-error-border: var(--color-error-border);
 
   --color-vr-bg: var(--color-vr-bg);
   --color-vr-text: var(--color-vr-text);
