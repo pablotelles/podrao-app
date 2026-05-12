@@ -92,31 +92,30 @@ export default async function PlaceBySlugPage({ params }: Props) {
           logoUrl={place.logoUrl}
           isOwner={isOwner}
           placeId={place.id}
-          pendingEditsByField={pendingEditsByField}
         />
 
         <PlaceAttributes
           place={place}
           description={place.description}
-          pendingEditsByField={pendingEditsByField}
-        />
-
-        <PlaceEditActions
-          place={{
-            id: place.id,
-            name: place.name,
-            address: place.address,
-            numero: place.numero,
-            bairro: place.bairro,
-            cidade: place.cidade,
-            estado: place.estado,
-            establishmentType: place.establishmentType,
-            priceBucket: place.priceBucket,
-            description: place.description,
-            attributes: place.attributes,
-            periods: place.periods,
-          }}
-          pendingEditsByField={pendingEditsByField}
+          pendingBanner={
+            <PlaceEditActions
+              place={{
+                id: place.id,
+                name: place.name,
+                address: place.address,
+                numero: place.numero,
+                bairro: place.bairro,
+                cidade: place.cidade,
+                estado: place.estado,
+                establishmentType: place.establishmentType,
+                priceBucket: place.priceBucket,
+                description: place.description,
+                attributes: place.attributes,
+                periods: place.periods,
+              }}
+              pendingEditsByField={pendingEditsByField}
+            />
+          }
         />
 
         <hr className="my-6 border-border" />

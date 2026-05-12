@@ -38,6 +38,7 @@
     --color-error-border: #fecaca;
     --color-brand-border-subtle: #c7c6f0;
     --color-error-border-subtle: #fecaca;
+    --color-verify-bg-hover: #ffedd5;
 
     /* VR/VA badge tokens — vale-refeição / vale-alimentação destaque */
     --color-vr-bg: #ecfdf5;
@@ -160,6 +161,7 @@
   --color-error-border: var(--color-error-border);
   --color-brand-border-subtle: var(--color-brand-border-subtle);
   --color-error-border-subtle: var(--color-error-border-subtle);
+  --color-verify-bg-hover: var(--color-verify-bg-hover);
 
   --color-vr-bg: var(--color-vr-bg);
   --color-vr-text: var(--color-vr-text);
