@@ -47,6 +47,7 @@ export interface SuggestEditSheetProps {
     estado: string;
     establishmentType: string;
     priceBucket?: string;
+    description?: string;
     attributes: Record<string, string[]>;
     periods: string[];
   };
@@ -108,7 +109,7 @@ function getCurrentValue(fieldName: string, place: SuggestEditSheetProps['place'
     case 'price_bucket':
       return place.priceBucket ?? '';
     case 'description':
-      return place.attributes['description']?.[0] ?? '';
+      return place.description ?? '';
     case 'payment_methods':
       return place.attributes['payment_methods'] ?? [];
     case 'periods':

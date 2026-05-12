@@ -16,6 +16,8 @@ interface TopBarContextValue {
   setHideBottomNav: (hide: boolean) => void;
   hideTopBar: boolean;
   setHideTopBar: (hide: boolean) => void;
+  trailingAction: ReactNode;
+  setTrailingAction: (node: ReactNode) => void;
 }
 
 const TopBarContext = createContext<TopBarContextValue>({
@@ -25,15 +27,27 @@ const TopBarContext = createContext<TopBarContextValue>({
   setHideBottomNav: () => {},
   hideTopBar: false,
   setHideTopBar: () => {},
+  trailingAction: null,
+  setTrailingAction: () => {},
 });
 
 export function TopBarProvider({ children }: { children: ReactNode }) {
   const [title, setTitle] = useState('');
   const [hideBottomNav, setHideBottomNav] = useState(false);
   const [hideTopBar, setHideTopBar] = useState(false);
+  const [trailingAction, setTrailingAction] = useState<ReactNode>(null);
   return (
     <TopBarContext.Provider
-      value={{ title, setTitle, hideBottomNav, setHideBottomNav, hideTopBar, setHideTopBar }}
+      value={{
+        title,
+        setTitle,
+        hideBottomNav,
+        setHideBottomNav,
+        hideTopBar,
+        setHideTopBar,
+        trailingAction,
+        setTrailingAction,
+      }}
     >
       {children}
     </TopBarContext.Provider>
@@ -68,6 +82,17 @@ export function useHideTopBar() {
     setHideTopBar(true);
     return () => setHideTopBar(false);
   }, [setHideTopBar]);
+}
+
+/** Hook para injetar uma ação no slot direito da TopBar enquanto o componente estiver montado. */
+export function useTopBarAction(action: ReactNode) {
+  const { setTrailingAction } = useTopBarContext();
+  useLayoutEffect(() => {
+    setTrailingAction(action);
+    return () => setTrailingAction(null);
+    // action é um ReactNode — comparação por referência causaria loops; executa uma vez por mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }
 
 /** Componente para definir título a partir de Server Components (via prop). */

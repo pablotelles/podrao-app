@@ -43,7 +43,7 @@ function Avatar({ user }: { user: User | null }) {
 export function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { title, hideTopBar } = useTopBarContext();
+  const { title, hideTopBar, trailingAction } = useTopBarContext();
   const { user } = useUser();
 
   if (hideTopBar || HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
@@ -77,6 +77,7 @@ export function TopBar() {
 
       {/* Ações */}
       <div className="flex items-center gap-1">
+        {trailingAction}
         <button
           onClick={() => router.push('/search')}
           className="flex h-8 w-8 items-center justify-center rounded-full text-text-inverse transition-colors hover:bg-brand-hover"

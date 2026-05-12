@@ -31,7 +31,12 @@ export function ScalarTextControl({
         >
           Valor atual
         </p>
-        <p className="text-sm font-medium text-text-primary">{currentValue || '—'}</p>
+        <p
+          className="max-h-20 overflow-y-auto text-sm font-medium text-text-primary"
+          style={{ wordBreak: 'break-word' }}
+        >
+          {currentValue || '—'}
+        </p>
       </div>
 
       {multiline ? (

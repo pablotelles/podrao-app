@@ -105,7 +105,7 @@ export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetail
 
   return (
     <>
-      <div className="relative h-37.5 w-full overflow-hidden">
+      <div className="relative h-37.5 w-full overflow-hidden" style={{ isolation: 'isolate' }}>
         <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
 
         {/* Distância - canto inferior esquerdo */}

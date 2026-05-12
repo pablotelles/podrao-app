@@ -101,24 +101,23 @@ export default async function PlaceBySlugPage({ params }: Props) {
           pendingEditsByField={pendingEditsByField}
         />
 
-        <div className="mt-4 flex justify-end">
-          <PlaceEditActions
-            place={{
-              id: place.id,
-              name: place.name,
-              address: place.address,
-              numero: place.numero,
-              bairro: place.bairro,
-              cidade: place.cidade,
-              estado: place.estado,
-              establishmentType: place.establishmentType,
-              priceBucket: place.priceBucket,
-              attributes: place.attributes,
-              periods: place.periods,
-            }}
-            pendingEditsByField={pendingEditsByField}
-          />
-        </div>
+        <PlaceEditActions
+          place={{
+            id: place.id,
+            name: place.name,
+            address: place.address,
+            numero: place.numero,
+            bairro: place.bairro,
+            cidade: place.cidade,
+            estado: place.estado,
+            establishmentType: place.establishmentType,
+            priceBucket: place.priceBucket,
+            description: place.description,
+            attributes: place.attributes,
+            periods: place.periods,
+          }}
+          pendingEditsByField={pendingEditsByField}
+        />
 
         <hr className="my-6 border-border" />
 
