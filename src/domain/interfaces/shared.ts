@@ -7,6 +7,7 @@ export interface SearchPlacesParams {
   lng: number;
   radiusMeters?: number;
   period?: OperatingPeriod;
+  establishmentType?: 'restaurante' | 'bar' | 'padaria';
   attributeKey?: string;
   attributeValue?: string;
   maxPrice?: number;

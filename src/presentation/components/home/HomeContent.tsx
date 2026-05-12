@@ -64,6 +64,27 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
     setFilters(rest);
   }
 
+  /**
+   * Derives attributeKey + attributeValue from contextual filters.
+   * Priority order: service_type > food_tags > bar_focus > drink_tags >
+   *                 has_happy_hour > specialty_tags > opens_early
+   */
+  function deriveAttributeFilter(ctx: FilterValues['contextual']): {
+    attributeKey?: string;
+    attributeValue?: string;
+  } {
+    if (!ctx) return {};
+    if (ctx.serviceType) return { attributeKey: 'service_type', attributeValue: ctx.serviceType };
+    if (ctx.foodTag) return { attributeKey: 'food_tags', attributeValue: ctx.foodTag };
+    if (ctx.barFocus) return { attributeKey: 'bar_focus', attributeValue: ctx.barFocus };
+    if (ctx.drinkTag) return { attributeKey: 'drink_tags', attributeValue: ctx.drinkTag };
+    if (ctx.hasHappyHour) return { attributeKey: 'has_happy_hour', attributeValue: 'true' };
+    if (ctx.specialtyTag)
+      return { attributeKey: 'specialty_tags', attributeValue: ctx.specialtyTag };
+    if (ctx.opensEarly) return { attributeKey: 'opens_early', attributeValue: 'true' };
+    return {};
+  }
+
   const hasLocation = geo.lat != null && geo.lng != null;
 
   // Apply initial location from onboarding (city-search path)
@@ -98,6 +119,8 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
       )[filters.priceBucket]
     : undefined;
 
+  const attributeFilter = deriveAttributeFilter(filters.contextual);
+
   const { places, isLoading: placesLoading } = useNearbyPlaces(
     hasLocation
       ? {
@@ -105,6 +128,9 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
           lng: geo.lng!,
           radiusMeters: radius,
           period: filters.period,
+          establishmentType: filters.establishmentType,
+          attributeKey: attributeFilter.attributeKey,
+          attributeValue: attributeFilter.attributeValue,
           maxPrice,
         }
       : null,

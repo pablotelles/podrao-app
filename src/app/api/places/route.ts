@@ -21,13 +21,24 @@ export async function GET(req: NextRequest) {
         { status: 400 },
       );
 
-    const { lat, lng, radius, period, attributeKey, attributeValue, maxPrice, limit, offset } =
-      parsed.data;
+    const {
+      lat,
+      lng,
+      radius,
+      period,
+      establishmentType,
+      attributeKey,
+      attributeValue,
+      maxPrice,
+      limit,
+      offset,
+    } = parsed.data;
     const places = await searchNearbyPlaces.execute({
       lat,
       lng,
       radiusMeters: radius,
       period,
+      establishmentType,
       attributeKey,
       attributeValue,
       maxPrice,

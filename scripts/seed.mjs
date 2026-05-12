@@ -94,6 +94,7 @@ const LIST_COVERS = [
 
 // ---------------------------------------------------------------------------
 // Dados dos lugares — 32 places no centro expandido de São Paulo
+// attributes usa os valores exatos esperados pelos filtros contextuais do KAN-52
 // ---------------------------------------------------------------------------
 function buildPlaces() {
   const p = (photo) => RESTAURANT_PHOTOS[photo % RESTAURANT_PHOTOS.length];
@@ -117,7 +118,10 @@ function buildPlaces() {
         'O PF mais querido do Centro: arroz, feijão, bife acebolado e salada por R$18. Fila garantida na hora do almoço.',
       periods: ['tarde'],
       photo: p(0),
-      tags: ['self_service'],
+      attributes: [
+        { key: 'service_type', value: 'Prato feito' },
+        { key: 'food_tags', value: 'Comida caseira' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -136,7 +140,7 @@ function buildPlaces() {
         'Cantina italiana tradicional no coração do Bixiga. Massas artesanais e molho vermelho de dar água na boca.',
       periods: ['tarde', 'noite'],
       photo: p(1),
-      tags: ['italian'],
+      attributes: [{ key: 'service_type', value: 'À la carte' }],
     },
     {
       id: crypto.randomUUID(),
@@ -155,7 +159,10 @@ function buildPlaces() {
         'Buffet de saladas e pratos quentes por quilo. Opções vegetarianas e veganas todo dia. Ótimo custo-benefício.',
       periods: ['tarde'],
       photo: p(2),
-      tags: ['vegetarian', 'buffet'],
+      attributes: [
+        { key: 'service_type', value: 'Self-service por quilo' },
+        { key: 'food_tags', value: 'Vegano' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -174,7 +181,10 @@ function buildPlaces() {
         'Restaurante japonês com rodízio de temaki, sashimi e hot rolls. Ambiente familiar, muito movimentado nos fins de semana.',
       periods: ['tarde', 'noite'],
       photo: p(3),
-      tags: ['japanese', 'sushi'],
+      attributes: [
+        { key: 'service_type', value: 'Buffet livre' },
+        { key: 'food_tags', value: 'Sushi / japonesa' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -193,7 +203,10 @@ function buildPlaces() {
         'Rodízio de churrasco com mais de 20 cortes. Buffet premium com saladas e acompanhamentos tradicionais gaúchos.',
       periods: ['tarde', 'noite'],
       photo: p(4),
-      tags: ['bbq', 'rodizio'],
+      attributes: [
+        { key: 'service_type', value: 'Buffet livre' },
+        { key: 'food_tags', value: 'Churrasco' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -212,7 +225,10 @@ function buildPlaces() {
         'Culinária mineira autêntica: feijão tropeiro, frango com quiabo, tutu de feijão e um torresmo crocante incrível.',
       periods: ['tarde'],
       photo: p(5),
-      tags: ['mineiro', 'buffet'],
+      attributes: [
+        { key: 'service_type', value: 'Self-service por quilo' },
+        { key: 'food_tags', value: 'Comida caseira' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -231,7 +247,7 @@ function buildPlaces() {
         'Bistrô contemporâneo com menu executivo e opções à la carte. Ambiente agradável próximo à Praça da República.',
       periods: ['tarde', 'noite'],
       photo: p(6),
-      tags: ['contemporary'],
+      attributes: [{ key: 'service_type', value: 'À la carte' }],
     },
     {
       id: crypto.randomUUID(),
@@ -250,7 +266,10 @@ function buildPlaces() {
         'Comida caseira da vovó: prato do dia que inclui sopa, prato principal, sobremesa e suco. Almoço por menos de R$25.',
       periods: ['tarde'],
       photo: p(7),
-      tags: ['homestyle', 'self_service'],
+      attributes: [
+        { key: 'service_type', value: 'Prato feito' },
+        { key: 'food_tags', value: 'Comida caseira' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -269,7 +288,10 @@ function buildPlaces() {
         'Almoço mineiro no estilo quilo. Pratos típicos com ingredientes frescos e muito tempero da roça.',
       periods: ['tarde'],
       photo: p(8),
-      tags: ['mineiro', 'por_kilo'],
+      attributes: [
+        { key: 'service_type', value: 'Self-service por quilo' },
+        { key: 'food_tags', value: 'Comida caseira' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -288,7 +310,7 @@ function buildPlaces() {
         'PF simples e honesto no coração do Brás. Frequentado por trabalhadores e lojistas locais. Fila rápida.',
       periods: ['tarde'],
       photo: p(9),
-      tags: ['self_service'],
+      attributes: [{ key: 'service_type', value: 'Prato feito' }],
     },
     {
       id: crypto.randomUUID(),
@@ -307,7 +329,10 @@ function buildPlaces() {
         'Pizzaria napoletana com forno a lenha. Massas finas, molho de tomate italiano e mussarela de búfala. Irresistível.',
       periods: ['noite'],
       photo: p(10),
-      tags: ['pizza', 'italian'],
+      attributes: [
+        { key: 'service_type', value: 'À la carte' },
+        { key: 'food_tags', value: 'Pizza' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -326,7 +351,10 @@ function buildPlaces() {
         'Famoso pelo feijão tropeiro e o torresmo mais gostoso do centro. Almoço rápido e barato. Desde 1987.',
       periods: ['tarde'],
       photo: p(11),
-      tags: ['mineiro', 'self_service'],
+      attributes: [
+        { key: 'service_type', value: 'Prato feito' },
+        { key: 'food_tags', value: 'Comida caseira' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -345,7 +373,10 @@ function buildPlaces() {
         'Sushi bar com peixes frescos importados e combinados premiados. O melhor custo-benefício em sushi da Liberdade.',
       periods: ['tarde', 'noite'],
       photo: p(12),
-      tags: ['japanese', 'sushi'],
+      attributes: [
+        { key: 'service_type', value: 'À la carte' },
+        { key: 'food_tags', value: 'Sushi / japonesa' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -364,7 +395,10 @@ function buildPlaces() {
         '100% vegetariano. Buffet por quilo com diversas opções veganas, saladas criativas e pratos quentes sem carne.',
       periods: ['tarde'],
       photo: p(13),
-      tags: ['vegetarian', 'vegan', 'buffet'],
+      attributes: [
+        { key: 'service_type', value: 'Self-service por quilo' },
+        { key: 'food_tags', value: 'Vegano' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -383,7 +417,7 @@ function buildPlaces() {
         'Espetinhos na brasa com farinha de mandioca. O destino perfeito para um lanche rápido e saboroso.',
       periods: ['tarde', 'noite'],
       photo: p(14),
-      tags: ['bbq', 'street_food'],
+      attributes: [{ key: 'service_type', value: 'Prato feito' }],
     },
     {
       id: crypto.randomUUID(),
@@ -402,7 +436,10 @@ function buildPlaces() {
         'Culinária árabe autêntica: esfiha, kibe, homus e prato árabe completo. Ambiente familiar e porções generosas.',
       periods: ['tarde', 'noite'],
       photo: p(15),
-      tags: ['arabic', 'middle_eastern'],
+      attributes: [
+        { key: 'service_type', value: 'À la carte' },
+        { key: 'food_tags', value: 'Árabe' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -421,7 +458,7 @@ function buildPlaces() {
         'Massas artesanais com molhos da casa. Nhoque de domingo e ravióli recheado de queijo e ervas são os favoritos.',
       periods: ['tarde', 'noite'],
       photo: p(16),
-      tags: ['italian', 'pasta'],
+      attributes: [{ key: 'service_type', value: 'À la carte' }],
     },
     {
       id: crypto.randomUUID(),
@@ -440,7 +477,10 @@ function buildPlaces() {
         'Galinhada caipira no caldeirão com arroz soltinho. A receita passou de geração em geração. Imperdível.',
       periods: ['tarde'],
       photo: p(17),
-      tags: ['homestyle', 'self_service'],
+      attributes: [
+        { key: 'service_type', value: 'Prato feito' },
+        { key: 'food_tags', value: 'Comida caseira' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -459,7 +499,10 @@ function buildPlaces() {
         'Comida nordestina de verdade: baião de dois, carne de sol, buchada de bode e muito tempero do sertão.',
       periods: ['tarde'],
       photo: p(18),
-      tags: ['northeastern', 'self_service'],
+      attributes: [
+        { key: 'service_type', value: 'Self-service por quilo' },
+        { key: 'food_tags', value: 'Nordestina' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -478,7 +521,7 @@ function buildPlaces() {
         'Clássico boteco paulistano com cardápio de petiscos farto. Bolinhos de bacalhau e pastéis de feira são os destaques.',
       periods: ['tarde', 'noite'],
       photo: p(19),
-      tags: ['petiscos', 'traditional'],
+      attributes: [{ key: 'service_type', value: 'À la carte' }],
     },
 
     // ── BARES ──────────────────────────────────────────────────────────────
@@ -499,7 +542,11 @@ function buildPlaces() {
         'Bar histórico do Bixiga com chope gelado, petiscos italianos e muita samba ao vivo nos fins de semana.',
       periods: ['noite', 'madrugada'],
       photo: p(20),
-      tags: ['live_music', 'chopp'],
+      attributes: [
+        { key: 'bar_focus', value: 'Comida e bebida igual' },
+        { key: 'drink_tags', value: 'Chopp / cerveja' },
+        { key: 'has_happy_hour', value: 'true' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -518,7 +565,10 @@ function buildPlaces() {
         'Boteco simples, honesto e barato. Cerveja gelada, pastel e caldo de frango desde as 17h. O povo mais autêntico da cidade.',
       periods: ['tarde', 'noite'],
       photo: p(21),
-      tags: ['chopp', 'petiscos'],
+      attributes: [
+        { key: 'bar_focus', value: 'Bebida com petisco' },
+        { key: 'drink_tags', value: 'Chopp / cerveja' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -537,7 +587,11 @@ function buildPlaces() {
         'Ícone paulistano fundado em 1948. Chope Brahma no pé, petiscos clássicos e arquitetura art déco preservada. Patrimônio da cidade.',
       periods: ['tarde', 'noite'],
       photo: p(22),
-      tags: ['historic', 'chopp', 'live_music'],
+      attributes: [
+        { key: 'bar_focus', value: 'Comida e bebida igual' },
+        { key: 'drink_tags', value: 'Chopp / cerveja' },
+        { key: 'has_happy_hour', value: 'true' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -556,7 +610,10 @@ function buildPlaces() {
         'Bar 24 horas famoso pelo sanduíche de pernil. Frequentado por jornalistas, boêmios e trabalhadores noturnos há décadas.',
       periods: ['noite', 'madrugada', 'manha'],
       photo: p(23),
-      tags: ['24h', 'historic', 'sandwich'],
+      attributes: [
+        { key: 'bar_focus', value: 'Bebida com petisco' },
+        { key: 'drink_tags', value: 'Chopp / cerveja' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -575,7 +632,10 @@ function buildPlaces() {
         'Bar japonês com extensa carta de saquês, shochus e cervejas japonesas. Edamame, gyoza e yakitori na pedida.',
       periods: ['noite'],
       photo: p(24),
-      tags: ['japanese', 'sake'],
+      attributes: [
+        { key: 'bar_focus', value: 'Bebida com petisco' },
+        { key: 'drink_tags', value: 'Drinks / coquetelaria' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -594,7 +654,11 @@ function buildPlaces() {
         'Bar de bairro descolado com DJs aos fins de semana, drinks autorais e petiscos criativos. Ambiente jovem e despojado.',
       periods: ['noite', 'madrugada'],
       photo: p(25),
-      tags: ['dj', 'cocktails', 'young'],
+      attributes: [
+        { key: 'bar_focus', value: 'Bebida com petisco' },
+        { key: 'drink_tags', value: 'Drinks / coquetelaria' },
+        { key: 'has_happy_hour', value: 'true' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -613,7 +677,11 @@ function buildPlaces() {
         'Choperia tradicional com 12 torneiras de chope artesanal. Petiscos para compartilhar e ambiente de calçada agradável.',
       periods: ['tarde', 'noite'],
       photo: p(26),
-      tags: ['craft_beer', 'chopp'],
+      attributes: [
+        { key: 'bar_focus', value: 'Bebida com petisco' },
+        { key: 'drink_tags', value: 'Chopp / cerveja' },
+        { key: 'has_happy_hour', value: 'true' },
+      ],
     },
 
     // ── PADARIAS ───────────────────────────────────────────────────────────
@@ -634,7 +702,7 @@ function buildPlaces() {
         'Padaria japonesa com melonpan, anpan, pão de sal e chá verde gelado. Um pedaço do Japão no coração da Liberdade.',
       periods: ['manha', 'tarde'],
       photo: p(27),
-      tags: ['japanese', 'bread'],
+      attributes: [{ key: 'specialty_tags', value: 'Pão artesanal' }],
     },
     {
       id: crypto.randomUUID(),
@@ -653,7 +721,10 @@ function buildPlaces() {
         'Padaria tradicional aberta às 5h da manhã. Pão na chapa, coxinha e café com leite que sustentam trabalhadores do centro há 40 anos.',
       periods: ['manha', 'tarde'],
       photo: p(28),
-      tags: ['traditional', 'breakfast'],
+      attributes: [
+        { key: 'specialty_tags', value: 'Salgados' },
+        { key: 'opens_early', value: 'true' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -672,7 +743,11 @@ function buildPlaces() {
         'Padaria artesanal com pães de fermentação lenta, croissants amanteigados e cafés especiais. Café da manhã premium.',
       periods: ['manha', 'tarde'],
       photo: p(29),
-      tags: ['artisan', 'specialty_coffee', 'croissant'],
+      attributes: [
+        { key: 'specialty_tags', value: 'Pão artesanal' },
+        { key: 'specialty_tags', value: 'Café especial' },
+        { key: 'opens_early', value: 'true' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -691,7 +766,7 @@ function buildPlaces() {
         'Padaria de bairro com café fresquinho, pão francês quentinho e bisnaguinha para o lanche. Preço imbatível.',
       periods: ['manha', 'tarde'],
       photo: p(30),
-      tags: ['traditional', 'breakfast'],
+      attributes: [{ key: 'specialty_tags', value: 'Salgados' }],
     },
     {
       id: crypto.randomUUID(),
@@ -710,7 +785,10 @@ function buildPlaces() {
         'Padaria aberta há 30 anos no bairro. Famosa pelo pão de queijo gigante e pelos salgados feitos na hora.',
       periods: ['manha', 'tarde'],
       photo: p(31),
-      tags: ['traditional', 'breakfast', 'snacks'],
+      attributes: [
+        { key: 'specialty_tags', value: 'Salgados' },
+        { key: 'specialty_tags', value: 'Doces / confeitaria' },
+      ],
     },
   ];
 }
@@ -1280,28 +1358,11 @@ async function main() {
       );
     }
 
-    // atributos (food_tags, service_type, etc.)
-    for (const tag of place.tags ?? []) {
-      const key = [
-        'self_service',
-        'buffet',
-        'por_kilo',
-        'rodizio',
-        'street_food',
-        '24h',
-        'homestyle',
-        'traditional',
-      ].includes(tag)
-        ? 'service_type'
-        : ['live_music', 'dj'].includes(tag)
-          ? 'entertainment'
-          : ['chopp', 'craft_beer', 'sake', 'cocktails'].includes(tag)
-            ? 'drink_tags'
-            : 'food_tags';
-
+    // atributos contextuais (service_type, food_tags, bar_focus, drink_tags, etc.)
+    for (const attr of place.attributes ?? []) {
       await client.query(
         `INSERT INTO place_attributes (place_id, key, value) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
-        [place.id, key, tag],
+        [place.id, attr.key, attr.value],
       );
     }
 

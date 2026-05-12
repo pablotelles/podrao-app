@@ -12,6 +12,7 @@ function buildGeoKey(dto: SearchPlacesDTO): string {
     lng,
     dto.radiusMeters ?? 3000,
     dto.period ?? 'all',
+    dto.establishmentType ?? 'all',
     dto.attributeKey ? `${dto.attributeKey}:${dto.attributeValue ?? ''}` : 'all',
     dto.maxPrice ?? 'all',
   ].join(':');
@@ -41,6 +42,7 @@ export class SearchNearbyPlaces {
       lng: dto.lng,
       radiusMeters: dto.radiusMeters,
       period: dto.period,
+      establishmentType: dto.establishmentType,
       attributeKey: dto.attributeKey,
       attributeValue: dto.attributeValue,
       maxPrice: dto.maxPrice,

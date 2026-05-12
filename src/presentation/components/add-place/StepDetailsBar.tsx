@@ -2,17 +2,12 @@
 
 import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import { FieldGroup, ChipWrap, RadioItem, PeriodChips, ToggleRow } from './shared';
-
-const BAR_FOCUS_OPTIONS = ['Comida e bebida igual', 'Bebida com petisco', 'Só bebida'] as const;
-type BarFocus = (typeof BAR_FOCUS_OPTIONS)[number];
-
-const DRINK_TAGS = [
-  'Chopp / cerveja',
-  'Drinks / coquetelaria',
-  'Vinho',
-  'Cachaça / doses',
-] as const;
-type DrinkTag = (typeof DRINK_TAGS)[number];
+import {
+  BAR_FOCUS_OPTIONS,
+  type BarFocus,
+  DRINK_TAGS,
+  type DrinkTag,
+} from '@/presentation/lib/place-attributes';
 
 const BAR_PERIODS = ['tarde', 'noite', 'madrugada'] as const satisfies readonly OperatingPeriod[];
 

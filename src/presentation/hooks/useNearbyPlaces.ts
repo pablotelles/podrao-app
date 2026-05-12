@@ -11,6 +11,7 @@ function buildUrl(params: SearchPlacesDTO | null): string | null {
     lng: String(params.lng),
     ...(params.radiusMeters && { radius: String(params.radiusMeters) }),
     ...(params.period && { period: params.period }),
+    ...(params.establishmentType && { establishmentType: params.establishmentType }),
     ...(params.attributeKey && { attributeKey: params.attributeKey }),
     ...(params.attributeValue && { attributeValue: params.attributeValue }),
     ...(params.maxPrice && { maxPrice: String(params.maxPrice) }),

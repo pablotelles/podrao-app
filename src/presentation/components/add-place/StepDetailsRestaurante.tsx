@@ -2,32 +2,14 @@
 
 import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import { FieldGroup, ChipWrap, RadioItem, PeriodChips } from './shared';
-
-const SERVICE_TYPES = [
-  'À la carte',
-  'Self-service por quilo',
-  'Prato feito',
-  'Buffet livre',
-] as const;
-type ServiceType = (typeof SERVICE_TYPES)[number];
-
-const FOOD_TAGS = [
-  'Comida caseira',
-  'Churrasco',
-  'Pizza',
-  'Sushi / japonesa',
-  'Nordestina',
-  'Árabe',
-  'Mexicana',
-  'Asiática',
-  'Hambúrguer',
-  'Vegano',
-  'Frutos do mar',
-] as const;
-type FoodTag = (typeof FOOD_TAGS)[number];
-
-const PAYMENT_METHODS = ['VR', 'VA', 'Pix', 'Cartão', 'Dinheiro'] as const;
-type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+import {
+  SERVICE_TYPES,
+  type ServiceType,
+  FOOD_TAGS,
+  type FoodTag,
+  PAYMENT_METHODS,
+  type PaymentMethod,
+} from '@/presentation/lib/place-attributes';
 
 const RESTAURANTE_PERIODS = [
   'manha',

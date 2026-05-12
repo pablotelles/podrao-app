@@ -30,6 +30,7 @@ export const searchPlacesSchema = z.object({
   lng: z.coerce.number().min(-180).max(180),
   radius: z.coerce.number().min(100).max(50000).optional(),
   period: z.enum(OPERATING_PERIODS).optional(),
+  establishmentType: z.enum(['restaurante', 'bar', 'padaria']).optional(),
   attributeKey: z.string().optional(),
   attributeValue: z.string().optional(),
   maxPrice: z.coerce.number().positive().optional(),

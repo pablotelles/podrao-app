@@ -2,16 +2,7 @@
 
 import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import { FieldGroup, ChipWrap, PeriodChips, ToggleRow } from './shared';
-
-const SPECIALTY_TAGS = [
-  'Pão artesanal',
-  'Café especial',
-  'Doces / confeitaria',
-  'Salgados',
-  'Marmita / prato feito',
-  'Vegano',
-] as const;
-type SpecialtyTag = (typeof SPECIALTY_TAGS)[number];
+import { SPECIALTY_TAGS, type SpecialtyTag } from '@/presentation/lib/place-attributes';
 
 const PADARIA_PERIODS = ['manha', 'tarde'] as const satisfies readonly OperatingPeriod[];
 

@@ -123,6 +123,10 @@ export class SupabasePlaceRepository implements IPlaceRepository {
       rows = rows.filter((r) => (r.place_periods ?? []).some((p) => p.period === params.period));
     }
 
+    if (params.establishmentType) {
+      rows = rows.filter((r) => r.establishment_type === params.establishmentType);
+    }
+
     if (params.attributeKey && params.attributeValue) {
       rows = rows.filter((r) =>
         (r.place_attributes ?? []).some(
