@@ -75,61 +75,60 @@ function PlaceReviewItem({
   ];
 
   return (
-    <div className="py-3 border-b border-border last:border-b-0">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          {/* Avatar */}
-          <div className="shrink-0 h-7 w-7 overflow-hidden rounded-full">
-            {review.authorAvatarUrl ? (
-              <Image
-                src={review.authorAvatarUrl}
-                alt={nickname}
-                width={28}
-                height={28}
-                className="object-cover h-7 w-7"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-brand-subtle">
-                {isOwnReview ? (
-                  <UserCircle2 size={16} className="text-brand" />
-                ) : (
-                  <span className="text-[10px] font-semibold text-brand">{initials}</span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <span className="text-sm font-semibold text-text-primary truncate block">
-              {nickname}
-            </span>
-            <div className="flex items-center gap-1 mt-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  size={12}
-                  className={i < review.rating ? 'fill-warning text-warning' : 'text-border'}
-                />
-              ))}
+    <div className="border-b border-border py-3 last:border-b-0">
+      {/* Header: avatar + meta (nome + data) | stars + menu */}
+      <div className="mb-1.5 flex items-center gap-2">
+        {/* Avatar 32×32 */}
+        <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full">
+          {review.authorAvatarUrl ? (
+            <Image
+              src={review.authorAvatarUrl}
+              alt={nickname}
+              width={32}
+              height={32}
+              className="h-8 w-8 object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-brand-subtle">
+              {isOwnReview ? (
+                <UserCircle2 size={16} className="text-brand" />
+              ) : (
+                <span className="text-[11px] font-bold text-brand">{initials}</span>
+              )}
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          <span className="text-xs text-text-disabled">{relativeDate(review.createdAt)}</span>
+        {/* Meta: nome + data abaixo */}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold text-text-primary">{nickname}</p>
+          <p className="text-[11px] text-text-secondary">{relativeDate(review.createdAt)}</p>
+        </div>
+
+        {/* Stars + menu — direita */}
+        <div className="flex shrink-0 items-center gap-1">
+          <div className="flex gap-px">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                size={11}
+                className={i < review.rating ? 'fill-warning text-warning' : 'text-border'}
+              />
+            ))}
+          </div>
           <button
             onClick={() => setMenuOpen(true)}
-            className="shrink-0 text-text-disabled hover:text-text-secondary p-1"
+            className="p-1 text-text-disabled hover:text-text-secondary"
             aria-label="Opções da avaliação"
           >
-            <MoreVertical size={16} />
+            <MoreVertical size={15} />
           </button>
         </div>
       </div>
 
       {displayedComment && (
-        <div className="mt-1.5">
-          <p className="text-sm text-text-secondary">{displayedComment}</p>
+        <div>
+          <p className="text-[15px] leading-relaxed text-text-primary">{displayedComment}</p>
           {isTruncatable && (
             <button
               onClick={() => setExpanded((v) => !v)}
@@ -159,14 +158,24 @@ interface PlaceReviewListProps {
 export function PlaceReviewList({ reviews, placeId, currentUserId }: PlaceReviewListProps) {
   const [visibleCount, setVisibleCount] = useState(REVIEW_INITIAL_VISIBLE);
 
-  if (!reviews.length) return null;
+  if (!reviews.length) {
+    return (
+      <div className="py-6 text-center">
+        <p className="text-3xl">💬</p>
+        <p className="mt-2 text-[15px] font-semibold text-text-primary">Ainda sem avaliações</p>
+        <p className="mt-1 text-[13px] text-text-secondary">
+          Seja a primeira pessoa a avaliar este lugar
+        </p>
+      </div>
+    );
+  }
 
   const visible = reviews.slice(0, visibleCount);
   const hasMore = visibleCount < reviews.length;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="pb-2">
+    <div className="flex flex-col">
+      <div>
         {visible.map((r) => (
           <PlaceReviewItem
             key={r.id}
@@ -180,7 +189,7 @@ export function PlaceReviewList({ reviews, placeId, currentUserId }: PlaceReview
       {hasMore && (
         <button
           onClick={() => setVisibleCount((v) => v + REVIEW_PAGE_SIZE)}
-          className="w-full rounded-full border border-border py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-subtle"
+          className="mt-3 w-full rounded-full border border-border py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-subtle"
         >
           Ver mais avaliações ({reviews.length - visibleCount} restantes)
         </button>

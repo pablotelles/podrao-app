@@ -121,6 +121,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Prato feito' },
         { key: 'food_tags', value: 'Comida caseira' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Dinheiro' },
       ],
     },
     {
@@ -140,7 +144,13 @@ function buildPlaces() {
         'Cantina italiana tradicional no coração do Bixiga. Massas artesanais e molho vermelho de dar água na boca.',
       periods: ['tarde', 'noite'],
       photo: p(1),
-      attributes: [{ key: 'service_type', value: 'À la carte' }],
+      attributes: [
+        { key: 'service_type', value: 'À la carte' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -162,6 +172,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Self-service por quilo' },
         { key: 'food_tags', value: 'Vegano' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Dinheiro' },
       ],
     },
     {
@@ -184,6 +198,8 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Buffet livre' },
         { key: 'food_tags', value: 'Sushi / japonesa' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -206,6 +222,8 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Buffet livre' },
         { key: 'food_tags', value: 'Churrasco' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
     {
@@ -228,6 +246,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Self-service por quilo' },
         { key: 'food_tags', value: 'Comida caseira' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -247,7 +269,11 @@ function buildPlaces() {
         'Bistrô contemporâneo com menu executivo e opções à la carte. Ambiente agradável próximo à Praça da República.',
       periods: ['tarde', 'noite'],
       photo: p(6),
-      attributes: [{ key: 'service_type', value: 'À la carte' }],
+      attributes: [
+        { key: 'service_type', value: 'À la carte' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Pix' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -269,6 +295,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Prato feito' },
         { key: 'food_tags', value: 'Comida caseira' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
     {
@@ -291,6 +321,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Self-service por quilo' },
         { key: 'food_tags', value: 'Comida caseira' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -310,7 +344,11 @@ function buildPlaces() {
         'PF simples e honesto no coração do Brás. Frequentado por trabalhadores e lojistas locais. Fila rápida.',
       periods: ['tarde'],
       photo: p(9),
-      attributes: [{ key: 'service_type', value: 'Prato feito' }],
+      attributes: [
+        { key: 'service_type', value: 'Prato feito' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -332,6 +370,8 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'À la carte' },
         { key: 'food_tags', value: 'Pizza' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -354,6 +394,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Prato feito' },
         { key: 'food_tags', value: 'Comida caseira' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Dinheiro' },
       ],
     },
     {
@@ -376,6 +420,8 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'À la carte' },
         { key: 'food_tags', value: 'Sushi / japonesa' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
     {
@@ -398,6 +444,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Self-service por quilo' },
         { key: 'food_tags', value: 'Vegano' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -417,7 +467,11 @@ function buildPlaces() {
         'Espetinhos na brasa com farinha de mandioca. O destino perfeito para um lanche rápido e saboroso.',
       periods: ['tarde', 'noite'],
       photo: p(14),
-      attributes: [{ key: 'service_type', value: 'Prato feito' }],
+      attributes: [
+        { key: 'service_type', value: 'Prato feito' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -439,6 +493,9 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'À la carte' },
         { key: 'food_tags', value: 'Árabe' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -458,7 +515,11 @@ function buildPlaces() {
         'Massas artesanais com molhos da casa. Nhoque de domingo e ravióli recheado de queijo e ervas são os favoritos.',
       periods: ['tarde', 'noite'],
       photo: p(16),
-      attributes: [{ key: 'service_type', value: 'À la carte' }],
+      attributes: [
+        { key: 'service_type', value: 'À la carte' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Pix' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -480,6 +541,9 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Prato feito' },
         { key: 'food_tags', value: 'Comida caseira' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Dinheiro' },
       ],
     },
     {
@@ -502,6 +566,10 @@ function buildPlaces() {
       attributes: [
         { key: 'service_type', value: 'Self-service por quilo' },
         { key: 'food_tags', value: 'Nordestina' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
     {
@@ -521,7 +589,12 @@ function buildPlaces() {
         'Clássico boteco paulistano com cardápio de petiscos farto. Bolinhos de bacalhau e pastéis de feira são os destaques.',
       periods: ['tarde', 'noite'],
       photo: p(19),
-      attributes: [{ key: 'service_type', value: 'À la carte' }],
+      attributes: [
+        { key: 'service_type', value: 'À la carte' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+      ],
     },
 
     // ── BARES ──────────────────────────────────────────────────────────────
@@ -546,6 +619,9 @@ function buildPlaces() {
         { key: 'bar_focus', value: 'Comida e bebida igual' },
         { key: 'drink_tags', value: 'Chopp / cerveja' },
         { key: 'has_happy_hour', value: 'true' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Dinheiro' },
       ],
     },
     {
@@ -568,6 +644,8 @@ function buildPlaces() {
       attributes: [
         { key: 'bar_focus', value: 'Bebida com petisco' },
         { key: 'drink_tags', value: 'Chopp / cerveja' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
     {
@@ -591,6 +669,8 @@ function buildPlaces() {
         { key: 'bar_focus', value: 'Comida e bebida igual' },
         { key: 'drink_tags', value: 'Chopp / cerveja' },
         { key: 'has_happy_hour', value: 'true' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
     {
@@ -613,6 +693,9 @@ function buildPlaces() {
       attributes: [
         { key: 'bar_focus', value: 'Bebida com petisco' },
         { key: 'drink_tags', value: 'Chopp / cerveja' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Dinheiro' },
       ],
     },
     {
@@ -635,6 +718,8 @@ function buildPlaces() {
       attributes: [
         { key: 'bar_focus', value: 'Bebida com petisco' },
         { key: 'drink_tags', value: 'Drinks / coquetelaria' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -658,6 +743,8 @@ function buildPlaces() {
         { key: 'bar_focus', value: 'Bebida com petisco' },
         { key: 'drink_tags', value: 'Drinks / coquetelaria' },
         { key: 'has_happy_hour', value: 'true' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -681,6 +768,9 @@ function buildPlaces() {
         { key: 'bar_focus', value: 'Bebida com petisco' },
         { key: 'drink_tags', value: 'Chopp / cerveja' },
         { key: 'has_happy_hour', value: 'true' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
+        { key: 'payment_methods', value: 'Dinheiro' },
       ],
     },
 
@@ -702,7 +792,11 @@ function buildPlaces() {
         'Padaria japonesa com melonpan, anpan, pão de sal e chá verde gelado. Um pedaço do Japão no coração da Liberdade.',
       periods: ['manha', 'tarde'],
       photo: p(27),
-      attributes: [{ key: 'specialty_tags', value: 'Pão artesanal' }],
+      attributes: [
+        { key: 'specialty_tags', value: 'Pão artesanal' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -724,6 +818,9 @@ function buildPlaces() {
       attributes: [
         { key: 'specialty_tags', value: 'Salgados' },
         { key: 'opens_early', value: 'true' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
     {
@@ -747,6 +844,9 @@ function buildPlaces() {
         { key: 'specialty_tags', value: 'Pão artesanal' },
         { key: 'specialty_tags', value: 'Café especial' },
         { key: 'opens_early', value: 'true' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Pix' },
+        { key: 'payment_methods', value: 'Cartão' },
       ],
     },
     {
@@ -766,7 +866,11 @@ function buildPlaces() {
         'Padaria de bairro com café fresquinho, pão francês quentinho e bisnaguinha para o lanche. Preço imbatível.',
       periods: ['manha', 'tarde'],
       photo: p(30),
-      attributes: [{ key: 'specialty_tags', value: 'Salgados' }],
+      attributes: [
+        { key: 'specialty_tags', value: 'Salgados' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
+      ],
     },
     {
       id: crypto.randomUUID(),
@@ -788,6 +892,10 @@ function buildPlaces() {
       attributes: [
         { key: 'specialty_tags', value: 'Salgados' },
         { key: 'specialty_tags', value: 'Doces / confeitaria' },
+        { key: 'payment_methods', value: 'VR' },
+        { key: 'payment_methods', value: 'VA' },
+        { key: 'payment_methods', value: 'Dinheiro' },
+        { key: 'payment_methods', value: 'Pix' },
       ],
     },
   ];

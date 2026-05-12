@@ -34,6 +34,16 @@
     --color-warning-bg: #fef3c7;
     --color-error-bg: #fef2f2;
 
+    /* VR/VA badge tokens — vale-refeição / vale-alimentação destaque */
+    --color-vr-bg: #ecfdf5;
+    --color-vr-text: #065f46;
+    --color-vr-border: #6ee7b7;
+
+    /* Highlight card tokens — happy hour / opens early */
+    --color-highlight-bg: #fef9c3;
+    --color-highlight-border: #fde047;
+    --color-highlight-text: #713f12;
+
     /* Espaçamento */
     --spacing-page-x: 1rem;
     --spacing-card-gap: 0.75rem;
@@ -134,6 +144,14 @@
   --color-success-bg: var(--color-success-bg);
   --color-warning-bg: var(--color-warning-bg);
   --color-error-bg: var(--color-error-bg);
+
+  --color-vr-bg: var(--color-vr-bg);
+  --color-vr-text: var(--color-vr-text);
+  --color-vr-border: var(--color-vr-border);
+
+  --color-highlight-bg: var(--color-highlight-bg);
+  --color-highlight-border: var(--color-highlight-border);
+  --color-highlight-text: var(--color-highlight-text);
 
   --font-family-sans: var(--font-sans);
 
