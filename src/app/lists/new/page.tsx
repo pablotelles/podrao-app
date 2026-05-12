@@ -9,7 +9,6 @@ import { PageContent, Button } from '@/presentation/components/ui';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { CoverSelector } from '@/presentation/components/lists/CoverSelector';
 import { PrivacyToggle } from '@/presentation/components/lists/PrivacyToggle';
-import { ConfigurationToggles } from '@/presentation/components/lists/ConfigurationToggles';
 
 export default function NewListPage() {
   usePageTitle('Nova lista');
@@ -20,8 +19,6 @@ export default function NewListPage() {
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [coverUrl, setCoverUrl] = useState<string | undefined>();
-  const [allowSave, setAllowSave] = useState(true);
-  const [allowComments, setAllowComments] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,16 +98,6 @@ export default function NewListPage() {
           {/* Capa da lista */}
           <section>
             <CoverSelector value={coverUrl} onChange={setCoverUrl} />
-          </section>
-
-          {/* Configurações */}
-          <section>
-            <ConfigurationToggles
-              allowSave={allowSave}
-              allowComments={allowComments}
-              onAllowSaveChange={setAllowSave}
-              onAllowCommentsChange={setAllowComments}
-            />
           </section>
 
           {error && (
