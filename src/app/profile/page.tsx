@@ -76,7 +76,7 @@ export default function ProfilePage() {
             <span className="text-sm font-medium">Sair da conta</span>
           </button>
         </div>
-        <p className="text-center text-xs text-text-disabled pb-2 pt-4">Onde Comer · MVP</p>
+        <p className="text-center text-xs text-text-disabled pb-2 pt-4">Podrao · MVP</p>
       </div>
     </main>
   );

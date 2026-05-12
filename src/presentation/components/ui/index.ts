@@ -34,3 +34,4 @@ export { ToastProvider } from './ToastProvider';
 export { PhotoUpload } from './PhotoUpload';
 export { Text } from './Text';
 export type { TextProps } from './Text';
+export { PodraoLogo } from './PodraoLogo';

@@ -5,6 +5,7 @@ import { Search, Bell } from 'lucide-react';
 import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
 import { useUser } from '@/presentation/contexts/UserContext';
 import { Text } from '@/presentation/components/ui/Text';
+import { PodraoLogo } from '@/presentation/components/ui/PodraoLogo';
 import type { User } from '@/domain/entities/User';
 
 const HIDDEN_ON = ['/login'];
@@ -54,15 +55,24 @@ export function TopBar() {
       {/* Avatar */}
       <Avatar user={user} />
 
-      {/* Título */}
-      <Text
-        variant="heading"
-        textColor="inverse"
-        as="h1"
-        className="absolute left-1/2 -translate-x-1/2 max-w-[55%] truncate"
-      >
-        {title}
-      </Text>
+      {/* Título ou logo da marca */}
+      {title ? (
+        <Text
+          variant="heading"
+          textColor="inverse"
+          as="h1"
+          className="absolute left-1/2 -translate-x-1/2 max-w-[55%] truncate"
+        >
+          {title}
+        </Text>
+      ) : (
+        <PodraoLogo
+          variant="white"
+          size={28}
+          withWordmark
+          className="absolute left-1/2 -translate-x-1/2"
+        />
+      )}
 
       {/* Ações */}
       <div className="flex items-center gap-1">

@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Onde Comer',
-    short_name: 'OndeComer',
+    name: 'Podrao',
+    short_name: 'Podrao',
     description: 'Descubra lugares para comer perto de você',
     start_url: '/',
     display: 'standalone',
