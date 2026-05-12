@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, ThumbsUp, MapPin } from 'lucide-react';
+import { Pencil, ThumbsUp, MapPin, MoreVertical } from 'lucide-react';
 import { useUser } from '@/presentation/contexts/UserContext';
 import { usePlaceVisits } from '@/presentation/hooks/usePlaceVisits';
 import { useToast } from '@/presentation/hooks/useToast';
@@ -114,7 +114,7 @@ export function PlaceActionsFAB({
 
   return (
     <>
-      <FAB actions={actions} aria-label="Ações do lugar" />
+      <FAB actions={actions} icon={MoreVertical} aria-label="Ações do lugar" />
 
       <Sheet
         open={checkinOpen}

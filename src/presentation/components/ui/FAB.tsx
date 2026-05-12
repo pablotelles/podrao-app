@@ -11,19 +11,23 @@ export interface FABAction {
 
 interface FABProps {
   actions: FABAction[];
+  /** Icon shown on the main button when closed. Defaults to Plus for single-action, Plus for speed-dial. */
+  icon?: LucideIcon;
   'aria-label'?: string;
 }
 
 /**
  * Floating Action Button — single-click when 1 action, speed-dial when 2+.
+ * The parent controls which icon is shown via the `icon` prop.
  */
-export function FAB({ actions, 'aria-label': ariaLabel = 'Ações' }: FABProps) {
+export function FAB({ actions, icon: IconProp, 'aria-label': ariaLabel = 'Ações' }: FABProps) {
   const [open, setOpen] = useState(false);
 
   if (actions.length === 0) return null;
 
   if (actions.length === 1) {
-    const { icon: Icon, label, onClick } = actions[0];
+    const { icon: ActionIcon, label, onClick } = actions[0];
+    const Icon = IconProp ?? ActionIcon;
     return (
       <button
         type="button"
@@ -36,6 +40,8 @@ export function FAB({ actions, 'aria-label': ariaLabel = 'Ações' }: FABProps) 
       </button>
     );
   }
+
+  const ClosedIcon = IconProp ?? Plus;
 
   return (
     <>
@@ -74,7 +80,7 @@ export function FAB({ actions, 'aria-label': ariaLabel = 'Ações' }: FABProps) 
           className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-text-inverse shadow-(--shadow-fab) transition-transform hover:bg-brand-hover active:scale-95"
           aria-label={ariaLabel}
         >
-          {open ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
+          {open ? <X className="h-6 w-6" /> : <ClosedIcon className="h-6 w-6" />}
         </button>
       </div>
     </>
