@@ -7,6 +7,8 @@ import { DiffView } from './DiffView';
 import { VoteProgressBar } from './VoteProgressBar';
 import { useVoteOnEdit } from '@/presentation/hooks/useVoteOnEdit';
 import { EDIT_FIELD_LABELS } from '@/presentation/lib/editFieldLabels';
+import { SubHeaderPortal } from '@/presentation/components/navigation/SubHeaderPortal';
+import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
 
 interface EditVotePanelProps {
   edit: PlaceEditWithVotes;
@@ -191,6 +193,7 @@ export function EditVotePanel({
   placeAddress,
   currentUserId,
 }: EditVotePanelProps) {
+  useSubHeaderHeight();
   const isProponent = !!currentUserId && edit.userId === currentUserId;
   const hasVoted = edit.viewerVote !== null && edit.viewerVote !== undefined;
   const isAuthenticated = !!currentUserId;
@@ -199,50 +202,51 @@ export function EditVotePanel({
 
   return (
     <div className="flex flex-col gap-0">
-      {/* Place context strip */}
-      <div
-        className="flex items-center gap-2.5 border-b px-4 py-2.5"
-        style={{
-          backgroundColor: 'var(--color-bg-subtle)',
-          borderColor: 'var(--color-border)',
-        }}
-      >
+      <SubHeaderPortal>
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg"
-          style={{ backgroundColor: 'var(--color-brand-subtle)' }}
+          className="flex items-center gap-2.5 border-b px-(--spacing-page-x) py-2.5"
+          style={{
+            backgroundColor: 'var(--color-bg-subtle)',
+            borderColor: 'var(--color-border)',
+          }}
         >
-          🍽️
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg"
+            style={{ backgroundColor: 'var(--color-brand-subtle)' }}
+          >
+            🍽️
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className="truncate font-semibold"
+              style={{ fontSize: 'var(--font-size-label)', color: 'var(--color-text-primary)' }}
+            >
+              {placeName}
+            </p>
+            <p
+              className="truncate"
+              style={{ fontSize: 'var(--font-size-caption)', color: 'var(--color-text-secondary)' }}
+            >
+              {placeAddress}
+            </p>
+          </div>
+          {edit.status === 'pending' && (
+            <span
+              className="shrink-0 rounded-full border px-2 py-0.5"
+              style={{
+                fontSize: 'var(--font-size-caption)',
+                fontWeight: 'var(--font-weight-semibold)',
+                backgroundColor: 'var(--color-verify-bg)',
+                color: 'var(--color-verify-text)',
+                borderColor: 'var(--color-verify-border)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Em verificação
+            </span>
+          )}
         </div>
-        <div className="min-w-0 flex-1">
-          <p
-            className="truncate font-semibold"
-            style={{ fontSize: 'var(--font-size-label)', color: 'var(--color-text-primary)' }}
-          >
-            {placeName}
-          </p>
-          <p
-            className="truncate"
-            style={{ fontSize: 'var(--font-size-caption)', color: 'var(--color-text-secondary)' }}
-          >
-            {placeAddress}
-          </p>
-        </div>
-        {edit.status === 'pending' && (
-          <span
-            className="shrink-0 rounded-full border px-2 py-0.5"
-            style={{
-              fontSize: 'var(--font-size-caption)',
-              fontWeight: 'var(--font-weight-semibold)',
-              backgroundColor: 'var(--color-verify-bg)',
-              color: 'var(--color-verify-text)',
-              borderColor: 'var(--color-verify-border)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Em verificação
-          </span>
-        )}
-      </div>
+      </SubHeaderPortal>
 
       {/* Edit card */}
       <div
