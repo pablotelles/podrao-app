@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Handoff de task — gerado pelo Cowork, nao commitar
 .claude/current-task.json
+
+# Configurações locais do Claude Code
+.claude/settings.local.json
