@@ -19,6 +19,7 @@ import { ContributeBlock } from '@/presentation/components/home/ContributeBlock'
 import { ListCardDestaque } from '@/presentation/components/lists/explore/ListCardDestaque';
 import { SectionHeader } from '@/presentation/components/lists/explore/SectionHeader';
 import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
+import { PlaceCardHomeSkeleton, ListCardSkeleton } from '@/presentation/components/ui/Skeleton';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 
 interface HomeContentProps {
@@ -139,7 +140,7 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
   const isSparse = !placesLoading && places.length < SPARSE_THRESHOLD;
 
   // Zona C — featured community lists
-  const { items: featuredLists } = useFeaturedLists();
+  const { items: featuredLists, isLoading: featuredListsLoading } = useFeaturedLists();
 
   // Zona D — user's own lists (only when authenticated, useLists returns [] when not)
   const { lists: myLists } = useLists();
@@ -187,13 +188,19 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
                   scrollbarWidth: 'none',
                 }}
                 role="list"
+                aria-busy={placesLoading}
               >
-                {places.map((place) => (
-                  <PlaceCardHome key={place.id} place={place} />
-                ))}
-
-                {isSparse && <PlaceCardSparseInvite />}
-                {!isSparse && <PlaceCardContribute />}
+                {placesLoading ? (
+                  Array.from({ length: 5 }, (_, i) => <PlaceCardHomeSkeleton key={i} />)
+                ) : (
+                  <>
+                    {places.map((place) => (
+                      <PlaceCardHome key={place.id} place={place} />
+                    ))}
+                    {isSparse && <PlaceCardSparseInvite />}
+                    {!isSparse && <PlaceCardContribute />}
+                  </>
+                )}
               </div>
 
               {/* CTA — see all on map */}
@@ -218,7 +225,22 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
               title="Listas da comunidade"
               cta={{ label: 'Ver todas', href: '/lists' }}
             />
-            {featuredLists.length > 0 ? (
+            {featuredListsLoading ? (
+              <div
+                className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
+                style={{
+                  scrollSnapType: 'x mandatory',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                }}
+                role="list"
+                aria-busy
+              >
+                {Array.from({ length: 3 }, (_, i) => (
+                  <ListCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : featuredLists.length > 0 ? (
               <div
                 className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
                 style={{
