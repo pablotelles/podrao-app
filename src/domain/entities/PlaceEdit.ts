@@ -21,3 +21,8 @@ export interface PlaceEditWithVotes extends PlaceEdit {
   contestCount: number;
   viewerVote?: 'confirm' | 'contest' | null;
 }
+
+export interface PlaceEditWithPlace extends PlaceEditWithVotes {
+  placeName: string;
+  placeSlug: string | null;
+}

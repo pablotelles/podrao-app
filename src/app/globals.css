@@ -44,6 +44,11 @@
     --color-highlight-border: #fde047;
     --color-highlight-text: #713f12;
 
+    /* Verify indicator tokens — campo com edição pendente */
+    --color-verify-bg: #fff7ed;
+    --color-verify-text: #c2410c;
+    --color-verify-border: #fdba74;
+
     /* Espaçamento */
     --spacing-page-x: 1rem;
     --spacing-card-gap: 0.75rem;
@@ -153,6 +158,10 @@
   --color-highlight-bg: var(--color-highlight-bg);
   --color-highlight-border: var(--color-highlight-border);
   --color-highlight-text: var(--color-highlight-text);
+
+  --color-verify-bg: var(--color-verify-bg);
+  --color-verify-text: var(--color-verify-text);
+  --color-verify-border: var(--color-verify-border);
 
   --font-family-sans: var(--font-sans);
 

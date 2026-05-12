@@ -41,6 +41,8 @@ import { ListPendingEditsForPlace } from '@/application/use-cases/edits/ListPend
 import { ListExpiredEditsQueue } from '@/application/use-cases/edits/ListExpiredEditsQueue';
 import { ListLevel2PendingEdits } from '@/application/use-cases/edits/ListLevel2PendingEdits';
 import { ExpireOldEdits } from '@/application/use-cases/edits/ExpireOldEdits';
+import { GetEditWithVotes } from '@/application/use-cases/edits/GetEditWithVotes';
+import { ListMyEdits } from '@/application/use-cases/edits/ListMyEdits';
 
 import { SearchNearbyPlaces } from '@/application/use-cases/places/SearchNearbyPlaces';
 import { CreatePlace } from '@/application/use-cases/places/CreatePlace';
@@ -283,6 +285,10 @@ export const listLevel2PendingEdits = lazySingleton(
 export const expireOldEdits = lazySingleton(
   () => new ExpireOldEdits(placeEditRepository, sendEditOutcomeEmail),
 );
+
+export const getEditWithVotes = lazySingleton(() => new GetEditWithVotes(placeEditRepository));
+
+export const listMyEdits = lazySingleton(() => new ListMyEdits(placeEditRepository));
 
 // --- Providers exportados para uso direto em routes ---
 // Nota: UserRepository agora é instanciado com cliente autenticado em cada route

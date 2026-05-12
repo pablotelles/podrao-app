@@ -3,6 +3,7 @@ import type {
   PlaceEditStatus,
   EditResolvedBy,
   PlaceEditWithVotes,
+  PlaceEditWithPlace,
 } from '../entities/PlaceEdit';
 
 export interface CreatePlaceEditData {
@@ -24,6 +25,7 @@ export interface IPlaceEditRepository {
   listPendingByLevel(level: 1 | 2): Promise<PlaceEditWithVotes[]>;
   listExpired(): Promise<PlaceEditWithVotes[]>;
   listPendingOlderThan(cutoff: { level1: Date; level2: Date }): Promise<PlaceEdit[]>;
+  listByUserWithContext(userId: string): Promise<PlaceEditWithPlace[]>;
   countByUserSince(userId: string, since: Date): Promise<number>;
   updateStatus(
     id: string,

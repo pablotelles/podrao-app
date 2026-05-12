@@ -1,0 +1,16 @@
+export const EDIT_FIELD_LABELS: Record<string, string> = {
+  name: 'Nome',
+  location: 'Endereço',
+  price_bucket: 'Faixa de preço',
+  description: 'Descrição',
+  payment_methods: 'Formas de pagamento',
+  periods: 'Períodos de funcionamento',
+  cover_photo: 'Foto de capa',
+  service_type: 'Tipo de serviço',
+  food_tags: 'Tags de comida',
+  bar_focus: 'Foco do bar',
+  drink_tags: 'Drinks',
+  has_happy_hour: 'Happy hour',
+  specialty_tags: 'Especialidades',
+  opens_early: 'Abre cedo (antes das 8h)',
+};

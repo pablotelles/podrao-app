@@ -2,7 +2,11 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createServerSupabaseClient } from '@/presentation/lib/api-helpers';
-import { getPlaceBySlug, getPlaceReviews } from '@/presentation/lib/container';
+import {
+  getPlaceBySlug,
+  getPlaceReviews,
+  listPendingEditsForPlace,
+} from '@/presentation/lib/container';
 import { buildPlaceMetadata } from '@/presentation/lib/seo';
 import { PageContent } from '@/presentation/components/ui';
 import { PageTitle } from '@/presentation/contexts/TopBarContext';
@@ -11,6 +15,7 @@ import { PlaceDetailHeader } from '@/presentation/components/places/PlaceDetailH
 import { PlaceInfo } from '@/presentation/components/places/PlaceInfo';
 import { PlaceAttributes } from '@/presentation/components/places/PlaceAttributes';
 import { PlaceDetailStickyReviewCTA } from '@/presentation/components/places/PlaceDetailStickyReviewCTA';
+import { PlaceSuggestEditButton } from '@/presentation/components/places/PlaceSuggestEditButton';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -36,7 +41,14 @@ export default async function PlaceBySlugPage({ params }: Props) {
   const place = await fetchPlace(slug);
   if (!place) notFound();
 
-  const reviews = await getPlaceReviews.execute(place.id, user?.id);
+  const [reviews, pendingEdits] = await Promise.all([
+    getPlaceReviews.execute(place.id, user?.id),
+    listPendingEditsForPlace.execute({ placeId: place.id, viewerUserId: user?.id }),
+  ]);
+
+  const pendingEditsByField = Object.fromEntries(
+    pendingEdits.map((e) => [e.fieldName, { id: e.id }]),
+  );
 
   const serializedReviews = reviews.map((r) => ({
     ...r,
@@ -80,9 +92,18 @@ export default async function PlaceBySlugPage({ params }: Props) {
           logoUrl={place.logoUrl}
           isOwner={isOwner}
           placeId={place.id}
+          pendingEditsByField={pendingEditsByField}
         />
 
-        <PlaceAttributes place={place} description={place.description} />
+        <PlaceAttributes
+          place={place}
+          description={place.description}
+          pendingEditsByField={pendingEditsByField}
+        />
+
+        <div className="mt-4 flex justify-end">
+          <PlaceSuggestEditButton />
+        </div>
 
         <hr className="my-6 border-border" />
 

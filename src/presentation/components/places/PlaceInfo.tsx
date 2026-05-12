@@ -7,6 +7,11 @@ import {
 import type { PlaceStatus } from '@/domain/entities/Place';
 import { PlaceRating, ExpandableText } from '@/presentation/components/ui';
 import { EditablePlaceLogo } from './EditablePlaceLogo';
+import { VerifyIndicator } from '@/presentation/components/place/VerifyIndicator';
+
+interface PendingEditSummary {
+  id: string;
+}
 
 interface PlaceInfoProps {
   name: string;
@@ -25,6 +30,7 @@ interface PlaceInfoProps {
   logoUrl?: string;
   isOwner?: boolean;
   placeId?: string;
+  pendingEditsByField?: Record<string, PendingEditSummary>;
 }
 
 export function PlaceInfo({
@@ -43,6 +49,7 @@ export function PlaceInfo({
   logoUrl,
   isOwner,
   placeId,
+  pendingEditsByField,
 }: PlaceInfoProps) {
   return (
     <div className="flex flex-col gap-2">
@@ -62,16 +69,32 @@ export function PlaceInfo({
           </div>
         )}
         <div className="flex-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <h1 className="text-xl font-bold leading-tight text-text-primary">{name}</h1>
+            {pendingEditsByField?.name && placeId && (
+              <VerifyIndicator
+                fieldName="name"
+                editId={pendingEditsByField.name.id}
+                placeId={placeId}
+              />
+            )}
           </div>
 
-          <p className="mt-0.5 text-sm leading-snug text-text-secondary">
-            {address}
-            {numero && `, ${numero}`}
-            {complemento && ` - ${complemento}`}
-            {bairro && ` · ${bairro}`} · {cidade}, {estado}
-          </p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+            <p className="text-sm leading-snug text-text-secondary">
+              {address}
+              {numero && `, ${numero}`}
+              {complemento && ` - ${complemento}`}
+              {bairro && ` · ${bairro}`} · {cidade}, {estado}
+            </p>
+            {pendingEditsByField?.location && placeId && (
+              <VerifyIndicator
+                fieldName="location"
+                editId={pendingEditsByField.location.id}
+                placeId={placeId}
+              />
+            )}
+          </div>
         </div>
       </div>
 

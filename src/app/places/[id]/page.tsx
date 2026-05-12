@@ -14,6 +14,8 @@ import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/Sup
 import { GetPlaceById } from '@/application/use-cases/places/GetPlaceById';
 import { GetPlaceReviews } from '@/application/use-cases/reviews/GetPlaceReviews';
 import { buildPlaceMetadata } from '@/presentation/lib/seo';
+import { listPendingEditsForPlace } from '@/presentation/lib/container';
+import { PlaceSuggestEditButton } from '@/presentation/components/places/PlaceSuggestEditButton';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -56,7 +58,14 @@ export default async function PlaceDetailPage({ params }: Props) {
       permanentRedirect(`/p/${place.slug}`);
     }
 
-    const reviews = await getPlaceReviews.execute(id, user?.id);
+    const [reviews, pendingEdits] = await Promise.all([
+      getPlaceReviews.execute(id, user?.id),
+      listPendingEditsForPlace.execute({ placeId: id, viewerUserId: user?.id }),
+    ]);
+
+    const pendingEditsByField = Object.fromEntries(
+      pendingEdits.map((e) => [e.fieldName, { id: e.id }]),
+    );
 
     // Serialize reviews for Client Component (convert Date to string)
     const serializedReviews = reviews.map((r) => ({
@@ -102,10 +111,19 @@ export default async function PlaceDetailPage({ params }: Props) {
             logoUrl={place.logoUrl}
             isOwner={isOwner}
             placeId={place.id}
+            pendingEditsByField={pendingEditsByField}
           />
 
           {/* Atributos contextuais por tipo de estabelecimento + descrição */}
-          <PlaceAttributes place={place} description={place.description} />
+          <PlaceAttributes
+            place={place}
+            description={place.description}
+            pendingEditsByField={pendingEditsByField}
+          />
+
+          <div className="mt-4 flex justify-end">
+            <PlaceSuggestEditButton />
+          </div>
 
           <hr className="my-6 border-border" />
 

@@ -4,6 +4,7 @@ import type {
   PlaceEditStatus,
   EditResolvedBy,
   PlaceEditWithVotes,
+  PlaceEditWithPlace,
 } from '@/domain/entities/PlaceEdit';
 import type {
   IPlaceEditRepository,
@@ -193,6 +194,28 @@ export class SupabasePlaceEditRepository implements IPlaceEditRepository {
     if (res2.error) throw new Error(res2.error.message);
 
     return [...(res1.data ?? []), ...(res2.data ?? [])].map((r) => rowToDomain(r as PlaceEditRow));
+  }
+
+  async listByUserWithContext(userId: string): Promise<PlaceEditWithPlace[]> {
+    const { data, error } = await this.db
+      .from('place_edit')
+      .select('*, place:places(name, slug)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    const rows = (data ?? []) as (PlaceEditRow & {
+      place: { name: string; slug: string | null } | null;
+    })[];
+
+    const withVotes = await buildWithVoteCounts(this.db, rows);
+
+    return withVotes.map((edit, i) => ({
+      ...edit,
+      placeName: rows[i]?.place?.name ?? '',
+      placeSlug: rows[i]?.place?.slug ?? null,
+    }));
   }
 
   async countByUserSince(userId: string, since: Date): Promise<number> {
