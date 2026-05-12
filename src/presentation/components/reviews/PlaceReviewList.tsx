@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { MoreVertical, Star, UserCircle2 } from 'lucide-react';
 import { ActionSheet } from '@/presentation/components/ui';
 import { useRouter } from 'next/navigation';
@@ -52,14 +51,10 @@ function PlaceReviewItem({
 
   const ownActions = [
     {
-      icon: (
-        <Link href={`/places/${placeId}/review`} className="contents">
-          <Star size={16} />
-        </Link>
-      ),
+      icon: <Star size={16} />,
       label: 'Editar avaliação',
       onClick: () => {
-        router.push(`/places/${placeId}/review`);
+        router.push(`/places/${placeId}/review?edit=${review.id}`);
         setMenuOpen(false);
       },
     },

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { mutate } from 'swr';
 import useSWR from 'swr';
 import { PageContent, ProgressSteps, StarRating } from '@/presentation/components/ui';
@@ -12,6 +12,7 @@ import { StepMain } from '@/presentation/components/review-flow/StepMain';
 import { StepEnrichment } from '@/presentation/components/review-flow/StepEnrichment';
 import { submitReviewSchema } from '@/presentation/lib/forms/review/schema';
 import type { ReviewScore } from '@/domain/entities/ReviewScore';
+import type { Review } from '@/domain/entities/Review';
 import type { Place } from '@/domain/entities/Place';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 
@@ -23,14 +24,21 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 export default function ReviewPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const placeId = params.id as string;
+  const editReviewId = searchParams.get('edit');
 
   const { data: place } = useSWR<Place>(`/api/places/${placeId}`, fetcher);
+  const { data: existingReview } = useSWR<Review>(
+    editReviewId ? `/api/places/${placeId}/reviews/${editReviewId}` : null,
+    fetcher,
+  );
 
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   // Form state
   const [rating, setRating] = useState<number | undefined>(undefined);
@@ -39,7 +47,21 @@ export default function ReviewPage() {
   const [comment, setComment] = useState('');
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
 
-  usePageTitle(submitted ? 'Avaliação publicada!' : 'Avalie o lugar');
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (existingReview && !hydrated) {
+      setRating(existingReview.rating);
+      setPriceBucket(existingReview.priceBucket);
+      setScores(existingReview.scores ?? []);
+      setComment(existingReview.comment ?? '');
+      setPhotoUrls(existingReview.photos ?? []);
+      setHydrated(true);
+    }
+  }, [existingReview, hydrated]);
+
+  usePageTitle(
+    submitted ? 'Avaliação publicada!' : editReviewId ? 'Editar avaliação' : 'Avalie o lugar',
+  );
   useSubHeaderHeight();
 
   const handleSubmit = async () => {
@@ -63,8 +85,13 @@ export default function ReviewPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/places/${placeId}/reviews`, {
-        method: 'POST',
+      const url = editReviewId
+        ? `/api/places/${placeId}/reviews/${editReviewId}`
+        : `/api/places/${placeId}/reviews`;
+      const method = editReviewId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
@@ -75,6 +102,7 @@ export default function ReviewPage() {
       }
 
       mutate('/api/me/stats');
+      mutate('/api/me/reviews');
       mutate(`/api/places/${placeId}/reviews`);
       mutate(`/api/places/${placeId}`);
 

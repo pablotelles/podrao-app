@@ -1,6 +1,10 @@
 import type { Review } from '@/domain/entities/Review';
 import type { ReviewScore } from '@/domain/entities/ReviewScore';
-import type { IReviewRepository, CreateReviewData } from '@/domain/interfaces/IReviewRepository';
+import type {
+  IReviewRepository,
+  CreateReviewData,
+  UpdateReviewData,
+} from '@/domain/interfaces/IReviewRepository';
 import type { ReviewCategory } from '@/domain/value-objects/ReviewCategory';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -205,6 +209,44 @@ export class SupabaseReviewRepository implements IReviewRepository {
 
     // 4. Return the complete review with scores and photos
     return toDomain(reviewRow, this.db);
+  }
+
+  async update(reviewId: string, data: UpdateReviewData): Promise<Review> {
+    const patch: Record<string, unknown> = {};
+    if (data.rating !== undefined) patch.rating = data.rating;
+    if (data.priceBucket !== undefined) patch.price_bucket = data.priceBucket;
+    if ('comment' in data) patch.comment = data.comment ?? null;
+
+    if (Object.keys(patch).length > 0) {
+      const { error } = await this.db.from('reviews').update(patch).eq('id', reviewId);
+      if (error) throw new Error(error.message);
+    }
+
+    if (data.scores !== undefined) {
+      await this.db.from('review_scores').delete().eq('review_id', reviewId);
+      if (data.scores.length > 0) {
+        const { error } = await this.db
+          .from('review_scores')
+          .insert(
+            data.scores.map((s) => ({ review_id: reviewId, category: s.category, score: s.score })),
+          );
+        if (error) throw new Error(error.message);
+      }
+    }
+
+    if (data.photoUrls !== undefined) {
+      await this.db.from('review_photos').delete().eq('review_id', reviewId);
+      if (data.photoUrls.length > 0) {
+        const { error } = await this.db
+          .from('review_photos')
+          .insert(data.photoUrls.map((url) => ({ review_id: reviewId, url })));
+        if (error) throw new Error(error.message);
+      }
+    }
+
+    const updated = await this.findById(reviewId);
+    if (!updated) throw new Error('Review not found after update');
+    return updated;
   }
 
   async findById(reviewId: string): Promise<Review | null> {
