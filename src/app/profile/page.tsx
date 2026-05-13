@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, LogOut } from 'lucide-react';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 import { useUser } from '@/presentation/contexts/UserContext';
+import { getSupabaseBrowser } from '@/presentation/lib/supabase-browser';
 import { useLists } from '@/presentation/hooks/useLists';
 import { ListsSection } from '@/presentation/components/lists/ListsSection';
 import {
@@ -34,7 +35,8 @@ export default function ProfilePage() {
   }
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    const supabase = getSupabaseBrowser();
+    await supabase.auth.signOut();
     router.push('/login');
   }
 

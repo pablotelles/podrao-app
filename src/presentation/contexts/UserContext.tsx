@@ -9,8 +9,8 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import type { User } from '@/domain/entities/User';
+import { getSupabaseBrowser } from '@/presentation/lib/supabase-browser';
 
 interface UserContextValue {
   user: User | null;
@@ -34,10 +34,10 @@ interface UserProviderProps {
 export function UserProvider({ children, initialUser = null }: UserProviderProps) {
   const [user, setUser] = useState<User | null>(initialUser);
   const [loading, setLoading] = useState(initialUser === null);
-  const listenerRegistered = useRef(false);
+  const skipFirstEvent = useRef(true);
 
-  const fetchUser = useCallback(() => {
-    setLoading(true);
+  const fetchUser = useCallback((opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
     fetch('/api/me')
       .then((r) => (r.ok ? r.json() : null))
       .then((data: User | null) => setUser(data))
@@ -45,32 +45,22 @@ export function UserProvider({ children, initialUser = null }: UserProviderProps
       .finally(() => setLoading(false));
   }, []);
 
-  // If no initialUser was provided, fetch on mount (fallback for unauthenticated SSR)
-  useEffect(() => {
-    if (initialUser === null) {
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [initialUser, fetchUser]);
-
   // Listen for auth state changes (login/logout) — registered once
   useEffect(() => {
-    if (listenerRegistered.current) return;
-    listenerRegistered.current = true;
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey =
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) return;
-
-    const supabase = createBrowserClient(supabaseUrl, supabaseKey);
+    const supabase = getSupabaseBrowser();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        fetchUser();
+      // Skip first event — it reflects the current session already handled by SSR
+      if (skipFirstEvent.current) {
+        skipFirstEvent.current = false;
+        return;
+      }
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setLoading(false);
+      } else if (event === 'SIGNED_IN') {
+        void fetchUser();
       }
     });
 
