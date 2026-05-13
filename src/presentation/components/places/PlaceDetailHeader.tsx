@@ -17,9 +17,17 @@ interface PlaceDetailHeaderProps {
   name: string;
   placeId: string;
   slug?: string | null;
+  staticMapUrl?: string | null;
 }
 
-export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetailHeaderProps) {
+export function PlaceDetailHeader({
+  lat,
+  lng,
+  name,
+  placeId,
+  slug,
+  staticMapUrl,
+}: PlaceDetailHeaderProps) {
   const { distanceText, hasUserLocation } = useDistance(lat, lng);
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   const { isFavorited, toggle: toggleFavorite, isLoading: isFavLoading } = useFavorites();
@@ -29,6 +37,7 @@ export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetail
   const [addingToListId, setAddingToListId] = useState<string | null>(null);
   const [listsWithPlace, setListsWithPlace] = useState<Set<string>>(new Set());
   const [loadingListsWithPlace, setLoadingListsWithPlace] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(!staticMapUrl);
 
   const handleShare = async () => {
     const path = slug ? `/p/${slug}` : `/places/${placeId}`;
@@ -99,11 +108,34 @@ export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetail
   return (
     <>
       <div className="relative h-50 w-full overflow-hidden" style={{ isolation: 'isolate' }}>
-        <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
+        {isInteractive ? (
+          <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
+        ) : (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={staticMapUrl!}
+              alt={`Mapa de ${name}`}
+              className="h-full w-full object-cover"
+            />
+            <button
+              onClick={() => setIsInteractive(true)}
+              className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity hover:bg-black/30"
+              aria-label="Abrir mapa interativo"
+            >
+              <span className="rounded-full bg-bg/90 px-4 py-2 text-sm font-medium text-text-primary shadow-md">
+                Abrir mapa
+              </span>
+            </button>
+          </>
+        )}
 
         {/* Distância - canto inferior esquerdo */}
         {hasUserLocation && (
-          <div className="absolute bottom-4 left-3 z-900 rounded-lg bg-white px-3 py-2 shadow-md">
+          <div
+            className="absolute bottom-4 left-3 rounded-lg bg-bg px-3 py-2 shadow-md"
+            style={{ zIndex: 'var(--z-overlay)' }}
+          >
             <div className="flex items-center gap-1.5 text-brand">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -127,7 +159,7 @@ export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetail
         )}
 
         {/* Ações - topo direito */}
-        <div className="absolute right-3 top-3 z-900 flex gap-2">
+        <div className="absolute right-3 top-3 flex gap-2" style={{ zIndex: 'var(--z-overlay)' }}>
           <OverlayIconButton
             icon={Share2}
             variant="dark"
@@ -145,8 +177,8 @@ export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetail
           <OverlayIconButton
             icon={Heart}
             iconProps={{
-              fill: favorited ? '#ef4444' : 'none',
-              stroke: favorited ? '#ef4444' : 'currentColor',
+              fill: favorited ? 'var(--color-error)' : 'none',
+              stroke: favorited ? 'var(--color-error)' : 'currentColor',
             }}
             variant="dark"
             onClick={handleToggleFavorite}
@@ -160,7 +192,8 @@ export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetail
           href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-4 right-4 z-1000 flex items-center gap-2 rounded-full bg-brand px-4 py-2.5 shadow-lg transition-transform hover:scale-105"
+          className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-brand px-4 py-2.5 shadow-lg transition-transform hover:scale-105"
+          style={{ zIndex: 'var(--z-modal)' }}
         >
           <svg
             className="h-4 w-4 text-text-inverse"

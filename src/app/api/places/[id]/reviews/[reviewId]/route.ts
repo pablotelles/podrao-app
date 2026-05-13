@@ -5,6 +5,7 @@ import { UnauthorizedError } from '@/application/errors/UnauthorizedError';
 import { ValidationError } from '@/application/errors/ValidationError';
 import { SupabaseReviewRepository } from '@/infrastructure/database/supabase/SupabaseReviewRepository';
 import { createAdminClient } from '@/infrastructure/database/supabase/client';
+import { cacheProvider } from '@/presentation/lib/container';
 
 type Params = { params: Promise<{ id: string; reviewId: string }> };
 
@@ -63,6 +64,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       throw new ValidationError(parsed.error.issues[0]?.message ?? 'Dados inválidos');
 
     const updated = await reviewRepo.update(reviewId, parsed.data);
+    await cacheProvider.del(`reviews:place:${review.placeId}`);
     return NextResponse.json(updated);
   } catch (err) {
     return errorResponse(err);
@@ -79,6 +81,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       throw new UnauthorizedError('Sem permissão para excluir esta avaliação');
 
     await reviewRepo.delete(reviewId);
+    await cacheProvider.del(`reviews:place:${review.placeId}`);
     return new NextResponse(null, { status: 204 });
   } catch (err) {
     return errorResponse(err);

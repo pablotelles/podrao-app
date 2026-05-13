@@ -23,8 +23,11 @@ export class ApplyApprovedEdit {
       mechanism: dto.mechanism,
     });
 
-    // Invalidate geo-cache for all entries — field changes affect place data returned by search
-    await this.cacheProvider.deletePattern('places:*');
+    // Invalidate geo-cache and slug-cache — field changes affect place data returned by search and slug lookups
+    await Promise.all([
+      this.cacheProvider.deletePattern('places:*'),
+      this.cacheProvider.deletePattern('place:slug:*'),
+    ]);
 
     // Fire-and-forget
     void this.sendEditOutcomeEmail.execute({ editId: dto.editId, event: 'approved' });

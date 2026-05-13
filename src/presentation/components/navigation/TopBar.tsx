@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, Bell } from 'lucide-react';
-import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
+import { useTopBarState } from '@/presentation/contexts/TopBarContext';
 import { useUser } from '@/presentation/contexts/UserContext';
 import { Text } from '@/presentation/components/ui/Text';
 import { PodraoLogo } from '@/presentation/components/ui/PodraoLogo';
@@ -51,7 +51,7 @@ function Avatar({ user }: { user: User | null }) {
 export function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { title, hideTopBar, trailingAction } = useTopBarContext();
+  const { title, hideTopBar, trailingAction } = useTopBarState();
   const { user } = useUser();
 
   if (hideTopBar || HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;

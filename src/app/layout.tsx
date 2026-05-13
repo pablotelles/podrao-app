@@ -8,6 +8,9 @@ import { BottomNav } from '@/presentation/components/navigation/BottomNav';
 import { InstallPWA } from '@/presentation/components/navigation/InstallPWA';
 import { MainLayout } from '@/presentation/components/navigation/MainLayout';
 import { ToastProvider } from '@/presentation/components/ui/ToastProvider';
+import { createServerSupabaseClient } from '@/presentation/lib/api-helpers';
+import { userRepository } from '@/presentation/lib/container';
+import type { User } from '@/domain/entities/User';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
@@ -31,11 +34,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function getInitialUser(): Promise<User | null> {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    if (error || !user) return null;
+    return await userRepository.findById(user.id);
+  } catch {
+    return null;
+  }
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialUser = await getInitialUser();
+
   return (
     <html lang="pt-BR" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="min-h-dvh bg-bg-subtle antialiased" suppressHydrationWarning>
-        <UserProvider>
+        <UserProvider initialUser={initialUser}>
           <TopBarProvider>
             <LocationProvider>
               <ToastProvider>

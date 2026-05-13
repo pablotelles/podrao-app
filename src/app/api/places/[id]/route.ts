@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { approvePlace, rejectPlace } from '@/presentation/lib/container';
+import { approvePlace, rejectPlace, cacheProvider } from '@/presentation/lib/container';
 import { createPlaceSchema } from '@/presentation/lib/schemas/placeSchema';
 import {
   createRouteSupabaseClient,
@@ -103,6 +103,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const updated = hasFieldsToUpdate
       ? await adminPlaceRepo.update(id, parsed.data)
       : await getPlaceById.execute(id);
+
+    // Invalidate slug cache after any field update
+    if (updated?.slug) {
+      await cacheProvider.del(`place:slug:${updated.slug}`);
+    }
+
     return NextResponse.json(updated);
   } catch (err) {
     return errorResponse(err);

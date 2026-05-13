@@ -29,22 +29,22 @@ Ganho estimado após A1–A6: LCP home ~−40%, TTI ~−30%, `/p/[slug]` ~−200
 
 ## 🟡 Médio Impacto
 
-- [ ] **M3 — `UserContext` faz `GET /api/me` em toda página, mesmo sem sessão**
+- [x] **M3 — `UserContext` faz `GET /api/me` em toda página, mesmo sem sessão**
       Round-trip de 401 desperdiçado para usuários anônimos. Fix: `initialUser` via SSR no `RootLayout` (middleware já roda `getUser`).
 
-- [ ] **M4 — `useLists` chamado na home mesmo para usuários anônimos**
+- [x] **M4 — `useLists` chamado na home mesmo para usuários anônimos**
       Retorna 401 sempre. Fix trivial: desativar o hook quando não há usuário logado.
 
 - [x] **M5 — Filtros de nearby sem debounce**
       Arrastar o slider de raio dispara N requests. `useDebounce` já existe no projeto — só falta aplicar.
 
-- [ ] **M7 — Leaflet carrega imediato em `/p/[slug]`**
+- [x] **M7 — Leaflet carrega imediato em `/p/[slug]`**
       ~150KB de JS + tiles de mapa no carregamento inicial. Fix: imagem estática via `mapProvider.getStaticMapUrl()` (interface já existe) acima do fold; Leaflet só monta quando o usuário toca o mapa.
 
-- [ ] **M8 — `TopBarContext` re-renderiza toda a árvore a cada mudança**
+- [x] **M8 — `TopBarContext` re-renderiza toda a árvore a cada mudança**
       `title`, `hideBottomNav`, `trailingAction` no mesmo objeto de contexto. Qualquer mudança re-renderiza todos os consumidores. Fix: fatiar em contextos separados ou `use-context-selector`.
 
-- [ ] **Cache Redis não explorado**
+- [x] **Cache Redis não explorado**
   - `getPlaceBySlug` — slug é imutável, TTL 300s seria enorme no LCP de compartilhamentos; invalidar em `updatePlace`/`approveEdit`
   - `getPlaceReviews` por `placeId` — TTL 60s, invalidar em `submitReview`
   - `getRecentLists` — query custosa, aceita TTL 120s

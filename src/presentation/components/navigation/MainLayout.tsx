@@ -1,10 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
+import { useTopBarState } from '@/presentation/contexts/TopBarContext';
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const { hideTopBar } = useTopBarContext();
+  const { hideTopBar } = useTopBarState();
   return (
     <div
       className="flex min-h-dvh flex-col"

@@ -2,6 +2,7 @@ import type { Review } from '@/domain/entities/Review';
 import type { IReviewRepository } from '@/domain/interfaces/IReviewRepository';
 import type { IPlaceRepository } from '@/domain/interfaces/IPlaceRepository';
 import type { IPlaceVisitRepository } from '@/domain/interfaces/IPlaceVisitRepository';
+import type { ICacheProvider } from '@/domain/interfaces/ICacheProvider';
 import type { SubmitReviewDTO } from '@/application/dtos/SubmitReviewDTO';
 import { PRICE_BUCKETS } from '@/domain/value-objects/PriceBucket';
 import { PlaceNotFoundError } from '@/application/errors/PlaceNotFoundError';
@@ -13,6 +14,7 @@ export class SubmitReview {
     private readonly reviewRepo: IReviewRepository,
     private readonly placeRepo: IPlaceRepository,
     private readonly visitRepo?: IPlaceVisitRepository,
+    private readonly cache?: ICacheProvider,
   ) {}
 
   async execute(dto: SubmitReviewDTO): Promise<Review> {
@@ -63,7 +65,7 @@ export class SubmitReview {
     }
 
     // Create review with all fields
-    return this.reviewRepo.create({
+    const review = await this.reviewRepo.create({
       placeId: dto.placeId,
       userId: dto.userId,
       rating: dto.rating,
@@ -73,5 +75,12 @@ export class SubmitReview {
       priceBucket: dto.priceBucket,
       visitId: dto.visitId,
     });
+
+    // Invalidate anonymous review cache for this place
+    if (this.cache) {
+      await this.cache.del(`reviews:place:${dto.placeId}`);
+    }
+
+    return review;
   }
 }

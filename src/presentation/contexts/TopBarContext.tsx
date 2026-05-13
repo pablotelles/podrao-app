@@ -6,61 +6,85 @@ import {
   useState,
   useEffect,
   useLayoutEffect,
+  useCallback,
   type ReactNode,
 } from 'react';
 
-interface TopBarContextValue {
+// ── State context (read-only values) ─────────────────────────────────────────
+
+interface TopBarState {
   title: string;
-  setTitle: (title: string) => void;
   hideBottomNav: boolean;
-  setHideBottomNav: (hide: boolean) => void;
   hideTopBar: boolean;
-  setHideTopBar: (hide: boolean) => void;
   trailingAction: ReactNode;
+}
+
+const TopBarStateContext = createContext<TopBarState>({
+  title: '',
+  hideBottomNav: false,
+  hideTopBar: false,
+  trailingAction: null,
+});
+
+// ── Actions context (stable setters) ─────────────────────────────────────────
+
+interface TopBarActions {
+  setTitle: (title: string) => void;
+  setHideBottomNav: (hide: boolean) => void;
+  setHideTopBar: (hide: boolean) => void;
   setTrailingAction: (node: ReactNode) => void;
 }
 
-const TopBarContext = createContext<TopBarContextValue>({
-  title: '',
+const TopBarActionsContext = createContext<TopBarActions>({
   setTitle: () => {},
-  hideBottomNav: false,
   setHideBottomNav: () => {},
-  hideTopBar: false,
   setHideTopBar: () => {},
-  trailingAction: null,
   setTrailingAction: () => {},
 });
 
+// ── Provider ──────────────────────────────────────────────────────────────────
+
 export function TopBarProvider({ children }: { children: ReactNode }) {
-  const [title, setTitle] = useState('');
-  const [hideBottomNav, setHideBottomNav] = useState(false);
-  const [hideTopBar, setHideTopBar] = useState(false);
-  const [trailingAction, setTrailingAction] = useState<ReactNode>(null);
+  const [title, setTitleState] = useState('');
+  const [hideBottomNav, setHideBottomNavState] = useState(false);
+  const [hideTopBar, setHideTopBarState] = useState(false);
+  const [trailingAction, setTrailingActionState] = useState<ReactNode>(null);
+
+  const setTitle = useCallback((t: string) => setTitleState(t), []);
+  const setHideBottomNav = useCallback((h: boolean) => setHideBottomNavState(h), []);
+  const setHideTopBar = useCallback((h: boolean) => setHideTopBarState(h), []);
+  const setTrailingAction = useCallback((n: ReactNode) => setTrailingActionState(n), []);
+
+  const state: TopBarState = { title, hideBottomNav, hideTopBar, trailingAction };
+  const actions: TopBarActions = { setTitle, setHideBottomNav, setHideTopBar, setTrailingAction };
+
   return (
-    <TopBarContext.Provider
-      value={{
-        title,
-        setTitle,
-        hideBottomNav,
-        setHideBottomNav,
-        hideTopBar,
-        setHideTopBar,
-        trailingAction,
-        setTrailingAction,
-      }}
-    >
-      {children}
-    </TopBarContext.Provider>
+    <TopBarActionsContext.Provider value={actions}>
+      <TopBarStateContext.Provider value={state}>{children}</TopBarStateContext.Provider>
+    </TopBarActionsContext.Provider>
   );
 }
 
+// ── Hooks ─────────────────────────────────────────────────────────────────────
+
+/** Read the full state object (use for components that read multiple fields). */
+export function useTopBarState() {
+  return useContext(TopBarStateContext);
+}
+
+/**
+ * @deprecated Consumers should prefer useTopBarState() for reads and the
+ * individual action hooks for writes. Kept for backwards compatibility.
+ */
 export function useTopBarContext() {
-  return useContext(TopBarContext);
+  const state = useContext(TopBarStateContext);
+  const actions = useContext(TopBarActionsContext);
+  return { ...state, ...actions };
 }
 
 /** Hook para páginas Client Component definirem o título da TopBar. */
 export function usePageTitle(title: string) {
-  const { setTitle } = useTopBarContext();
+  const { setTitle } = useContext(TopBarActionsContext);
   useEffect(() => {
     setTitle(title);
     return () => setTitle('');
@@ -69,7 +93,7 @@ export function usePageTitle(title: string) {
 
 /** Hook para esconder o BottomNav enquanto o componente estiver montado. */
 export function useHideBottomNav() {
-  const { setHideBottomNav } = useTopBarContext();
+  const { setHideBottomNav } = useContext(TopBarActionsContext);
   useLayoutEffect(() => {
     setHideBottomNav(true);
     return () => setHideBottomNav(false);
@@ -78,7 +102,7 @@ export function useHideBottomNav() {
 
 /** Hook para esconder a TopBar enquanto o componente estiver montado. */
 export function useHideTopBar() {
-  const { setHideTopBar } = useTopBarContext();
+  const { setHideTopBar } = useContext(TopBarActionsContext);
   useLayoutEffect(() => {
     setHideTopBar(true);
     return () => setHideTopBar(false);
@@ -87,7 +111,7 @@ export function useHideTopBar() {
 
 /** Hook para injetar uma ação no slot direito da TopBar enquanto o componente estiver montado. */
 export function useTopBarAction(action: ReactNode) {
-  const { setTrailingAction } = useTopBarContext();
+  const { setTrailingAction } = useContext(TopBarActionsContext);
   useLayoutEffect(() => {
     setTrailingAction(action);
     return () => setTrailingAction(null);

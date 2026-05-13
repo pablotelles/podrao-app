@@ -7,6 +7,7 @@ import {
   getPlaceReviews,
   listPendingEditsForPlace,
   getPlaceVisitStats,
+  mapProvider,
 } from '@/presentation/lib/container';
 import { buildPlaceMetadata } from '@/presentation/lib/seo';
 import { PageContent } from '@/presentation/components/ui';
@@ -46,10 +47,23 @@ export default async function PlaceBySlugPage({ params }: Props) {
   ] = await Promise.all([userPromise, placePromise]);
   if (!place) notFound();
 
-  const [reviews, pendingEdits, visitStats] = await Promise.all([
+  const [reviews, pendingEdits, visitStats, staticMapUrl] = await Promise.all([
     getPlaceReviews.execute(place.id, user?.id),
     listPendingEditsForPlace.execute({ placeId: place.id, viewerUserId: user?.id }),
     getPlaceVisitStats.execute({ placeId: place.id, userId: user?.id }),
+    (async () => {
+      try {
+        return mapProvider.getStaticMapUrl({
+          lat: place.lat,
+          lng: place.lng,
+          zoom: 16,
+          width: 800,
+          height: 200,
+        });
+      } catch {
+        return null;
+      }
+    })(),
   ]);
 
   const pendingEditsByField = Object.fromEntries(
@@ -94,6 +108,7 @@ export default async function PlaceBySlugPage({ params }: Props) {
           name={place.name}
           placeId={place.id}
           slug={place.slug}
+          staticMapUrl={staticMapUrl}
         />
 
         <PageContent centered>

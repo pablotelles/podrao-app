@@ -21,7 +21,10 @@ export class ApprovePlace {
 
     const lat = Math.round(place.lat * 1000) / 1000;
     const lng = Math.round(place.lng * 1000) / 1000;
-    await this.cache.deletePattern(`places:${lat}:${lng}:*`);
+    await Promise.all([
+      this.cache.deletePattern(`places:${lat}:${lng}:*`),
+      place.slug ? this.cache.del(`place:slug:${place.slug}`) : Promise.resolve(),
+    ]);
 
     // Envia email de aprovação — fail-soft, não bloqueia a operação
     if (this.sendLifecycleEmail) {

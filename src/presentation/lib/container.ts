@@ -122,7 +122,7 @@ const reviewRepository = lazySingleton(() => new SupabaseReviewRepository());
 const favoriteRepository = lazySingleton(() => new SupabaseFavoriteRepository());
 const listRepository = lazySingleton(() => new SupabaseListRepository());
 // Admin client: bypassa RLS para leitura de perfis server-side (ex: lookup de email para envio de email)
-const userRepository = lazySingleton(() => new SupabaseUserRepository(createAdminClient()));
+export const userRepository = lazySingleton(() => new SupabaseUserRepository(createAdminClient()));
 export const cacheProvider: ICacheProvider = lazySingleton(() =>
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
     ? new UpstashCacheProvider()
@@ -179,7 +179,7 @@ export const approvePlace = lazySingleton(
 );
 export const getPendingPlaces = lazySingleton(() => new GetPendingPlaces(placeRepository));
 export const rejectPlace = lazySingleton(
-  () => new RejectPlace(placeRepository, sendPlaceLifecycleEmail),
+  () => new RejectPlace(placeRepository, sendPlaceLifecycleEmail, cacheProvider),
 );
 export const getMyPlaces = lazySingleton(() => new GetMyPlaces(placeRepository));
 export const getFavoritePlaces = lazySingleton(() => new GetFavoritePlaces(placeRepository));
@@ -187,10 +187,10 @@ export const generatePlaceEmbedding = lazySingleton(
   () => new GeneratePlaceEmbedding(placeRepository, embeddingProvider),
 );
 export const submitReview = lazySingleton(
-  () => new SubmitReview(reviewRepository, placeRepository, placeVisitRepository),
+  () => new SubmitReview(reviewRepository, placeRepository, placeVisitRepository, cacheProvider),
 );
 export const getPlaceReviews = lazySingleton(
-  () => new GetPlaceReviews(reviewRepository, placeRepository),
+  () => new GetPlaceReviews(reviewRepository, placeRepository, cacheProvider),
 );
 export const toggleReaction = lazySingleton(() => new ToggleReaction(reactionRepository));
 
@@ -214,7 +214,9 @@ export const getPublicLists = lazySingleton(() => new GetPublicLists(listReposit
 export const getSavedLists = lazySingleton(() => new GetSavedLists(listRepository));
 export const reorderListPlaces = lazySingleton(() => new ReorderListPlaces(listRepository));
 export const getFeaturedLists = lazySingleton(() => new GetFeaturedLists(listRepository));
-export const getRecentLists = lazySingleton(() => new GetRecentLists(listRepository));
+export const getRecentLists = lazySingleton(
+  () => new GetRecentLists(listRepository, cacheProvider),
+);
 export const getListsContainingPlace = lazySingleton(
   () => new GetListsContainingPlace(listRepository),
 );
@@ -231,7 +233,9 @@ export const getMyReviews = lazySingleton(
 
 // Search
 export const searchAll = lazySingleton(() => new SearchAll(placeRepository, listRepository));
-export const getPlaceBySlug = lazySingleton(() => new GetPlaceBySlug(placeRepository));
+export const getPlaceBySlug = lazySingleton(
+  () => new GetPlaceBySlug(placeRepository, cacheProvider),
+);
 export const getListBySlug = lazySingleton(() => new GetListBySlug(listRepository));
 
 // Visit use cases

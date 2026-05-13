@@ -1,6 +1,15 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import type { User } from '@/domain/entities/User';
 
 interface UserContextValue {
@@ -17,9 +26,15 @@ const UserContext = createContext<UserContextValue>({
   refetch: () => {},
 });
 
-export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+interface UserProviderProps {
+  children: ReactNode;
+  initialUser?: User | null;
+}
+
+export function UserProvider({ children, initialUser = null }: UserProviderProps) {
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [loading, setLoading] = useState(initialUser === null);
+  const listenerRegistered = useRef(false);
 
   const fetchUser = useCallback(() => {
     setLoading(true);
@@ -30,8 +45,38 @@ export function UserProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
+  // If no initialUser was provided, fetch on mount (fallback for unauthenticated SSR)
   useEffect(() => {
-    fetchUser();
+    if (initialUser === null) {
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
+  }, [initialUser, fetchUser]);
+
+  // Listen for auth state changes (login/logout) — registered once
+  useEffect(() => {
+    if (listenerRegistered.current) return;
+    listenerRegistered.current = true;
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) return;
+
+    const supabase = createBrowserClient(supabaseUrl, supabaseKey);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        fetchUser();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [fetchUser]);
 
   const updateUser = useCallback((partial: Partial<User>) => {

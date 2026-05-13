@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import type { UserList } from '@/domain/entities/List';
+import { useUser } from '@/presentation/contexts/UserContext';
 
 async function fetcher(url: string): Promise<UserList[]> {
   const res = await fetch(url);
@@ -10,9 +11,12 @@ async function fetcher(url: string): Promise<UserList[]> {
 }
 
 export function useLists() {
-  const { data, error, isLoading, mutate } = useSWR<UserList[]>('/api/lists', fetcher, {
-    revalidateOnFocus: false,
-  });
+  const { user } = useUser();
+  const { data, error, isLoading, mutate } = useSWR<UserList[]>(
+    user ? '/api/lists' : null,
+    fetcher,
+    { revalidateOnFocus: false },
+  );
 
   const createList = async (
     name: string,
