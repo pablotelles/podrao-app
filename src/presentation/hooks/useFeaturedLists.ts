@@ -13,9 +13,18 @@ async function fetcher(url: string): Promise<FeaturedListsResponse> {
   return res.json() as Promise<FeaturedListsResponse>;
 }
 
-export function useFeaturedLists() {
+interface UseFeaturedListsOptions {
+  fallbackData?: ListSummaryDTO[];
+}
+
+export function useFeaturedLists({ fallbackData }: UseFeaturedListsOptions = {}) {
+  const swrFallback: FeaturedListsResponse | undefined = fallbackData
+    ? { items: fallbackData }
+    : undefined;
+
   const { data, error, isLoading } = useSWR<FeaturedListsResponse>('/api/lists/featured', fetcher, {
     revalidateOnFocus: false,
+    fallbackData: swrFallback,
   });
 
   return {

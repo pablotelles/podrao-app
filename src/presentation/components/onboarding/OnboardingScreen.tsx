@@ -9,12 +9,12 @@ import { Text } from '@/presentation/components/ui/Text';
 import { useHideBottomNav, useHideTopBar } from '@/presentation/contexts/TopBarContext';
 import type { AutocompleteResult } from '@/domain/interfaces/IMapProvider';
 
-const SESSION_KEY = 'podrao_onboarding_seen';
-
-function persistSeen() {
+async function persistSeen() {
   try {
-    localStorage.setItem(SESSION_KEY, 'true');
-  } catch {}
+    await fetch('/api/onboarding/seen', { method: 'POST' });
+  } catch {
+    // degradação graciosa — próxima visita verá onboarding de novo
+  }
 }
 
 const VALUE_PROPS = [
@@ -56,8 +56,9 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGpsLoading(false);
-        persistSeen();
-        onComplete(pos.coords.latitude, pos.coords.longitude);
+        void persistSeen().then(() => {
+          onComplete(pos.coords.latitude, pos.coords.longitude);
+        });
       },
       () => {
         setGpsLoading(false);
@@ -67,9 +68,9 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     );
   }
 
-  function handlePlaceSelect(result: AutocompleteResult) {
+  async function handlePlaceSelect(result: AutocompleteResult) {
     setSelectedPlace(result);
-    persistSeen();
+    await persistSeen();
     onComplete(result.lat, result.lng);
   }
 
@@ -80,7 +81,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         className="relative flex shrink-0 flex-col items-center justify-center overflow-hidden"
         style={{
           height: '360px',
-          background: 'linear-gradient(160deg, #3b39b0 0%, var(--color-brand) 50%, #7c7be0 100%)',
+          background:
+            'linear-gradient(160deg, var(--color-brand-dark) 0%, var(--color-brand) 50%, var(--color-brand-light) 100%)',
         }}
       >
         {/* Map grid */}
@@ -155,7 +157,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             as="p"
             variant="body"
             className="max-w-60 leading-snug"
-            style={{ color: 'rgba(255,255,255,0.85)' }}
+            style={{ color: 'var(--color-text-inverse-muted)' }}
           >
             Recomendações da comunidade. Preços reais. Sem papo furado.
           </Text>

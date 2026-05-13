@@ -1,43 +1,21 @@
-'use client';
-
-import { useState, useLayoutEffect } from 'react';
-import { OnboardingScreen } from '@/presentation/components/onboarding';
+import { cookies } from 'next/headers';
+import { ONBOARDING_COOKIE } from '@/presentation/lib/server/onboarding-cookie';
+import {
+  getFeaturedListsCached,
+  FEATURED_LISTS_LIMIT,
+} from '@/presentation/lib/server/featured-lists';
 import { HomeContent } from '@/presentation/components/home/HomeContent';
-import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
+import { OnboardingWrapper } from '@/app/_components/OnboardingWrapper';
 
-export default function HomePage() {
-  // null = ainda não leu sessionStorage (estado desconhecido no servidor)
-  const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
-  const [initialLocation, setInitialLocation] = useState<{ lat: number; lng: number } | null>(null);
-
-  // useLayoutEffect: roda antes do primeiro paint no cliente → sem flash
-  // No servidor não roda, então o estado fica null e nada é renderizado
-  useLayoutEffect(() => {
-    try {
-      setHasSeenOnboarding(localStorage.getItem('podrao_onboarding_seen') === 'true');
-    } catch {
-      setHasSeenOnboarding(false);
-    }
-  }, []);
-
-  if (hasSeenOnboarding === null) {
-    return (
-      <div className="relative" style={{ height: 'calc(100dvh - var(--topbar-height))' }}>
-        <MapSkeleton />
-      </div>
-    );
-  }
+export default async function HomePage() {
+  const cookieStore = await cookies();
+  const hasSeenOnboarding = cookieStore.get(ONBOARDING_COOKIE)?.value === 'true';
 
   if (!hasSeenOnboarding) {
-    return (
-      <OnboardingScreen
-        onComplete={(lat, lng) => {
-          setInitialLocation({ lat, lng });
-          setHasSeenOnboarding(true);
-        }}
-      />
-    );
+    return <OnboardingWrapper />;
   }
 
-  return <HomeContent initialLat={initialLocation?.lat} initialLng={initialLocation?.lng} />;
+  const featuredLists = await getFeaturedListsCached(FEATURED_LISTS_LIMIT).catch(() => []);
+
+  return <HomeContent initialFeaturedLists={featuredLists} />;
 }

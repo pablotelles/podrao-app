@@ -7,6 +7,7 @@ import useSWR from 'swr';
 import { useUserLocation } from '@/presentation/hooks/useUserLocation';
 import { useNearbyPlaces } from '@/presentation/hooks/useNearbyPlaces';
 import { useFeaturedLists } from '@/presentation/hooks/useFeaturedLists';
+import type { ListSummaryDTO } from '@/application/dtos/ListDTO';
 import { useLists } from '@/presentation/hooks/useLists';
 import { useSubHeaderHeight } from '@/presentation/hooks/useSubHeaderHeight';
 import { LocationBar } from '@/presentation/components/home/LocationBar';
@@ -25,6 +26,7 @@ import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 interface HomeContentProps {
   initialLat?: number | null;
   initialLng?: number | null;
+  initialFeaturedLists?: ListSummaryDTO[];
 }
 
 const SPARSE_THRESHOLD = 3;
@@ -48,9 +50,8 @@ function buildReverseUrl(lat: number | null, lng: number | null): string | null 
   return `/api/geocode/reverse?lat=${lat3}&lng=${lng3}`;
 }
 
-export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
+export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: HomeContentProps) {
   usePageTitle('Inicio');
-  // Never show a subheader on the new home
   useSubHeaderHeight(0);
 
   const {
@@ -84,11 +85,6 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
     setFilters(rest);
   }
 
-  /**
-   * Derives attributeKey + attributeValue from contextual filters.
-   * Priority order: service_type > food_tags > bar_focus > drink_tags >
-   *                 has_happy_hour > specialty_tags > opens_early
-   */
   function deriveAttributeFilter(ctx: FilterValues['contextual']): {
     attributeKey?: string;
     attributeValue?: string;
@@ -129,7 +125,6 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
 
   const radiusLabel = radius < 1000 ? `${radius}m` : `${radius / 1000}km`;
 
-  // Nearby places — Zona B
   const maxPrice = filters.priceBucket
     ? (
         { up_to_25: 25, '25_to_45': 45, '45_to_80': 80, above_80: undefined } as Record<
@@ -158,27 +153,24 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
 
   const isSparse = !placesLoading && places.length < SPARSE_THRESHOLD;
 
-  // Zona C — featured community lists
-  const { items: featuredLists, isLoading: featuredListsLoading } = useFeaturedLists();
+  const { items: featuredLists, isLoading: featuredListsLoading } = useFeaturedLists({
+    fallbackData: initialFeaturedLists,
+  });
 
-  // Zona D — user's own lists (only when authenticated, useLists returns [] when not)
   const { lists: myLists } = useLists();
 
   return (
-    <>
-      {/* Full-height skeleton while geolocation initializes */}
-      {geo.initializing && (
-        <div style={{ height: 'calc(100dvh - var(--topbar-height))' }}>
+    <div
+      className="overflow-y-auto pb-20"
+      style={{ minHeight: 'calc(100dvh - var(--topbar-height))' }}
+    >
+      {/* ── ZONA A+B — geo-dependent: skeleton until location resolves ── */}
+      {geo.initializing ? (
+        <div style={{ height: '40vh' }}>
           <MapSkeleton />
         </div>
-      )}
-
-      {!geo.initializing && (
-        <div
-          className="overflow-y-auto pb-20"
-          style={{ minHeight: 'calc(100dvh - var(--topbar-height))' }}
-        >
-          {/* ── ZONA A — Location context ── */}
+      ) : (
+        <>
           <div className="bg-bg">
             <LocationBar
               locationLabel={locationLabel}
@@ -190,7 +182,6 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
             />
           </div>
 
-          {/* ── ZONA B — Nearby places (conditional on location) ── */}
           {hasLocation && (
             <section aria-label="Lugares próximos" className="mt-5">
               <SectionHeader
@@ -222,7 +213,6 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
                 )}
               </div>
 
-              {/* CTA — see all on map */}
               <a
                 href="/map"
                 className="flex items-center gap-1.5 px-(--spacing-page-x) pt-2.5"
@@ -234,120 +224,114 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
               </a>
             </section>
           )}
-
-          {/* Divider */}
-          <div className="mx-(--spacing-page-x) mt-5 h-px bg-border opacity-50" />
-
-          {/* ── ZONA C — Community lists ── */}
-          <section aria-label="Listas da comunidade">
-            <SectionHeader
-              title="Listas da comunidade"
-              cta={{ label: 'Ver todas', href: '/lists' }}
-            />
-            {featuredListsLoading ? (
-              <div
-                className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
-                style={{
-                  scrollSnapType: 'x mandatory',
-                  WebkitOverflowScrolling: 'touch',
-                  scrollbarWidth: 'none',
-                }}
-                role="list"
-                aria-busy
-              >
-                {Array.from({ length: 3 }, (_, i) => (
-                  <ListCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : featuredLists.length > 0 ? (
-              <div
-                className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
-                style={{
-                  scrollSnapType: 'x mandatory',
-                  WebkitOverflowScrolling: 'touch',
-                  scrollbarWidth: 'none',
-                }}
-                role="list"
-              >
-                {featuredLists.map((list) => (
-                  <ListCardDestaque key={list.id} list={list} />
-                ))}
-              </div>
-            ) : (
-              <p
-                className="px-(--spacing-page-x) text-text-secondary"
-                style={{ fontSize: 'var(--font-size-label)' }}
-              >
-                Nenhuma lista em destaque ainda.
-              </p>
-            )}
-          </section>
-
-          {/* ── ZONA D — My saved lists (conditional: user authenticated with lists) ── */}
-          {myLists.length > 0 && (
-            <>
-              <div className="mx-(--spacing-page-x) mt-5 h-px bg-border opacity-50" />
-              <section aria-label="Minhas listas">
-                <SectionHeader
-                  title="Minhas listas"
-                  cta={{ label: 'Ver todas', onClick: () => router.push('/lists?tab=salvas') }}
-                />
-                <div
-                  className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
-                  style={{
-                    scrollSnapType: 'x mandatory',
-                    WebkitOverflowScrolling: 'touch',
-                    scrollbarWidth: 'none',
-                  }}
-                  role="list"
-                >
-                  {myLists
-                    .slice()
-                    .sort(
-                      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-                    )
-                    .map((list) => (
-                      <ListCardDestaque
-                        key={list.id}
-                        list={{
-                          id: list.id,
-                          title: list.name,
-                          coverUrl: list.coverUrl ?? null,
-                          bairro: list.bairro ?? '',
-                          lugaresCount: list.placesCount ?? 0,
-                          savesCount: list.savesCount,
-                          priceRangeMin: list.priceRangeMin ?? null,
-                          priceRangeMax: list.priceRangeMax ?? null,
-                          createdAt:
-                            list.createdAt instanceof Date
-                              ? list.createdAt.toISOString()
-                              : String(list.createdAt),
-                          updatedAt:
-                            list.updatedAt instanceof Date
-                              ? list.updatedAt.toISOString()
-                              : String(list.updatedAt),
-                        }}
-                      />
-                    ))}
-                </div>
-              </section>
-            </>
-          )}
-
-          {/* ── ZONA E — Contribution invite ── */}
-          <ContributeBlock />
-
-          <div style={{ height: '1.5rem' }} />
-        </div>
+        </>
       )}
 
-      {/* Filter Sheet */}
+      {/* Divider */}
+      <div className="mx-(--spacing-page-x) mt-5 h-px bg-border opacity-50" />
+
+      {/* ── ZONA C — geo-independent: renders immediately with server data ── */}
+      <section aria-label="Listas da comunidade">
+        <SectionHeader title="Listas da comunidade" cta={{ label: 'Ver todas', href: '/lists' }} />
+        {featuredListsLoading && featuredLists.length === 0 ? (
+          <div
+            className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
+            style={{
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+            }}
+            role="list"
+            aria-busy
+          >
+            {Array.from({ length: 3 }, (_, i) => (
+              <ListCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : featuredLists.length > 0 ? (
+          <div
+            className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
+            style={{
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+            }}
+            role="list"
+          >
+            {featuredLists.map((list) => (
+              <ListCardDestaque key={list.id} list={list} />
+            ))}
+          </div>
+        ) : (
+          <p
+            className="px-(--spacing-page-x) text-text-secondary"
+            style={{ fontSize: 'var(--font-size-label)' }}
+          >
+            Nenhuma lista em destaque ainda.
+          </p>
+        )}
+      </section>
+
+      {/* ── ZONA D — My saved lists (conditional: user authenticated with lists) ── */}
+      {myLists.length > 0 && (
+        <>
+          <div className="mx-(--spacing-page-x) mt-5 h-px bg-border opacity-50" />
+          <section aria-label="Minhas listas">
+            <SectionHeader
+              title="Minhas listas"
+              cta={{ label: 'Ver todas', onClick: () => router.push('/lists?tab=salvas') }}
+            />
+            <div
+              className="flex gap-(--spacing-card-gap) overflow-x-auto px-(--spacing-page-x) pb-1"
+              style={{
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+              }}
+              role="list"
+            >
+              {myLists
+                .slice()
+                .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                .map((list) => (
+                  <ListCardDestaque
+                    key={list.id}
+                    list={{
+                      id: list.id,
+                      title: list.name,
+                      coverUrl: list.coverUrl ?? null,
+                      bairro: list.bairro ?? '',
+                      lugaresCount: list.placesCount ?? 0,
+                      savesCount: list.savesCount,
+                      priceRangeMin: list.priceRangeMin ?? null,
+                      priceRangeMax: list.priceRangeMax ?? null,
+                      createdAt:
+                        list.createdAt instanceof Date
+                          ? list.createdAt.toISOString()
+                          : String(list.createdAt),
+                      updatedAt:
+                        list.updatedAt instanceof Date
+                          ? list.updatedAt.toISOString()
+                          : String(list.updatedAt),
+                    }}
+                  />
+                ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* ── ZONA E — Contribution invite ── */}
+      <ContributeBlock />
+
+      <div style={{ height: '1.5rem' }} />
+
       <FilterBar
         open={filterSheetOpen}
         onOpenChange={setFilterSheetOpen}
         values={filterValues}
         onChange={handleFiltersChange}
       />
-    </>
+    </div>
   );
 }

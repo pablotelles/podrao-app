@@ -58,6 +58,11 @@
     /* Success border — check-in confirmed state */
     --color-success-border: #bbf7d0;
 
+    /* Brand gradient stops — onboarding hero */
+    --color-brand-dark: #3b39b0;
+    --color-brand-light: #7c7be0;
+    --color-text-inverse-muted: rgba(255, 255, 255, 0.85);
+
     /* Espaçamento */
     --spacing-page-x: 1rem;
     --spacing-card-gap: 0.75rem;
