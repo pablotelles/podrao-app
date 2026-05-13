@@ -104,42 +104,6 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           </g>
         </svg>
 
-        {/* Location pings */}
-        <span className="absolute left-15 top-20 flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white/80" />
-        </span>
-        <span className="absolute right-12.5 top-40 flex h-2.5 w-2.5">
-          <span
-            className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60"
-            style={{ animationDelay: '0.6s' }}
-          />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white/80" />
-        </span>
-        <span className="absolute bottom-15 left-25 flex h-2.5 w-2.5">
-          <span
-            className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60"
-            style={{ animationDelay: '1.2s' }}
-          />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white/80" />
-        </span>
-
-        {/* Floating card — place */}
-        <div className="absolute left-5 top-7.5 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 shadow-(--shadow-modal)">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-success" />
-          <Text as="span" variant="label">
-            Caldeirão da Vó · 0,3 km
-          </Text>
-        </div>
-
-        {/* Floating card — rating */}
-        <div className="absolute right-4 top-45 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 shadow-(--shadow-modal)">
-          <span className="text-warning">★</span>
-          <Text as="span" variant="label">
-            4.8 · 142 avaliações
-          </Text>
-        </div>
-
         {/* Hero content */}
         <div className="relative z-10 flex flex-col items-center gap-3 px-5 text-center">
           <span className="animate-bounce text-5xl" role="img" aria-label="comida">
