@@ -3,19 +3,21 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { useGeolocation } from '@/presentation/hooks/useGeolocation';
+import { useUserLocation } from '@/presentation/hooks/useUserLocation';
 import { useNearbyPlaces } from '@/presentation/hooks/useNearbyPlaces';
+import { useSearchRadius } from '@/presentation/hooks/useSearchRadius';
 import { DynamicPlaceMap } from '@/presentation/components/maps/dynamic';
 import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
 import type { Place } from '@/domain/entities/Place';
 
 export default function MapPage() {
   const router = useRouter();
-  const geo = useGeolocation();
-  const hasLocation = geo.lat != null && geo.lng != null;
+  const { location, initializing } = useUserLocation();
+  const { radius } = useSearchRadius();
+  const hasLocation = location != null;
 
   const { places } = useNearbyPlaces(
-    hasLocation ? { lat: geo.lat!, lng: geo.lng!, radiusMeters: 5000 } : null,
+    hasLocation ? { lat: location!.lat, lng: location!.lng, radiusMeters: radius } : null,
   );
 
   function handlePlaceClick(place: Place) {
@@ -42,13 +44,13 @@ export default function MapPage() {
         <ArrowLeft size={18} className="text-text-primary" />
       </button>
 
-      {(geo.initializing || !hasLocation) && <MapSkeleton />}
+      {(initializing || !hasLocation) && <MapSkeleton />}
 
-      {!geo.initializing && hasLocation && (
+      {!initializing && hasLocation && (
         <DynamicPlaceMap
           places={places}
-          userLat={geo.lat}
-          userLng={geo.lng}
+          userLat={location!.lat}
+          userLng={location!.lng}
           height="100%"
           onPlaceClick={handlePlaceClick}
         />
