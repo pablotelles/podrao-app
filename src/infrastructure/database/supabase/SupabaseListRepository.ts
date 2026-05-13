@@ -248,6 +248,27 @@ export class SupabaseListRepository implements IListRepository {
     return (count ?? 0) > 0;
   }
 
+  async findListIdsContainingPlace(userId: string, placeId: string): Promise<string[]> {
+    const { data: userLists, error: listsErr } = await this.db
+      .from('lists')
+      .select('id')
+      .eq('owner_id', userId);
+
+    if (listsErr) throw new Error(listsErr.message);
+    if (!userLists?.length) return [];
+
+    const listIds = userLists.map((l: { id: string }) => l.id);
+
+    const { data, error } = await this.db
+      .from('list_places')
+      .select('list_id')
+      .eq('place_id', placeId)
+      .in('list_id', listIds);
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row: { list_id: string }) => row.list_id);
+  }
+
   async incrementViewCount(listId: string): Promise<void> {
     await this.db.rpc('increment_list_view_count', { list_uuid: listId });
   }

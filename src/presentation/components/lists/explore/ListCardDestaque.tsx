@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { List, MapPin, Bookmark } from 'lucide-react';
 import type { ListSummaryDTO } from '@/application/dtos/ListDTO';
 import { priceText } from '@/presentation/lib/listFormatters';
@@ -9,9 +10,10 @@ interface ListCardDestaqueProps {
   list: ListSummaryDTO;
   /** When provided, renders "por {curatorName}" below the metadata row */
   curatorName?: string;
+  priority?: boolean;
 }
 
-export function ListCardDestaque({ list }: ListCardDestaqueProps) {
+export function ListCardDestaque({ list, priority = false }: ListCardDestaqueProps) {
   const price = priceText(list.priceRangeMin, list.priceRangeMax);
   const placesLabel = `${list.lugaresCount} lugar${list.lugaresCount !== 1 ? 'es' : ''}`;
 
@@ -24,8 +26,15 @@ export function ListCardDestaque({ list }: ListCardDestaqueProps) {
     >
       <div className="relative" style={{ height: '148px' }}>
         {list.coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={list.coverUrl} alt={list.title} className="h-full w-full object-cover" />
+          <Image
+            src={list.coverUrl}
+            alt={list.title}
+            width={260}
+            height={148}
+            sizes="260px"
+            className="h-full w-full object-cover"
+            priority={priority}
+          />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-bg-subtle">
             <List size={32} className="text-text-disabled" strokeWidth={1.4} />

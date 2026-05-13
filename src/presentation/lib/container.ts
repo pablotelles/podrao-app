@@ -75,6 +75,7 @@ import { GetPublicLists } from '@/application/use-cases/lists/GetPublicLists';
 import { GetSavedLists } from '@/application/use-cases/lists/GetSavedLists';
 import { GetFeaturedLists } from '@/application/use-cases/lists/GetFeaturedLists';
 import { GetRecentLists } from '@/application/use-cases/lists/GetRecentLists';
+import { GetListsContainingPlace } from '@/application/use-cases/lists/GetListsContainingPlace';
 import { ReorderListPlaces } from '@/application/use-cases/lists/ReorderListPlaces';
 import { GetUserStats } from '@/application/use-cases/user/GetUserStats';
 import { GetMyReviews } from '@/application/use-cases/reviews/GetMyReviews';
@@ -214,6 +215,9 @@ export const getSavedLists = lazySingleton(() => new GetSavedLists(listRepositor
 export const reorderListPlaces = lazySingleton(() => new ReorderListPlaces(listRepository));
 export const getFeaturedLists = lazySingleton(() => new GetFeaturedLists(listRepository));
 export const getRecentLists = lazySingleton(() => new GetRecentLists(listRepository));
+export const getListsContainingPlace = lazySingleton(
+  () => new GetListsContainingPlace(listRepository),
+);
 
 // User stats
 export const getUserStats = lazySingleton(

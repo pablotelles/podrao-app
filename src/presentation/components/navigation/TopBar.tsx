@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, Bell } from 'lucide-react';
 import { useTopBarContext } from '@/presentation/contexts/TopBarContext';
@@ -29,8 +30,15 @@ function Avatar({ user }: { user: User | null }) {
       aria-label="Ir para perfil"
     >
       {user?.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={user.avatarUrl} alt={initials} className="h-full w-full object-cover" />
+        <Image
+          src={user.avatarUrl}
+          alt={initials}
+          width={32}
+          height={32}
+          sizes="32px"
+          className="h-full w-full object-cover"
+          priority
+        />
       ) : (
         <Text as="span" variant="caption" className="font-bold text-brand">
           {initials}

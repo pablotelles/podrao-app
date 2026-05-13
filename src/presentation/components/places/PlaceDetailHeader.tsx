@@ -54,19 +54,12 @@ export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetail
   };
 
   const fetchListsWithPlace = async () => {
-    if (!lists) return;
     setLoadingListsWithPlace(true);
     try {
-      const checks = await Promise.all(
-        lists.map(async (list) => {
-          const res = await fetch(`/api/lists/${list.id}/places`);
-          if (!res.ok) return { listId: list.id, hasPlace: false };
-          const places = (await res.json()) as { placeId: string }[];
-          return { listId: list.id, hasPlace: places.some((p) => p.placeId === placeId) };
-        }),
-      );
-      const listIds = new Set(checks.filter((c) => c.hasPlace).map((c) => c.listId));
-      setListsWithPlace(listIds);
+      const res = await fetch(`/api/lists/contains?placeId=${placeId}`);
+      if (!res.ok) return;
+      const { listIds } = (await res.json()) as { listIds: string[] };
+      setListsWithPlace(new Set(listIds));
     } catch (err) {
       console.error('Erro ao verificar listas:', err);
     } finally {

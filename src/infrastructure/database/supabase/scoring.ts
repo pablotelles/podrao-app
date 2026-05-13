@@ -1,3 +1,5 @@
+// NOTE: This scoring formula is mirrored in the SQL RPC `search_nearby_places`.
+// When changing this formula, update the RPC migration as well.
 export function calcPlaceScore(place: {
   rating: number;
   reviewsCount: number;

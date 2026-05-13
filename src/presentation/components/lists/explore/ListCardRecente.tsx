@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { List, MapPin } from 'lucide-react';
 import type { ListSummaryDTO } from '@/application/dtos/ListDTO';
 import { savesTextShort, priceText } from '@/presentation/lib/listFormatters';
@@ -28,12 +29,13 @@ export function ListCardRecente({ list }: ListCardRecenteProps) {
     >
       <div className="relative shrink-0 overflow-hidden bg-bg-subtle" style={{ width: '88px' }}>
         {list.coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={list.coverUrl}
             alt={list.title}
+            width={88}
+            height={88}
+            sizes="88px"
             className="h-full w-full object-cover"
-            style={{ minHeight: '88px' }}
           />
         ) : (
           <div className="flex h-full min-h-22 w-full items-center justify-center bg-bg-subtle">

@@ -51,6 +51,9 @@ export interface IListRepository {
   reorderPlaces(listId: string, orderedPlaceIds: string[]): Promise<void>;
   isOwner(listId: string, userId: string): Promise<boolean>;
 
+  /** Retorna os IDs das listas do usuário que já contêm o lugar. */
+  findListIdsContainingPlace(userId: string, placeId: string): Promise<string[]>;
+
   // Social interactions
   incrementViewCount(listId: string): Promise<void>;
   toggleFavorite(userId: string, listId: string): Promise<{ favorited: boolean }>;

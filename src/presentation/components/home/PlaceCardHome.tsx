@@ -1,11 +1,13 @@
 'use client';
 
+import Image from 'next/image';
 import { Store } from 'lucide-react';
 import type { Place } from '@/domain/entities/Place';
 import { PRICE_BUCKET_LABELS } from '@/domain/value-objects/PriceBucket';
 
 interface PlaceCardHomeProps {
   place: Place;
+  priority?: boolean;
 }
 
 function formatDistance(meters?: number): string | null {
@@ -14,7 +16,7 @@ function formatDistance(meters?: number): string | null {
   return `${(meters / 1000).toFixed(1)}km`;
 }
 
-export function PlaceCardHome({ place }: PlaceCardHomeProps) {
+export function PlaceCardHome({ place, priority = false }: PlaceCardHomeProps) {
   const dist = formatDistance(place.distanceM);
   const priceLabel = PRICE_BUCKET_LABELS[place.priceBucket];
 
@@ -28,8 +30,15 @@ export function PlaceCardHome({ place }: PlaceCardHomeProps) {
       {/* Photo area — 96px tall */}
       <div className="relative bg-bg-subtle" style={{ height: '96px' }}>
         {place.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={place.logoUrl} alt={place.name} className="h-full w-full object-cover" />
+          <Image
+            src={place.logoUrl}
+            alt={place.name}
+            width={160}
+            height={96}
+            sizes="160px"
+            className="h-full w-full object-cover"
+            priority={priority}
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <Store size={28} className="text-text-disabled" strokeWidth={1.4} />

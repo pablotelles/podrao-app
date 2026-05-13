@@ -7,7 +7,78 @@ import type { OperatingPeriod } from '@/domain/value-objects/OperatingPeriod';
 import type { PriceBucket } from '@/domain/value-objects/PriceBucket';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './client';
-import { calcPlaceScore } from './scoring';
+
+// Shape returned by the search_nearby_places RPC.
+interface RpcPlaceRow {
+  id: string;
+  name: string;
+  address: string;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string;
+  estado: string;
+  lat: number | string;
+  lng: number | string;
+  establishment_type: string;
+  price_bucket: string;
+  description: string | null;
+  slug: string | null;
+  status: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  rating: number | string;
+  reviews_count: number;
+  distance_m: number;
+  periods: string[];
+  attributes: Record<string, string[]> | null;
+  logo_url: string | null;
+  score: number;
+}
+
+/** Maps a flat RPC row from search_nearby_places to the Place domain entity. */
+function rpcRowToPlace(row: RpcPlaceRow): Place {
+  return {
+    id: row.id,
+    name: row.name,
+    address: row.address,
+    numero: row.numero ?? undefined,
+    complemento: row.complemento ?? undefined,
+    bairro: row.bairro ?? undefined,
+    cidade: row.cidade,
+    estado: row.estado,
+    lat: Number(row.lat),
+    lng: Number(row.lng),
+    establishmentType: row.establishment_type,
+    periods: (row.periods ?? []) as OperatingPeriod[],
+    attributes: row.attributes ?? {},
+    priceBucket: row.price_bucket as PriceBucket,
+    description: row.description ?? undefined,
+    slug: row.slug ?? null,
+    logoUrl: row.logo_url ?? undefined,
+    rating: Number(row.rating ?? 0),
+    reviewsCount: Number(row.reviews_count ?? 0),
+    status: row.status as PlaceStatus,
+    createdBy: row.created_by ?? undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    distanceM: row.distance_m,
+  };
+}
+
+/**
+ * Maps a numeric maxPrice value to the corresponding PriceBucket ceiling string
+ * expected by the search_nearby_places RPC (p_max_price parameter).
+ * The RPC filters: price_bucket <= p_max_price (ENUM ordering).
+ */
+function maxPriceToBucket(maxPrice: number | undefined): string | null {
+  if (maxPrice === undefined) return null;
+  if (maxPrice <= 25) return 'up_to_25';
+  if (maxPrice <= 45) return '25_to_45';
+  if (maxPrice <= 80) return '45_to_80';
+  return null; // above_80 means no ceiling — omit filter
+}
 
 // Shape returned by .from('places').select(`*, place_stats(...), ...`) with joined relations.
 interface PlaceRowWithRelations {
@@ -47,20 +118,6 @@ interface PlacePhotoRow {
   position: number;
   uploaded_by: string | null;
   uploaded_at: string;
-}
-
-function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371000;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function getStats(row: PlaceRowWithRelations): { rating: number; reviews_count: number } | null {
-  return Array.isArray(row.place_stats) ? (row.place_stats[0] ?? null) : (row.place_stats ?? null);
 }
 
 /** Converts place_attributes rows into a grouped Record<key, string[]> */
@@ -116,77 +173,21 @@ export class SupabasePlaceRepository implements IPlaceRepository {
   }
 
   async searchNearby(params: SearchPlacesParams): Promise<Place[]> {
-    const radius = params.radiusMeters ?? 3000;
-    const limit = params.limit ?? 20;
-    const offset = params.offset ?? 0;
-
-    // Bounding box using numeric lat/lng columns (PostgREST st_dwithin filter is unreliable
-    // with the JS client — object serialization produces [object Object] in the URL).
-    // Exact radius filtering is applied via haversine below.
-    const latDelta = radius / 111_320;
-    const lngDelta = radius / (111_320 * Math.cos((params.lat * Math.PI) / 180));
-
-    const { data, error } = await this.db
-      .from('places')
-      .select(PLACE_SELECT)
-      .eq('status', 'approved')
-      .gte('lat', params.lat - latDelta)
-      .lte('lat', params.lat + latDelta)
-      .gte('lng', params.lng - lngDelta)
-      .lte('lng', params.lng + lngDelta);
-
-    if (error) throw new Error(error.message);
-
-    let rows = (data ?? []) as PlaceRowWithRelations[];
-
-    // Trim bounding-box overshoots to the actual circle radius
-    rows = rows.filter(
-      (r) => haversineM(params.lat, params.lng, Number(r.lat), Number(r.lng)) <= radius,
-    );
-
-    if (params.period) {
-      rows = rows.filter((r) => (r.place_periods ?? []).some((p) => p.period === params.period));
-    }
-
-    if (params.establishmentType) {
-      rows = rows.filter((r) => r.establishment_type === params.establishmentType);
-    }
-
-    if (params.attributeKey && params.attributeValue) {
-      rows = rows.filter((r) =>
-        (r.place_attributes ?? []).some(
-          (a) => a.key === params.attributeKey && a.value === params.attributeValue,
-        ),
-      );
-    } else if (params.attributeKey) {
-      rows = rows.filter((r) =>
-        (r.place_attributes ?? []).some((a) => a.key === params.attributeKey),
-      );
-    }
-
-    const withDistance = rows.map((row) => {
-      const distanceM = haversineM(params.lat, params.lng, Number(row.lat), Number(row.lng));
-      return { row, distanceM };
+    const { data, error } = await this.db.rpc('search_nearby_places', {
+      p_lat: params.lat,
+      p_lng: params.lng,
+      p_radius_m: params.radiusMeters ?? 3000,
+      p_period: params.period ?? null,
+      p_establishment: params.establishmentType ?? null,
+      p_attribute_key: params.attributeKey ?? null,
+      p_attribute_value: params.attributeValue ?? null,
+      p_max_price: maxPriceToBucket(params.maxPrice),
+      p_limit: params.limit ?? 20,
+      p_offset: params.offset ?? 0,
     });
 
-    withDistance.sort(
-      (a, b) =>
-        calcPlaceScore({
-          rating: Number(getStats(b.row)?.rating ?? 0),
-          reviewsCount: Number(getStats(b.row)?.reviews_count ?? 0),
-          distanceM: b.distanceM,
-        }) -
-        calcPlaceScore({
-          rating: Number(getStats(a.row)?.rating ?? 0),
-          reviewsCount: Number(getStats(a.row)?.reviews_count ?? 0),
-          distanceM: a.distanceM,
-        }),
-    );
-
-    return withDistance.slice(offset, offset + limit).map(({ row, distanceM }) => ({
-      ...this.rowWithRelationsToDomain(row),
-      distanceM,
-    }));
+    if (error) throw error;
+    return (data ?? []).map(rpcRowToPlace);
   }
 
   async searchByName(query: string, limit = 20): Promise<Place[]> {

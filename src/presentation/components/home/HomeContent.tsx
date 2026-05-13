@@ -6,6 +6,7 @@ import { Map } from 'lucide-react';
 import useSWR from 'swr';
 import { useUserLocation } from '@/presentation/hooks/useUserLocation';
 import { useNearbyPlaces } from '@/presentation/hooks/useNearbyPlaces';
+import { useDebounce } from '@/presentation/hooks/useDebounce';
 import { useFeaturedLists } from '@/presentation/hooks/useFeaturedLists';
 import type { ListSummaryDTO } from '@/application/dtos/ListDTO';
 import { useLists } from '@/presentation/hooks/useLists';
@@ -77,6 +78,9 @@ export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: Ho
   const [filters, setFilters] = useState<Omit<FilterValues, 'radiusMeters'>>({});
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
+  const debouncedRadius = useDebounce(radius, 400);
+  const debouncedFilters = useDebounce(filters, 400);
+
   const filterValues: FilterValues = { ...filters, radiusMeters: radius };
 
   function handleFiltersChange(next: FilterValues) {
@@ -125,25 +129,25 @@ export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: Ho
 
   const radiusLabel = radius < 1000 ? `${radius}m` : `${radius / 1000}km`;
 
-  const maxPrice = filters.priceBucket
+  const maxPrice = debouncedFilters.priceBucket
     ? (
         { up_to_25: 25, '25_to_45': 45, '45_to_80': 80, above_80: undefined } as Record<
           string,
           number | undefined
         >
-      )[filters.priceBucket]
+      )[debouncedFilters.priceBucket]
     : undefined;
 
-  const attributeFilter = deriveAttributeFilter(filters.contextual);
+  const attributeFilter = deriveAttributeFilter(debouncedFilters.contextual);
 
   const { places, isLoading: placesLoading } = useNearbyPlaces(
     hasLocation
       ? {
           lat: geo.lat!,
           lng: geo.lng!,
-          radiusMeters: radius,
-          period: filters.period,
-          establishmentType: filters.establishmentType,
+          radiusMeters: debouncedRadius,
+          period: debouncedFilters.period,
+          establishmentType: debouncedFilters.establishmentType,
           attributeKey: attributeFilter.attributeKey,
           attributeValue: attributeFilter.attributeValue,
           maxPrice,
@@ -204,8 +208,8 @@ export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: Ho
                   Array.from({ length: 5 }, (_, i) => <PlaceCardHomeSkeleton key={i} />)
                 ) : (
                   <>
-                    {places.map((place) => (
-                      <PlaceCardHome key={place.id} place={place} />
+                    {places.map((place, index) => (
+                      <PlaceCardHome key={place.id} place={place} priority={index === 0} />
                     ))}
                     {isSparse && <PlaceCardSparseInvite />}
                     {!isSparse && <PlaceCardContribute />}

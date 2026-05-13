@@ -17,9 +17,9 @@ export function DestaqueScroll({ lists }: DestaqueScrollProps) {
         WebkitOverflowScrolling: 'touch',
       }}
     >
-      {lists.map((list) => (
+      {lists.map((list, index) => (
         <div key={list.id} role="listitem">
-          <ListCardDestaque list={list} />
+          <ListCardDestaque list={list} priority={index === 0} />
         </div>
       ))}
     </div>

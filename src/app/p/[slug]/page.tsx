@@ -36,11 +36,14 @@ export default async function PlaceBySlugPage({ params }: Props) {
   const { slug } = await params;
 
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const place = await fetchPlace(slug);
+  const userPromise = supabase.auth.getUser();
+  const placePromise = fetchPlace(slug);
+  const [
+    {
+      data: { user },
+    },
+    place,
+  ] = await Promise.all([userPromise, placePromise]);
   if (!place) notFound();
 
   const [reviews, pendingEdits, visitStats] = await Promise.all([
