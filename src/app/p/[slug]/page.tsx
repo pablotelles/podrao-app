@@ -17,6 +17,7 @@ import { PlaceAttributes } from '@/presentation/components/places/PlaceAttribute
 import { PlaceEditActions } from '@/presentation/components/places/PlaceEditActions';
 import { PlaceActionsFAB } from '@/presentation/components/places/PlaceActionsFAB';
 import { PlaceVisitorsCount } from '@/presentation/components/places/PlaceVisitorsCount';
+import { PlaceReviewController } from '@/presentation/contexts/PlaceReviewContext';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -82,93 +83,93 @@ export default async function PlaceBySlugPage({ params }: Props) {
   };
 
   return (
-    <div>
-      <PlaceDetailHeader
-        lat={place.lat}
-        lng={place.lng}
-        name={place.name}
-        placeId={place.id}
-        slug={place.slug}
-      />
-
-      <PageContent centered>
-        <PlaceInfo
+    <PlaceReviewController placeId={place.id} place={place}>
+      <div>
+        <PlaceDetailHeader
+          lat={place.lat}
+          lng={place.lng}
           name={place.name}
-          status={place.status}
-          address={place.address}
-          numero={place.numero}
-          complemento={place.complemento}
-          bairro={place.bairro}
-          cidade={place.cidade}
-          estado={place.estado}
-          establishmentType={place.establishmentType}
-          reviewsCount={place.reviewsCount}
-          rating={place.rating}
-          recommendPct={recommendPct}
-          logoUrl={place.logoUrl}
-          isOwner={isOwner}
           placeId={place.id}
+          slug={place.slug}
         />
 
-        <PlaceAttributes
-          place={place}
-          description={place.description}
-          pendingBanner={
-            <PlaceEditActions
-              place={{
-                id: place.id,
-                name: place.name,
-                address: place.address,
-                numero: place.numero,
-                bairro: place.bairro,
-                cidade: place.cidade,
-                estado: place.estado,
-                establishmentType: place.establishmentType,
-                priceBucket: place.priceBucket,
-                description: place.description,
-                attributes: place.attributes,
-                periods: place.periods,
-              }}
-              pendingEditsByField={pendingEditsByField}
-            />
-          }
-        />
+        <PageContent centered>
+          <PlaceInfo
+            name={place.name}
+            status={place.status}
+            address={place.address}
+            numero={place.numero}
+            complemento={place.complemento}
+            bairro={place.bairro}
+            cidade={place.cidade}
+            estado={place.estado}
+            establishmentType={place.establishmentType}
+            reviewsCount={place.reviewsCount}
+            rating={place.rating}
+            recommendPct={recommendPct}
+            logoUrl={place.logoUrl}
+            isOwner={isOwner}
+            placeId={place.id}
+          />
 
-        <hr className="my-6 border-border" />
+          <PlaceAttributes
+            place={place}
+            description={place.description}
+            pendingBanner={
+              <PlaceEditActions
+                place={{
+                  id: place.id,
+                  name: place.name,
+                  address: place.address,
+                  numero: place.numero,
+                  bairro: place.bairro,
+                  cidade: place.cidade,
+                  estado: place.estado,
+                  establishmentType: place.establishmentType,
+                  priceBucket: place.priceBucket,
+                  description: place.description,
+                  attributes: place.attributes,
+                  periods: place.periods,
+                }}
+                pendingEditsByField={pendingEditsByField}
+              />
+            }
+          />
 
-        <div className="mb-2">
-          <h2 className="text-base font-semibold text-text-primary">
-            Avaliações
-            {reviews.length > 0 && (
-              <span className="font-normal text-text-secondary"> · {reviews.length}</span>
-            )}
-          </h2>
-        </div>
+          <hr className="my-6 border-border" />
 
-        {visitStats.distinctVisitors > 0 && (
-          <div className="mb-4">
-            <PlaceVisitorsCount count={visitStats.distinctVisitors} />
+          <div className="mb-2">
+            <h2 className="text-base font-semibold text-text-primary">
+              Avaliações
+              {reviews.length > 0 && (
+                <span className="font-normal text-text-secondary"> · {reviews.length}</span>
+              )}
+            </h2>
           </div>
-        )}
 
-        <PlaceReviewList
-          reviews={serializedReviews}
+          {visitStats.distinctVisitors > 0 && (
+            <div className="mb-4">
+              <PlaceVisitorsCount count={visitStats.distinctVisitors} />
+            </div>
+          )}
+
+          <PlaceReviewList
+            reviews={serializedReviews}
+            placeId={place.id}
+            currentUserId={user?.id}
+          />
+        </PageContent>
+
+        <PlaceActionsFAB
           placeId={place.id}
-          placeSlug={place.slug}
-          currentUserId={user?.id}
+          isApproved={place.status === 'approved'}
+          canReview={!!canReview}
+          initialVisitCount={visitStats.viewerVisitCount}
+          initialVisitedToday={visitStats.viewerVisitedToday}
+          place={placeData}
+          pendingEditsByField={pendingEditsByField}
         />
-      </PageContent>
-
-      <PlaceActionsFAB
-        placeId={place.id}
-        slug={place.slug}
-        isApproved={place.status === 'approved'}
-        canReview={!!canReview}
-        initialVisitCount={visitStats.viewerVisitCount}
-        initialVisitedToday={visitStats.viewerVisitedToday}
-        place={placeData}
-        pendingEditsByField={pendingEditsByField}
-      />
-    </div>
+      </div>
+    </PlaceReviewController>
   );
 }

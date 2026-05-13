@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { MoreVertical, Star, UserCircle2 } from 'lucide-react';
 import { ActionSheet } from '@/presentation/components/ui';
 import { useRouter } from 'next/navigation';
+import { usePlaceReview } from '@/presentation/contexts/PlaceReviewContext';
 import type { Review } from '@/domain/entities/Review';
 import { REVIEW_COMMENT_MAX_CHARS, REVIEW_INITIAL_VISIBLE, REVIEW_PAGE_SIZE } from './reviewConfig';
 
@@ -25,15 +26,14 @@ function relativeDate(date: string | Date): string {
 function PlaceReviewItem({
   review,
   placeId,
-  placeSlug,
   isOwnReview,
 }: {
   review: SerializedReview;
   placeId: string;
-  placeSlug?: string | null;
   isOwnReview: boolean;
 }) {
   const router = useRouter();
+  const { openReview } = usePlaceReview();
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -56,11 +56,7 @@ function PlaceReviewItem({
       icon: <Star size={16} />,
       label: 'Editar avaliação',
       onClick: () => {
-        router.push(
-          placeSlug
-            ? `/p/${placeSlug}/review?edit=${review.id}`
-            : `/places/${placeId}/review?edit=${review.id}`,
-        );
+        openReview(review.id);
         setMenuOpen(false);
       },
     },
@@ -158,16 +154,10 @@ function PlaceReviewItem({
 interface PlaceReviewListProps {
   reviews: SerializedReview[];
   placeId: string;
-  placeSlug?: string | null;
   currentUserId?: string;
 }
 
-export function PlaceReviewList({
-  reviews,
-  placeId,
-  placeSlug,
-  currentUserId,
-}: PlaceReviewListProps) {
+export function PlaceReviewList({ reviews, placeId, currentUserId }: PlaceReviewListProps) {
   const [visibleCount, setVisibleCount] = useState(REVIEW_INITIAL_VISIBLE);
 
   if (!reviews.length) {
@@ -193,7 +183,6 @@ export function PlaceReviewList({
             key={r.id}
             review={r}
             placeId={placeId}
-            placeSlug={placeSlug}
             isOwnReview={!!currentUserId && r.userId === currentUserId}
           />
         ))}

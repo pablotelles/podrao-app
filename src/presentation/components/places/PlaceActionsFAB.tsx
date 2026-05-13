@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, ThumbsUp, MapPin, MoreVertical } from 'lucide-react';
 import { useUser } from '@/presentation/contexts/UserContext';
+import { usePlaceReview } from '@/presentation/contexts/PlaceReviewContext';
 import { usePlaceVisits } from '@/presentation/hooks/usePlaceVisits';
 import { useToast } from '@/presentation/hooks/useToast';
 import { FAB } from '@/presentation/components/ui/FAB';
@@ -21,7 +22,6 @@ const RECENCY_OPTIONS: { value: VisitRecency; label: string; description: string
 
 interface PlaceActionsFABProps {
   placeId: string;
-  slug?: string | null;
   isApproved: boolean;
   canReview: boolean;
   initialVisitCount: number;
@@ -32,7 +32,6 @@ interface PlaceActionsFABProps {
 
 export function PlaceActionsFAB({
   placeId,
-  slug,
   isApproved,
   canReview,
   initialVisitCount,
@@ -42,6 +41,7 @@ export function PlaceActionsFAB({
 }: PlaceActionsFABProps) {
   const { user } = useUser();
   const router = useRouter();
+  const { openReview } = usePlaceReview();
   const { showToast } = useToast();
   const { viewerVisitCount, viewerVisitedToday, mutate } = usePlaceVisits(placeId);
 
@@ -59,7 +59,7 @@ export function PlaceActionsFAB({
       router.push('/login');
       return;
     }
-    router.push(slug ? `/p/${slug}/review` : `/places/${placeId}/review`);
+    openReview();
   };
 
   const handleCheckin = () => {
