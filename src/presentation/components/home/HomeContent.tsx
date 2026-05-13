@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Map } from 'lucide-react';
 import useSWR from 'swr';
-import { useGeolocation } from '@/presentation/hooks/useGeolocation';
+import { useUserLocation } from '@/presentation/hooks/useUserLocation';
 import { useNearbyPlaces } from '@/presentation/hooks/useNearbyPlaces';
 import { useFeaturedLists } from '@/presentation/hooks/useFeaturedLists';
 import { useLists } from '@/presentation/hooks/useLists';
@@ -50,7 +50,23 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
   // Never show a subheader on the new home
   useSubHeaderHeight(0);
 
-  const geo = useGeolocation();
+  const {
+    location,
+    initializing,
+    isLoading,
+    error: geoError,
+    requestLocation,
+    setLocation,
+  } = useUserLocation();
+  const geo = {
+    lat: location?.lat ?? null,
+    lng: location?.lng ?? null,
+    initializing,
+    loading: isLoading,
+    error: geoError,
+    request: requestLocation,
+    setLocation,
+  };
   const router = useRouter();
 
   const { radius, setRadius } = useSearchRadius();
@@ -90,10 +106,10 @@ export function HomeContent({ initialLat, initialLng }: HomeContentProps) {
 
   // Apply initial location from onboarding (city-search path)
   useEffect(() => {
-    if (!geo.initializing && geo.lat == null && initialLat != null && initialLng != null) {
-      geo.setLocation(initialLat, initialLng);
+    if (!initializing && geo.lat == null && initialLat != null && initialLng != null) {
+      setLocation(initialLat, initialLng);
     }
-  }, [geo.initializing]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initializing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reverse geocode for LocationBar label
   const { data: reverseData } = useSWR<ReverseGeocodeResult>(
