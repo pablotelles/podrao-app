@@ -1,6 +1,6 @@
 'use client';
 
-import { useGeolocation } from '@/presentation/hooks/useGeolocation';
+import { useUserLocation } from '@/presentation/hooks/useUserLocation';
 import { useFeaturedLists } from '@/presentation/hooks/useFeaturedLists';
 import { useRecentLists } from '@/presentation/hooks/useRecentLists';
 import { ExplorarListasSkeleton } from './ExplorarListasSkeleton';
@@ -10,8 +10,8 @@ import { CriarListaFAB } from './CriarListaFAB';
 import { LocationHint } from '@/presentation/components/ui/LocationHint';
 
 export function ExplorarListasContent() {
-  const geo = useGeolocation();
-  const locationGranted = geo.lat !== null && geo.lng !== null;
+  const { location, initializing, isLoading: geoLoading, requestLocation } = useUserLocation();
+  const locationGranted = location !== null;
 
   const { items: featured, isLoading: featuredLoading } = useFeaturedLists();
   const {
@@ -21,13 +21,13 @@ export function ExplorarListasContent() {
     hasMore,
     loadMore,
   } = useRecentLists({
-    lat: geo.lat,
-    lng: geo.lng,
+    lat: location?.lat ?? null,
+    lng: location?.lng ?? null,
   });
 
   const isLoading = featuredLoading || (recentLoading && recent.length === 0);
 
-  if (geo.initializing || isLoading) {
+  if (initializing || isLoading) {
     return (
       <>
         <ExplorarListasSkeleton />
@@ -40,7 +40,7 @@ export function ExplorarListasContent() {
     <>
       <DestaqueSection lists={featured} />
 
-      {!locationGranted && !geo.loading && <LocationHint onAllow={geo.request} />}
+      {!locationGranted && !geoLoading && <LocationHint onAllow={requestLocation} />}
 
       <RecentesSection
         items={recent}

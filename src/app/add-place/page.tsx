@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useZodForm } from '@/presentation/lib/forms/useZodForm';
 import { createPlaceSchema, type CreatePlaceInput } from '@/presentation/lib/forms/place/schema';
 import { createPlaceInitialValues } from '@/presentation/lib/forms/place/initialValues';
-import { useGeolocation } from '@/presentation/hooks/useGeolocation';
+import { useUserLocation } from '@/presentation/hooks/useUserLocation';
 import { useAddPlace } from '@/presentation/hooks/useAddPlace';
 import { PageContent } from '@/presentation/components/ui';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
@@ -70,7 +70,7 @@ interface SubmittedPlace {
 
 export default function AddPlacePage() {
   const router = useRouter();
-  const geo = useGeolocation();
+  const { location, isLoading: geoLoading, error: geoError, requestLocation } = useUserLocation();
   const { submit, uploadPhoto, loading, error: submitError } = useAddPlace();
   const [step, setStep] = useState(0);
   usePageTitle(STEP_LABELS[step]);
@@ -217,12 +217,12 @@ export default function AddPlacePage() {
   );
 
   useEffect(() => {
-    if (!geo.lat || !geo.lng) return;
-    setValue('lat', geo.lat, { shouldValidate: true });
-    setValue('lng', geo.lng, { shouldValidate: true });
-    void applyReverseGeocode(geo.lat, geo.lng);
+    if (!location?.lat || !location?.lng) return;
+    setValue('lat', location.lat, { shouldValidate: true });
+    setValue('lng', location.lng, { shouldValidate: true });
+    void applyReverseGeocode(location.lat, location.lng);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geo.lat, geo.lng]);
+  }, [location?.lat, location?.lng]);
 
   function handleAttributeChange(key: string, value: string[]) {
     setValue('attributes', { ...attributes, [key]: value });
@@ -366,10 +366,10 @@ export default function AddPlacePage() {
               selectedAddress={selectedAddress}
               onAddressSelect={handleAddressSelect}
               onAddressClear={() => setSelectedAddress(null)}
-              onGpsClick={geo.request}
-              geoLoading={geo.loading}
+              onGpsClick={requestLocation}
+              geoLoading={geoLoading}
               geocoding={geocoding}
-              geoError={geo.error ?? undefined}
+              geoError={geoError ?? undefined}
               formLat={formLat}
               formLng={formLng}
               onLocationChange={handleLocationChange}

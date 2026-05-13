@@ -1,12 +1,19 @@
 export function MapSkeleton() {
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#e8e0d8]">
+    <div
+      className="relative h-full w-full overflow-hidden"
+      style={{ background: 'var(--color-map-skeleton-bg)' }}
+    >
       {/* Ruas horizontais */}
       {[12, 28, 44, 58, 72, 86].map((top) => (
         <div
           key={top}
           className="absolute left-0 right-0 animate-pulse"
-          style={{ top: `${top}%`, height: top % 3 === 0 ? 6 : 3, background: '#d4ccc4' }}
+          style={{
+            top: `${top}%`,
+            height: top % 3 === 0 ? 6 : 3,
+            background: 'var(--color-map-skeleton-road)',
+          }}
         />
       ))}
 
@@ -15,7 +22,11 @@ export function MapSkeleton() {
         <div
           key={left}
           className="absolute top-0 bottom-0 animate-pulse"
-          style={{ left: `${left}%`, width: left % 4 === 0 ? 6 : 3, background: '#d4ccc4' }}
+          style={{
+            left: `${left}%`,
+            width: left % 4 === 0 ? 6 : 3,
+            background: 'var(--color-map-skeleton-road)',
+          }}
         />
       ))}
 
@@ -43,7 +54,10 @@ export function MapSkeleton() {
             left: `${b.left}%`,
             width: `${b.w}%`,
             height: `${b.h}%`,
-            background: i % 3 === 0 ? '#ddd6ce' : '#e2dbd3',
+            background:
+              i % 3 === 0
+                ? 'var(--color-map-skeleton-block-a)'
+                : 'var(--color-map-skeleton-block-b)',
           }}
         />
       ))}

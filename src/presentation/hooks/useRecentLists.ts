@@ -33,12 +33,13 @@ export function useRecentLists({ lat, lng, radiusKm }: UseRecentListsOptions) {
   const { data, error, isLoading, isValidating, size, setSize } =
     useSWRInfinite<GetRecentListsResult>(
       (pageIndex, previousPageData: GetRecentListsResult | null) => {
+        if (lat === null || lng === null) return null; // wait for geo
         if (previousPageData && previousPageData.nextCursor === null) return null;
         const cursor = previousPageData?.nextCursor ?? null;
         return buildUrl(lat, lng, cursor, radiusKm);
       },
       fetcher,
-      { revalidateOnFocus: true },
+      { revalidateOnFocus: false },
     );
 
   const items: ListSummaryDTO[] = data ? data.flatMap((page) => page.items) : [];

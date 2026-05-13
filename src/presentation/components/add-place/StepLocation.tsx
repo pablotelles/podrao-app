@@ -56,7 +56,11 @@ export function StepLocation({
         disabled={geoLoading || geocoding}
         className="flex items-center gap-1.5 text-sm text-brand disabled:opacity-50"
       >
-        {geoLoading || geocoding ? 'Localizando...' : '📍 Usar minha localização atual'}
+        {geoLoading
+          ? 'Obtendo localização...'
+          : geocoding
+            ? 'Buscando endereço...'
+            : '📍 Usar minha localização atual'}
       </button>
       {geoError && <p className="text-xs text-error">{geoError}</p>}
     </>

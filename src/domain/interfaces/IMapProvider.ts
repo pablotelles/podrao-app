@@ -22,14 +22,6 @@ export interface ReverseGeocodingResult {
   };
 }
 
-export interface StaticMapOptions {
-  lat: number;
-  lng: number;
-  zoom?: number;
-  width?: number;
-  height?: number;
-}
-
 export interface AutocompleteResult {
   lat: number;
   lng: number;
@@ -49,6 +41,4 @@ export interface IMapProvider {
   geocode(address: string): Promise<GeocodingResult | null>;
   reverseGeocode(lat: number, lng: number): Promise<ReverseGeocodingResult | null>;
   autocomplete(query: string): Promise<AutocompleteResult[]>;
-  getStaticMapUrl(options: StaticMapOptions): string;
-  getTileUrlTemplate(): string;
 }

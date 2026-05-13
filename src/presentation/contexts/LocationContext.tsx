@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
+import {
+  createContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+  type ReactNode,
+} from 'react';
 
 export interface UserLocation {
   lat: number;
@@ -64,13 +72,21 @@ export function LocationProvider({
   updateIntervalMs = DEFAULT_INTERVAL_MS,
   enableAutoUpdate = true,
 }: LocationProviderProps) {
-  const sessionLoc = readSessionLocation();
-
-  const [location, setLocationState] = useState<UserLocation | null>(sessionLoc);
-  const [initializing, setInitializing] = useState(!sessionLoc);
+  const [location, setLocationState] = useState<UserLocation | null>(null);
+  const [initializing, setInitializing] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const prevLocationRef = useRef<UserLocation | null>(sessionLoc);
+  const prevLocationRef = useRef<UserLocation | null>(null);
+
+  // Read sessionStorage before first paint — avoids SSR/CSR hydration mismatch
+  useLayoutEffect(() => {
+    const sessionLoc = readSessionLocation();
+    if (sessionLoc) {
+      setLocationState(sessionLoc);
+      prevLocationRef.current = sessionLoc;
+      setInitializing(false);
+    }
+  }, []);
 
   const handleSuccess = useCallback((position: GeolocationPosition) => {
     const lat = position.coords.latitude;
@@ -156,7 +172,8 @@ export function LocationProvider({
       return;
     }
 
-    requestLocation();
+    // Skip initial GPS fetch if sessionStorage already has a fresh location
+    if (!prevLocationRef.current) requestLocation();
 
     const intervalId = setInterval(() => {
       requestLocation();

@@ -17,17 +17,9 @@ interface PlaceDetailHeaderProps {
   name: string;
   placeId: string;
   slug?: string | null;
-  staticMapUrl?: string | null;
 }
 
-export function PlaceDetailHeader({
-  lat,
-  lng,
-  name,
-  placeId,
-  slug,
-  staticMapUrl,
-}: PlaceDetailHeaderProps) {
+export function PlaceDetailHeader({ lat, lng, name, placeId, slug }: PlaceDetailHeaderProps) {
   const { distanceText, hasUserLocation } = useDistance(lat, lng);
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   const { isFavorited, toggle: toggleFavorite, isLoading: isFavLoading } = useFavorites();
@@ -37,7 +29,6 @@ export function PlaceDetailHeader({
   const [addingToListId, setAddingToListId] = useState<string | null>(null);
   const [listsWithPlace, setListsWithPlace] = useState<Set<string>>(new Set());
   const [loadingListsWithPlace, setLoadingListsWithPlace] = useState(false);
-  const [isInteractive, setIsInteractive] = useState(!staticMapUrl);
 
   const handleShare = async () => {
     const path = slug ? `/p/${slug}` : `/places/${placeId}`;
@@ -108,27 +99,7 @@ export function PlaceDetailHeader({
   return (
     <>
       <div className="relative h-50 w-full overflow-hidden" style={{ isolation: 'isolate' }}>
-        {isInteractive ? (
-          <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
-        ) : (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={staticMapUrl!}
-              alt={`Mapa de ${name}`}
-              className="h-full w-full object-cover"
-            />
-            <button
-              onClick={() => setIsInteractive(true)}
-              className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity hover:bg-black/30"
-              aria-label="Abrir mapa interativo"
-            >
-              <span className="rounded-full bg-bg/90 px-4 py-2 text-sm font-medium text-text-primary shadow-md">
-                Abrir mapa
-              </span>
-            </button>
-          </>
-        )}
+        <DynamicPlaceDetailMap lat={lat} lng={lng} name={name} />
 
         {/* Distância - canto inferior esquerdo */}
         {hasUserLocation && (

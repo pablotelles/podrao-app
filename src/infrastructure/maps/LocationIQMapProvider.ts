@@ -3,7 +3,6 @@ import type {
   GeocodingResult,
   ReverseGeocodingResult,
   AutocompleteResult,
-  StaticMapOptions,
 } from '@/domain/interfaces/IMapProvider';
 
 const BASE_URL = 'https://us1.locationiq.com/v1';
@@ -113,16 +112,5 @@ export class LocationIQMapProvider implements IMapProvider {
         state: item.address?.state,
       },
     }));
-  }
-
-  getStaticMapUrl({ lat, lng, zoom = 15, width = 600, height = 300 }: StaticMapOptions): string {
-    return (
-      `https://maps.locationiq.com/v3/staticmap?key=${this.apiKey}` +
-      `&center=${lat},${lng}&zoom=${zoom}&size=${width}x${height}&format=png`
-    );
-  }
-
-  getTileUrlTemplate(): string {
-    return `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`;
   }
 }

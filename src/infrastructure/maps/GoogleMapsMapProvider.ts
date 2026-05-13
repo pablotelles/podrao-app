@@ -3,13 +3,11 @@ import type {
   GeocodingResult,
   ReverseGeocodingResult,
   AutocompleteResult,
-  StaticMapOptions,
 } from '@/domain/interfaces/IMapProvider';
 
 const GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
 const AUTOCOMPLETE_URL = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
 const PLACE_DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
-const STATIC_MAP_URL = 'https://maps.googleapis.com/maps/api/staticmap';
 
 type AddressComponent = { long_name: string; types: string[] };
 
@@ -232,16 +230,5 @@ export class GoogleMapsMapProvider implements IMapProvider {
       console.error('[GoogleMaps] autocomplete exception:', err);
       return [];
     }
-  }
-
-  getStaticMapUrl({ lat, lng, zoom = 15, width = 600, height = 300 }: StaticMapOptions): string {
-    return (
-      `${STATIC_MAP_URL}?center=${lat},${lng}&zoom=${zoom}&size=${width}x${height}` +
-      `&key=${this.apiKey}&markers=color:purple|${lat},${lng}`
-    );
-  }
-
-  getTileUrlTemplate(): string {
-    return '';
   }
 }

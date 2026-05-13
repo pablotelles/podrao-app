@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import 'leaflet/dist/leaflet.css';
 
 /* ===================================================================
    DESIGN TOKENS — fonte única da verdade visual.
@@ -132,6 +131,15 @@
     --z-modal: 50;
     --z-toast: 60;
     --z-tooltip: 70;
+
+    /* Map tokens */
+    --color-map-user: #3b82f6;
+    --color-map-user-ring: rgba(59, 130, 246, 0.25);
+    --color-map-user-shadow: rgba(0, 0, 0, 0.2);
+    --color-map-skeleton-bg: #e8e0d8;
+    --color-map-skeleton-road: #d4ccc4;
+    --color-map-skeleton-block-a: #ddd6ce;
+    --color-map-skeleton-block-b: #e2dbd3;
   }
 
   /* Tema escuro — adicionar overrides aqui quando necessário */

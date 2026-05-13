@@ -20,7 +20,7 @@ import { useSearchRadius } from '@/presentation/hooks/useSearchRadius';
 import { ContributeBlock } from '@/presentation/components/home/ContributeBlock';
 import { ListCardDestaque } from '@/presentation/components/lists/explore/ListCardDestaque';
 import { SectionHeader } from '@/presentation/components/lists/explore/SectionHeader';
-import { MapSkeleton } from '@/presentation/components/maps/MapSkeleton';
+
 import { PlaceCardHomeSkeleton, ListCardSkeleton } from '@/presentation/components/ui/Skeleton';
 import { usePageTitle } from '@/presentation/contexts/TopBarContext';
 
@@ -55,23 +55,9 @@ export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: Ho
   usePageTitle('Inicio');
   useSubHeaderHeight(0);
 
-  const {
-    location,
-    initializing,
-    isLoading,
-    error: geoError,
-    requestLocation,
-    setLocation,
-  } = useUserLocation();
-  const geo = {
-    lat: location?.lat ?? null,
-    lng: location?.lng ?? null,
-    initializing,
-    loading: isLoading,
-    error: geoError,
-    request: requestLocation,
-    setLocation,
-  };
+  const { location, initializing, isLoading, requestLocation, setLocation } = useUserLocation();
+  const lat = location?.lat ?? null;
+  const lng = location?.lng ?? null;
   const router = useRouter();
 
   const { radius, setRadius } = useSearchRadius();
@@ -105,18 +91,18 @@ export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: Ho
     return {};
   }
 
-  const hasLocation = geo.lat != null && geo.lng != null;
+  const hasLocation = lat != null && lng != null;
 
   // Apply initial location from onboarding (city-search path)
   useEffect(() => {
-    if (!initializing && geo.lat == null && initialLat != null && initialLng != null) {
+    if (!initializing && lat == null && initialLat != null && initialLng != null) {
       setLocation(initialLat, initialLng);
     }
   }, [initializing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reverse geocode for LocationBar label
   const { data: reverseData } = useSWR<ReverseGeocodeResult>(
-    buildReverseUrl(geo.lat, geo.lng),
+    buildReverseUrl(lat, lng),
     reverseGeocodeFetcher,
     { revalidateOnFocus: false },
   );
@@ -143,8 +129,8 @@ export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: Ho
   const { places, isLoading: placesLoading } = useNearbyPlaces(
     hasLocation
       ? {
-          lat: geo.lat!,
-          lng: geo.lng!,
+          lat: lat!,
+          lng: lng!,
           radiusMeters: debouncedRadius,
           period: debouncedFilters.period,
           establishmentType: debouncedFilters.establishmentType,
@@ -168,21 +154,17 @@ export function HomeContent({ initialLat, initialLng, initialFeaturedLists }: Ho
       className="overflow-y-auto pb-20"
       style={{ minHeight: 'calc(100dvh - var(--topbar-height))' }}
     >
-      {/* ── ZONA A+B — geo-dependent: skeleton until location resolves ── */}
-      {geo.initializing ? (
-        <div style={{ height: '40vh' }}>
-          <MapSkeleton />
-        </div>
-      ) : (
+      {/* ── ZONA A+B — geo-dependent ── */}
+      {!initializing && (
         <>
           <div className="bg-bg">
             <LocationBar
               locationLabel={locationLabel}
-              loading={geo.loading}
-              currentLat={geo.lat}
-              currentLng={geo.lng}
-              onLocationSearch={(lat, lng) => geo.setLocation(lat, lng)}
-              onRetryGps={geo.request}
+              loading={isLoading}
+              currentLat={lat}
+              currentLng={lng}
+              onLocationSearch={(locLat, locLng) => setLocation(locLat, locLng)}
+              onRetryGps={requestLocation}
             />
           </div>
 

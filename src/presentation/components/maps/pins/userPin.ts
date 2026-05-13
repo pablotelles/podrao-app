@@ -8,7 +8,7 @@ export function createUserPinHtml(): string {
     <div style="position:relative;width:24px;height:24px;">
       <div style="
         position:absolute;inset:0;
-        background:rgba(59,130,246,0.25);
+        background:var(--color-map-user-ring);
         border-radius:50%;
         animation:map-pulse 2s ease-out infinite;
       "></div>
@@ -17,10 +17,10 @@ export function createUserPinHtml(): string {
         top:50%;left:50%;
         transform:translate(-50%,-50%);
         width:14px;height:14px;
-        background:#3B82F6;
+        background:var(--color-map-user);
         border:2.5px solid white;
         border-radius:50%;
-        box-shadow:0 1px 6px rgba(59,130,246,0.5),0 1px 3px rgba(0,0,0,0.2);
+        box-shadow:0 1px 6px var(--color-map-user-ring),0 1px 3px var(--color-map-user-shadow);
       "></div>
     </div>
   `.trim();
