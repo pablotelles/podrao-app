@@ -42,7 +42,10 @@ async function reverseGeocodeFetcher(url: string): Promise<ReverseGeocodeResult>
 
 function buildReverseUrl(lat: number | null, lng: number | null): string | null {
   if (lat == null || lng == null) return null;
-  return `/api/geocode/reverse?lat=${lat}&lng=${lng}`;
+  // Round to 3 decimals (~111m cells) so GPS jitter doesn't create a new SWR key
+  const lat3 = Math.round(lat * 1000) / 1000;
+  const lng3 = Math.round(lng * 1000) / 1000;
+  return `/api/geocode/reverse?lat=${lat3}&lng=${lng3}`;
 }
 
 export function HomeContent({ initialLat, initialLng }: HomeContentProps) {

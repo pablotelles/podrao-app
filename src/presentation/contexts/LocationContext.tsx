@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
 
 export interface UserLocation {
   lat: number;
@@ -24,6 +24,10 @@ interface LocationContextValue {
 export const LocationContext = createContext<LocationContextValue | null>(null);
 
 const SESSION_KEY = 'podrao:last-location';
+// ~150m threshold: meaningful movement for a restaurant discovery app
+const MOVE_THRESHOLD_DEG = 0.0015;
+// Default refresh interval: 3 minutes
+const DEFAULT_INTERVAL_MS = 180_000;
 
 function readSessionLocation(): UserLocation | null {
   if (typeof window === 'undefined') return null;
@@ -43,6 +47,12 @@ function writeSessionLocation(loc: UserLocation) {
   }
 }
 
+function hasMoved(prev: UserLocation, lat: number, lng: number): boolean {
+  return (
+    Math.abs(prev.lat - lat) > MOVE_THRESHOLD_DEG || Math.abs(prev.lng - lng) > MOVE_THRESHOLD_DEG
+  );
+}
+
 interface LocationProviderProps {
   children: ReactNode;
   updateIntervalMs?: number;
@@ -51,24 +61,36 @@ interface LocationProviderProps {
 
 export function LocationProvider({
   children,
-  updateIntervalMs = Number(process.env.NEXT_PUBLIC_LOCATION_UPDATE_INTERVAL_MS) || 30000,
+  updateIntervalMs = DEFAULT_INTERVAL_MS,
   enableAutoUpdate = true,
 }: LocationProviderProps) {
   const sessionLoc = readSessionLocation();
 
   const [location, setLocationState] = useState<UserLocation | null>(sessionLoc);
-  // If we already have a cached location, skip the skeleton on the first render
   const [initializing, setInitializing] = useState(!sessionLoc);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const prevLocationRef = useRef<UserLocation | null>(sessionLoc);
 
   const handleSuccess = useCallback((position: GeolocationPosition) => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    const prev = prevLocationRef.current;
+
+    // Only update state if user has moved meaningfully (~150m)
+    if (prev && !hasMoved(prev, lat, lng)) {
+      setIsLoading(false);
+      setInitializing(false);
+      return;
+    }
+
     const loc: UserLocation = {
-      lat: position.coords.latitude,
-      lng: position.coords.longitude,
+      lat,
+      lng,
       accuracy: position.coords.accuracy,
       timestamp: position.timestamp,
     };
+    prevLocationRef.current = loc;
     setLocationState(loc);
     writeSessionLocation(loc);
     setIsLoading(false);
@@ -109,12 +131,13 @@ export function LocationProvider({
     navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
       enableHighAccuracy: false,
       timeout: 10000,
-      maximumAge: 5000,
+      maximumAge: updateIntervalMs,
     });
-  }, [handleSuccess, handleError]);
+  }, [handleSuccess, handleError, updateIntervalMs]);
 
   const setLocation = useCallback((lat: number, lng: number) => {
     const loc: UserLocation = { lat, lng, timestamp: Date.now() };
+    prevLocationRef.current = loc;
     setLocationState(loc);
     writeSessionLocation(loc);
     setIsLoading(false);
@@ -126,34 +149,30 @@ export function LocationProvider({
     setError(null);
   }, []);
 
+  // Periodic getCurrentPosition — no watchPosition (not a navigation app)
   useEffect(() => {
     if (!enableAutoUpdate || typeof window === 'undefined' || !navigator.geolocation) {
       setInitializing(false);
       return;
     }
 
-    let watchId: number | null = null;
-    let intervalId: NodeJS.Timeout | null = null;
-
     requestLocation();
 
-    if (navigator.geolocation.watchPosition) {
-      watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: updateIntervalMs,
-      });
-    } else {
-      intervalId = setInterval(() => {
-        requestLocation();
-      }, updateIntervalMs);
-    }
+    const intervalId = setInterval(() => {
+      requestLocation();
+    }, updateIntervalMs);
+
+    // Refresh when the user returns to the tab/app after being away
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') requestLocation();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-      if (intervalId !== null) clearInterval(intervalId);
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [enableAutoUpdate, updateIntervalMs, requestLocation, handleSuccess, handleError]);
+  }, [enableAutoUpdate, updateIntervalMs, requestLocation]);
 
   return (
     <LocationContext.Provider
