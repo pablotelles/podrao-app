@@ -8,7 +8,12 @@ installSerwist({
   skipWaiting: true,
   clientsClaim: true,
   runtimeCaching: [
-    ...defaultCache,
+    // API routes are never cached — they depend on real-time location/auth data
+    {
+      matcher: /\/api\//,
+      handler: 'NetworkOnly',
+    },
+    // Place images from Supabase Storage — long-lived, safe to cache
     {
       matcher: /^https:\/\/.*\.supabase\.co\/storage\/.*/,
       handler: 'CacheFirst',
@@ -17,5 +22,6 @@ installSerwist({
         expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
       },
     },
+    ...defaultCache,
   ],
 });
